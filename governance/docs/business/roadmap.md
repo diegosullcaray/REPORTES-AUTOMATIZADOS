@@ -5,5 +5,5 @@
 2b. Automatizar el envío por correo de los Excel (hoy se entregan a mano).
 3. Extraer a `comun/` `Periodo`/`Mes`, `cronometro`, `exportar_excel`, caché.
 4. Dar nombre descriptivo a las hojas de cada reporte tras la primera ejecución real (hoy `Resultado_N`) y marcar cuáles son obligatorias.
-5. Programar ejecución diaria (Programador de tareas de Windows).
+5. (Descartado) Programar ejecución automática: los reportes los ejecuta una persona bajo demanda.
 6. Pruebas de reglas de fecha (lunes→sábado, feriado→hábil anterior).

@@ -4,12 +4,13 @@
 
 ## Antes
 ```bash
-python main.py tablas indicadores-clientes --fecha-corte 2026-07-31 --verificar
+python main.py tablas indicadores-clientes --verificar
 ```
 Críticas: `intcom.dbo.ccd`, `csd.dbo.clientes_ds`, `dwh.dbo.hcarcap001`, `intcom.dbo.ccs_fund_f`. **Desfase**: Nuevos y Seguros usan un mes antes del `--mes` (por defecto); al verificar tablas, usa también el corte del mes anterior para esas dos.
 
 ## Ejecutar
 ```bash
+python main.py indicadores-clientes               # mes de FECHA_CORTE_MENSUAL (.env)
 python main.py indicadores-clientes --mes 2026-07
 python main.py indicadores-clientes --mes 2026-07 --reportes pasivos seguros
 python main.py indicadores-clientes --mes 2026-07 --desfase seguros=2 --hilos 4

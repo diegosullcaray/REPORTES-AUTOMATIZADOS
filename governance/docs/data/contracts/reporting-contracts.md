@@ -2,7 +2,7 @@
 
 | Aspecto | Regla |
 |---|---|
-| Entrada | Fecha por CLI (`--fecha-corte AAAA-MM-DD` fin de mes, `--mes AAAA-MM`); jamás editando el SQL a mano |
+| Entrada | Fecha de corte **del `.env`** (`FECHA_CORTE_MENSUAL` fin de mes, `FECHA_CORTE_DIARIA`) o `--fecha-corte AAAA-MM-DD` (manda sobre el `.env`); mensual sin ninguna ⇒ error; diaria sin ninguna ⇒ día anterior (lunes ⇒ sábado). Reportes por mes: `--mes AAAA-MM`. Jamás editando el SQL a mano |
 | Salida | `salidas/<reporte>/…` (Excel/TXT); configurable con `REPORTES_DIR_SALIDAS` |
 | Aborto | Variable crítica en 0 / tabla fuente inexistente / sin filas ⇒ se detiene y avisa; no genera archivo parcial |
 | Vacío vs error | Resultado vacío válido se informa como tal; excepción SQL nunca se presenta como vacío |

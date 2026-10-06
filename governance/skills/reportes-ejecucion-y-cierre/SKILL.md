@@ -6,10 +6,11 @@ description: Cómo ejecutar un reporte y el cierre de mes: verificar que las tab
 # Ejecución y cierre de mes
 
 ```bash
+# .env: FECHA_CORTE_MENSUAL=AAAA-MM-DD (y FECHA_CORTE_DIARIA); --fecha-corte la cambia solo esa vez
 python main.py probar-conexiones
-python main.py tablas <reporte> --fecha-corte <corte> --verificar          # ¿al día?
-python main.py solicitud-actualizacion <reporte> --fecha-corte <corte> --verificar   # mensaje para Producción
-python main.py <reporte> ...                                              # solo con todo OK
+python main.py tablas <reporte> --verificar                     # ¿al día?
+python main.py solicitud-actualizacion <reporte> --verificar    # mensaje para Producción
+python main.py <reporte>                                        # lo ejecutas tú, solo con todo OK
 ```
 
 1. **Nunca** ejecutes con tablas `DESACTUALIZADA` o `NO EXISTE`: el resultado es plausible y equivocado.

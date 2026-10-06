@@ -28,7 +28,7 @@ from ..config import DIR_OUTPUTS, ConfiguracionError
 from ..db import ejecutar_lote
 from ..tablas import tablas_de
 from ..verificacion import Estado, Resultado, mensaje_solicitud, nombre_resuelto, verificar_reporte
-from .fechas import Cortes, dia_anterior_habil_simple, fecha_iso
+from .fechas import Cortes, fecha_iso, resolver_corte
 
 log = logging.getLogger("reportes")
 
@@ -129,10 +129,11 @@ def exportar_excel(r: ReporteLote, resultados: list[pd.DataFrame], cortes: Corte
 
 def _parser(r: ReporteLote) -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog=f"main.py {r.comando}", description=r.descripcion)
-    if r.frecuencia == "mensual":
-        p.add_argument("--fecha-corte", type=fecha_iso, required=True, help="Fin de mes AAAA-MM-DD (feriado: día hábil anterior)")
-    else:
-        p.add_argument("--fecha-corte", type=fecha_iso, help="AAAA-MM-DD (defecto: día anterior; lunes = sábado)")
+    p.add_argument(
+        "--fecha-corte", type=fecha_iso,
+        help="AAAA-MM-DD. Si no la das, se toma del .env (FECHA_CORTE_MENSUAL / FECHA_CORTE_DIARIA); "
+             "diaria sin ninguna: día anterior (lunes = sábado)",
+    )
     p.add_argument("--salida", type=Path, default=None, help="Carpeta de salida (defecto: data/outputs/<reporte>)")
     p.add_argument("--sin-verificar", action="store_true", help="No validar tablas antes de ejecutar (no recomendado)")
     p.add_argument("--forzar", action="store_true", help="Ejecutar aunque haya tablas desactualizadas (queda anotado en la hoja Control)")
@@ -160,7 +161,8 @@ def correr(r: ReporteLote, argv: list[str] | None = None) -> int:
     a = _parser(r).parse_args(argv)
     logging.basicConfig(level=logging.DEBUG if a.verbose else logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     try:
-        corte = a.fecha_corte or dia_anterior_habil_simple()
+        corte, origen = resolver_corte(r.frecuencia, a.fecha_corte)
+        print(f"Fecha de corte: {corte:%Y-%m-%d} ({origen})")
         cortes = Cortes.mensual(corte) if r.frecuencia == "mensual" else Cortes(corte)
         sql = cortes.aplicar(r.sql)
         if r.escribe_en_bd and not a.confirmar_escritura and not a.solo_verificar:

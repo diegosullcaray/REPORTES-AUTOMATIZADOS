@@ -22,7 +22,7 @@ def _fecha(valor: str) -> date:
 def _parser(prog: str, desc: str) -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog=prog, description=desc)
     p.add_argument("reporte", nargs="?", help="nombre del reporte (sin argumento: lista los disponibles)")
-    p.add_argument("--fecha-corte", type=_fecha, help="AAAA-MM-DD (obligatoria en mensuales; diarias: día anterior)")
+    p.add_argument("--fecha-corte", type=_fecha, help="AAAA-MM-DD (defecto: la del .env, FECHA_CORTE_MENSUAL / FECHA_CORTE_DIARIA; diaria sin ninguna: día anterior)")
     p.add_argument("--verificar", action="store_true", help="consulta las bases (solo SELECT) para saber si están al día")
     return p
 
@@ -40,7 +40,7 @@ def cmd_tablas(argv: list[str]) -> int:
         return _listar()
     try:
         frecuencia = frecuencia_de(a.reporte)
-        fecha = fecha_esperada(frecuencia, fecha_corte=a.fecha_corte) if (a.verificar or a.fecha_corte) else date.today()
+        fecha = fecha_esperada(frecuencia, fecha_corte=a.fecha_corte) if a.verificar else (a.fecha_corte or date.today())
         if not a.verificar:
             for t in tablas_de(a.reporte):
                 col = t.col_fecha or "-"

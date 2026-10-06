@@ -3,27 +3,19 @@
 Conexión: servidor rcc (172.20.0.70), base DW_Raw_v2 (dbriesgos por nombre de 3 partes). Ver reportes.config / .env.
 """
 import datetime
-from datetime import timedelta
 import os
 
-from ..config import DIR_OUTPUTS
+from ..comun.fechas import fecha_iso, resolver_corte
+from ..config import DIR_OUTPUTS, ConfiguracionError
 from ..db import conexion_pyodbc
 
-def generar_inserts_sql():
-    # 1. Configuración de conexión y fecha
-    # Calcular fecha de ejecución
+def generar_inserts_sql(fecha_corte: datetime.date | None = None):
+    # 1. Fecha: --fecha-corte > FECHA_CORTE_DIARIA del .env > día anterior (lunes: sábado)
     hoy = datetime.date.today()
-    
-    # Regla: si hoy es lunes (0), revisar el sábado (-2 días). Caso contrario, revisar el día anterior (-1 día)
-    if hoy.weekday() == 0:  
-        fecha_ejec = hoy - timedelta(days=2) 
-        print("Hoy es Lunes. Se ejecutará la data correspondiente al Sábado.")
-    else:
-        fecha_ejec = hoy - timedelta(days=1)
-        
+    fecha_ejec, origen = resolver_corte("diaria", fecha_corte)
     print(f"Fecha actual: {hoy.strftime('%Y-%m-%d')}")
-    print(f"Fecha de ejecución objetivo: {fecha_ejec.strftime('%Y-%m-%d')}")
-    
+    print(f"Fecha de ejecución objetivo: {fecha_ejec.strftime('%Y-%m-%d')} ({origen})")
+
     # Formatos de fecha para SQL
     fec_str = fecha_ejec.strftime('%Y-%m-%d')
     fec_tabla = fecha_ejec.strftime('%Y%m%d') # Para buscar PROV_PROY_YYYYMMDD_0
@@ -195,7 +187,16 @@ def generar_inserts_sql():
             print("-> Conexión a la base de datos cerrada de manera segura.")
 
 def main(argv=None) -> int:
-    generar_inserts_sql()
+    import argparse
+
+    parser = argparse.ArgumentParser(prog="main.py cmg-mora", description="CMG Mora: recaudo + provisiones -> INSERTs.")
+    parser.add_argument("--fecha-corte", type=lambda v: fecha_iso(v), help="AAAA-MM-DD (defecto: FECHA_CORTE_DIARIA del .env; sin ninguna: día anterior, lunes = sábado)")
+    args = parser.parse_args(argv)
+    try:
+        generar_inserts_sql(args.fecha_corte)
+    except (ConfiguracionError, ValueError) as exc:
+        print(f"✗ {exc}")
+        return 2
     return 0
 
 

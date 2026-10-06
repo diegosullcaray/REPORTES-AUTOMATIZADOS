@@ -1,17 +1,19 @@
 # Proceso de cierre de mes
 
-Objetivo: tener todos los reportes mensuales del corte `<corte>` sin sorpresas por tablas desactualizadas.
+Objetivo: tener los reportes mensuales del corte sin sorpresas por tablas desactualizadas. Los ejecutas tú, uno por uno, cuando las tablas estén listas.
+
+**Primero**: en el `.env` escribe `FECHA_CORTE_MENSUAL=AAAA-MM-DD` (último día del mes). Con eso no hace falta repetir `--fecha-corte` en cada comando.
 
 ## Día 1–2 · Antes de ejecutar (pre-vuelo)
 1. `python main.py probar-conexiones`.
 2. Para **cada** reporte mensual, verifica tablas:
    ```bash
-   python main.py tablas bancarizados            --fecha-corte <corte> --verificar
-   python main.py tablas bancarizados-producto   --fecha-corte <corte> --verificar
-   python main.py tablas clientes-extranjeros    --fecha-corte <corte> --verificar
-   python main.py tablas indicadores-clientes    --fecha-corte <corte> --verificar
+   python main.py tablas bancarizados --verificar
+   python main.py tablas bancarizados-producto --verificar
+   python main.py tablas clientes-extranjeros --verificar
+   python main.py tablas indicadores-clientes --verificar
    ```
-   y el resto de reportes mensuales (`saldo-medio-vigente`, `fondeo-estable`, `heredados-pdm`, `giovanni-*`, `michael-*`, `desembolsos-por-canal`, …; lista en [comandos](./comandos.md)). Atajo por reporte: `python main.py <reporte> --fecha-corte <corte> --solo-verificar`.
+   y el resto de reportes mensuales (`saldo-medio-vigente`, `fondeo-estable`, `heredados-pdm`, `giovanni-*`, `michael-*`, `desembolsos-por-canal`, …; lista en [comandos](./comandos.md)). Atajo por reporte: `python main.py <reporte> --solo-verificar`.
 3. Junta todas las tablas `DESACTUALIZADA`/`NO EXISTE` y haz **una sola solicitud** a Producción ([guía](./solicitud-actualizacion-tablas.md)). Usa la sección «por tabla» del [inventario](../../data/tables-inventory.md) para ver qué reportes se destraban con cada tabla.
 
 ## Orden sugerido de ejecución

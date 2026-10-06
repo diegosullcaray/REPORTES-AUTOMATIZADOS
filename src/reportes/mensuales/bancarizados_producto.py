@@ -32,7 +32,8 @@ from pathlib import Path
 import pandas as pd
 from openpyxl.utils import get_column_letter
 
-from ..config import DIR_OUTPUTS
+from ..comun.fechas import resolver_corte
+from ..config import DIR_OUTPUTS, ConfiguracionError
 from ..db import leer_ultimo_resultado as _leer_ultimo
 
 # =============================================================================
@@ -319,12 +320,20 @@ def tipo_mes(valor: str) -> Mes:
 
 def parsear_argumentos(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Bancarizados por producto (clientes nuevos con desembolso).")
-    parser.add_argument("--mes", type=tipo_mes, nargs="+", required=True, help="Uno o más meses, AAAA-MM")
+    parser.add_argument("--mes", type=tipo_mes, nargs="+", help="Uno o más meses AAAA-MM (defecto: el mes de FECHA_CORTE_MENSUAL del .env)")
     parser.add_argument("--salida", type=Path, default=DIR_SALIDA_DEFECTO, help="Carpeta de salida (defecto: data/outputs/<reporte>)")
     parser.add_argument("--copiar", action="store_true",
                         help="Copia CATEGORIA y BANCARIZADOS del primer mes al portapapeles, como el SQL original")
     parser.add_argument("-v", "--verbose", action="store_true", help="Log detallado")
-    return parser.parse_args(argv)
+    args = parser.parse_args(argv)
+    if not args.mes:
+        try:
+            corte, origen = resolver_corte("mensual")
+        except ConfiguracionError as exc:
+            parser.error(str(exc))
+        args.mes = [tipo_mes(f"{corte:%Y-%m}")]
+        print(f"Mes: {corte:%Y-%m} ({origen})")
+    return args
 
 
 def main(argv: list[str] | None = None) -> int:

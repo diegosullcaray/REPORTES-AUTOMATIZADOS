@@ -1,6 +1,6 @@
 # Documentación — Reportes Automatizados
 
-Entorno Python que automatiza los reportes de Financiera Confianza sobre 3 servidores SQL Server (`mish`, `slc`, `rcc`); cada reporte usa su propia base de datos.
+Entorno Python con los reportes de Financiera Confianza, que ejecutas tú bajo demanda, sobre 3 servidores SQL Server (`mish`, `slc`, `rcc`); cada reporte usa su propia base de datos.
 
 | Área | Responsabilidad |
 |---|---|

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import calendar
+import os
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 
@@ -24,6 +25,35 @@ def meses_atras(f: date, n: int) -> date:
     """Último día del mes que está `n` meses antes del mes de `f`."""
     total = f.year * 12 + (f.month - 1) - n
     return fin_de_mes(total // 12, total % 12 + 1)
+
+
+VAR_CORTE = {"diaria": "FECHA_CORTE_DIARIA", "mensual": "FECHA_CORTE_MENSUAL"}
+
+
+def corte_del_env(frecuencia: str) -> date | None:
+    """Fecha de corte escrita en el `.env` (FECHA_CORTE_DIARIA / FECHA_CORTE_MENSUAL, AAAA-MM-DD); vacío = sin definir."""
+    variable = VAR_CORTE[frecuencia]
+    valor = os.getenv(variable, "").strip()
+    if not valor:
+        return None
+    try:
+        return fecha_iso(valor)
+    except ValueError as exc:
+        raise ConfiguracionError(f"{variable} en el .env no es válida: {exc}") from exc
+
+
+def resolver_corte(frecuencia: str, cli: date | None = None, hoy: date | None = None) -> tuple[date, str]:
+    """Fecha de corte y de dónde salió. Prioridad: --fecha-corte > .env > (solo diaria) día anterior; mensual sin fecha = error."""
+    if cli:
+        return cli, "--fecha-corte"
+    en_env = corte_del_env(frecuencia)
+    if en_env:
+        return en_env, f".env ({VAR_CORTE[frecuencia]})"
+    if frecuencia == "diaria":
+        return dia_anterior_habil_simple(hoy), "por defecto: día anterior (lunes = sábado)"
+    raise ConfiguracionError(
+        "Falta la fecha de corte mensual: escribe FECHA_CORTE_MENSUAL=AAAA-MM-DD (fin de mes) en el .env o usa --fecha-corte AAAA-MM-DD"
+    )
 
 
 def dia_anterior_habil_simple(hoy: date | None = None) -> date:

@@ -13,7 +13,8 @@ def test_fecha_esperada_diaria_lunes_toma_sabado():
     assert v.fecha_esperada("diaria", hoy=date(2026, 10, 7)) == date(2026, 10, 6)
 
 
-def test_mensual_exige_fecha_corte():
+def test_mensual_exige_fecha_corte(monkeypatch):
+    monkeypatch.delenv("FECHA_CORTE_MENSUAL", raising=False)
     with pytest.raises(ConfiguracionError):
         v.fecha_esperada("mensual")
 

@@ -6,7 +6,7 @@
 El flujo heredado era: abrir un `.sql`, cambiar a mano las fechas, ejecutar en SSMS, copiar a Excel. Las fechas fijas, la falta de validación de tablas y el copy-paste producían cifras plausibles y equivocadas. Una carpeta `sql/` con archivos sueltos reproducía ese flujo (alguien tenía que ejecutarlos).
 
 ## Decisión
-Cada reporte es un módulo Python ejecutable con su T-SQL incrustado y fechas por tokens (`@@F@@`…). Un ejecutor común (`comun/ejecutor.py`) automatiza conexión, validación de tablas al corte, ejecución, validación de datos y exportación a Excel. Se elimina `sql/`.
+Cada reporte es un módulo Python ejecutable con su T-SQL incrustado y fechas por tokens (`@@F@@`…). Un ejecutor común (lo lanza una persona, [ADR-0007](./ADR-0007-ejecucion-manual-fecha-en-env.md)) (`comun/ejecutor.py`) automatiza conexión, validación de tablas al corte, ejecución, validación de datos y exportación a Excel. Se elimina `sql/`.
 
 Si una tabla no está al día: el reporte **no se ejecuta**, se imprime qué tablas faltan y se guarda el mensaje para Producción (`data/outputs/solicitudes/`).
 

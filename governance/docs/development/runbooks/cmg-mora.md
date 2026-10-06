@@ -10,7 +10,8 @@ Críticas: `dbriesgos.dbo.recaudo_diario_finanzas` (FECHA_CIERRE), `dbriesgos.db
 
 ## Ejecutar
 ```bash
-python main.py cmg-mora
+python main.py cmg-mora                        # fecha = FECHA_CORTE_DIARIA (.env); sin ella, día anterior (lunes = sábado)
+python main.py cmg-mora --fecha-corte 2026-10-05   # fecha puntual
 ```
 ## Qué hace
 1. Calcula la fecha (lunes ⇒ sábado). 2. `TRUNCATE` + carga de `CMGMora_Recaudo` del día. 3. Carga constantes y provisiones. 4. Genera el TXT de INSERTs.

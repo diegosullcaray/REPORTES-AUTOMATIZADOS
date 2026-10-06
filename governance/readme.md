@@ -1,6 +1,6 @@
 # Marco de Gobernanza — Reportes Automatizados
 
-Centro de gobernanza, automatización y estándares técnicos de los **reportes automatizados de Financiera Confianza** (Finanzas / Riesgos / MIS): entorno **Python** que consulta **3 servidores SQL Server** (`mish`, `slc`, `rcc`), cada reporte con su propia base de datos y genera archivos de salida (Excel/TXT).
+Centro de gobernanza, automatización y estándares técnicos de los **reportes de Financiera Confianza que ejecutas tú bajo demanda** (nada corre solo) (Finanzas / Riesgos / MIS): entorno **Python** que consulta **3 servidores SQL Server** (`mish`, `slc`, `rcc`), cada reporte con su propia base de datos y genera archivos de salida (Excel/TXT).
 
 ```text
 governance/
@@ -14,6 +14,17 @@ governance/
 ```
 
 **Regla que gobierna todo lo demás: cuando la documentación y el código discrepan, gana el código.** El documento se corrige o se borra.
+
+---
+
+## 0. Cómo se ejecuta un reporte
+
+```bash
+# 1) en tu .env: FECHA_CORTE_MENSUAL=AAAA-MM-DD  y/o  FECHA_CORTE_DIARIA=AAAA-MM-DD
+python main.py <reporte>                    # usa la fecha del .env; --fecha-corte la cambia solo esta vez
+```
+
+Paso a paso: [ejecutar un reporte](./docs/development/runbooks/ejecutar-un-reporte.md). No hay tareas programadas ni ejecución automática: el reporte corre cuando tú lo lanzas.
 
 ---
 

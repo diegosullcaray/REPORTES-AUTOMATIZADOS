@@ -33,7 +33,8 @@ from pathlib import Path
 import pandas as pd
 from openpyxl.utils import get_column_letter
 
-from ..config import DIR_OUTPUTS
+from ..comun.fechas import resolver_corte
+from ..config import DIR_OUTPUTS, ConfiguracionError
 from ..db import leer_sql
 
 # =============================================================================
@@ -502,7 +503,7 @@ def tipo_desfase(valor: str) -> tuple[str, int]:
 
 def parsear_argumentos(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Indicadores de clientes para el Directorio.")
-    parser.add_argument("--mes", type=tipo_mes, required=True, help="Mes de Créditos y Pasivos, AAAA-MM")
+    parser.add_argument("--mes", type=tipo_mes, help="Mes de Créditos y Pasivos AAAA-MM (defecto: el mes de FECHA_CORTE_MENSUAL del .env)")
     parser.add_argument("--reportes", nargs="+", choices=list(REPORTES), default=list(REPORTES),
                         help="Reportes a ejecutar (defecto: todos)")
     parser.add_argument("--desfase", type=tipo_desfase, action="append", default=[], metavar="REPORTE=MESES",
@@ -513,7 +514,15 @@ def parsear_argumentos(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--copiar", choices=["resumen", "detalle"],
                         help="Copia una hoja al portapapeles (sin encabezados)")
     parser.add_argument("-v", "--verbose", action="store_true", help="Log detallado")
-    return parser.parse_args(argv)
+    args = parser.parse_args(argv)
+    if not args.mes:
+        try:
+            corte, origen = resolver_corte("mensual")
+        except ConfiguracionError as exc:
+            parser.error(str(exc))
+        args.mes = tipo_mes(f"{corte:%Y-%m}")
+        print(f"Mes: {corte:%Y-%m} ({origen})")
+    return args
 
 
 def main(argv: list[str] | None = None) -> int:

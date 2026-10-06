@@ -7,10 +7,11 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 from enum import Enum
 
 from .config import ConfiguracionError
+from .comun.fechas import resolver_corte
 from .db import leer_sql
 from .tablas import Tabla, tablas_de
 
@@ -32,13 +33,8 @@ class Resultado:
 
 
 def fecha_esperada(frecuencia: str, hoy: date | None = None, fecha_corte: date | None = None) -> date:
-    """Mensual: el corte indicado. Diaria: día anterior (lunes -> sábado), igual que CMG Mora."""
-    if fecha_corte:
-        return fecha_corte
-    if frecuencia == "mensual":
-        raise ConfiguracionError("Indica --fecha-corte AAAA-MM-DD (fin de mes) para un reporte mensual")
-    hoy = hoy or date.today()
-    return hoy - timedelta(days=2 if hoy.weekday() == 0 else 1)
+    """Corte a validar. Prioridad: argumento > .env (FECHA_CORTE_DIARIA/MENSUAL) > diaria: día anterior (lunes -> sábado)."""
+    return resolver_corte(frecuencia, fecha_corte, hoy)[0]
 
 
 def nombre_resuelto(tabla: Tabla, fecha: date) -> str:

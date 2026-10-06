@@ -76,7 +76,7 @@ def generar_comandos() -> str:
 
     L = ["# Catálogo de comandos", "",
          "> **Generado** por `governance/scripts/generar_inventario.py` desde `registro.py`, `tablas.py` y los módulos. No editar a mano.", "",
-         "Todos los reportes se ejecutan igual: `python main.py <comando> --fecha-corte AAAA-MM-DD`. El ejecutor común valida las tablas al corte "
+         "Los reportes **los ejecutas tú, cuando quieras** (no hay tareas programadas): `python main.py <comando>`. La fecha de corte sale de `FECHA_CORTE_MENSUAL` / `FECHA_CORTE_DIARIA` del `.env`, o de `--fecha-corte AAAA-MM-DD` (que manda sobre el `.env`). El ejecutor común valida las tablas al corte "
          "(si falta alguna, **no ejecuta** y deja el mensaje para Producción), consulta, valida los datos y exporta el Excel a `data/outputs/<comando>/`. "
          "Proceso completo: [ejecutar un reporte](./ejecutar-un-reporte.md).", "",
          "Opciones comunes de los reportes de lote: `--solo-verificar` · `--forzar` · `--sin-verificar` · `--confirmar-escritura` (solo si escribe en BD) · `--salida DIR` · `-v`.", ""]
@@ -84,8 +84,9 @@ def generar_comandos() -> str:
         mod = import_module(r.modulo)
         lote = getattr(mod, "REPORTE", None)
         L += [f"## `{r.nombre}` — {r.frecuencia}", "", r.descripcion, ""]
-        arg = "--fecha-corte AAAA-MM-DD" if r.frecuencia == "mensual" else "[--fecha-corte AAAA-MM-DD]"
-        L += ["```bash", f"python main.py tablas {r.nombre} --fecha-corte AAAA-MM-DD --verificar   # ¿tablas al día?", f"python main.py {r.nombre} {arg}", "```", ""]
+        var = "FECHA_CORTE_MENSUAL" if r.frecuencia == "mensual" else "FECHA_CORTE_DIARIA"
+        arg = f"[--fecha-corte AAAA-MM-DD]   # sin la opción usa {var} del .env"
+        L += ["```bash", f"python main.py tablas {r.nombre} --verificar   # ¿tablas al día? (fecha del .env)", f"python main.py {r.nombre} {arg}", "```", ""]
         criticas = [TABLAS[n] for n in USO[r.nombre] if TABLAS[n].verificable]
         L.append(f"- **Servidor**: `{'`, `'.join(r.servidores)}` · **Tablas**: {len(USO[r.nombre])} ({len(criticas)} verificables por fecha) → [inventario](../../data/tables-inventory.md)")
         if criticas:

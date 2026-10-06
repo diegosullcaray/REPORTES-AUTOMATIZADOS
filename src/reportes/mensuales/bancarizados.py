@@ -30,6 +30,7 @@ from pathlib import Path
 
 import pandas as pd
 
+from ..comun.fechas import resolver_corte
 from ..config import DIR_OUTPUTS, ConfiguracionError
 from ..db import leer_sql as _leer_sql
 
@@ -347,12 +348,18 @@ def parsear_argumentos(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Clientes exclusivos (bancarizados) por corte mensual.",
     )
-    parser.add_argument("--fecha-corte", type=fecha_iso, required=True, help="Fin de mes, AAAA-MM-DD")
+    parser.add_argument("--fecha-corte", type=fecha_iso, help="Fin de mes AAAA-MM-DD (defecto: FECHA_CORTE_MENSUAL del .env)")
     parser.add_argument("--salida", type=Path, default=DIR_SALIDA_DEFECTO, help="Carpeta de salida (defecto: data/outputs/<reporte>)")
     parser.add_argument("--sin-cache", action="store_true", help="Fuerza re-extraer desde los servidores")
     parser.add_argument("--copiar", choices=REPORTES, help="Copia un reporte al portapapeles (sin encabezados)")
     parser.add_argument("-v", "--verbose", action="store_true", help="Log detallado")
-    return parser.parse_args(argv)
+    args = parser.parse_args(argv)
+    try:
+        args.fecha_corte, origen = resolver_corte("mensual", args.fecha_corte)
+    except ConfiguracionError as exc:
+        parser.error(str(exc))
+    print(f"Fecha de corte: {args.fecha_corte:%Y-%m-%d} ({origen})")
+    return args
 
 
 def main(argv: list[str] | None = None) -> int:

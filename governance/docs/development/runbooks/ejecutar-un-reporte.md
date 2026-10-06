@@ -1,6 +1,6 @@
 # Ejecutar un reporte — proceso estándar
 
-Los 7 pasos valen para cualquier reporte. Sustituye `<reporte>` por su nombre (`python main.py listar`) y `<corte>` por la fecha de corte.
+Los 7 pasos valen para cualquier reporte. Sustituye `<reporte>` por su nombre (`python main.py listar`).
 
 ## 0. Una vez por sesión
 ```bash
@@ -9,16 +9,20 @@ python main.py probar-conexiones          # los 3 servidores deben decir OK (mis
 ```
 Si alguna falla: revisa `.env` y la VPN/red ([setup](../setup-guide.md)). No sigas.
 
-## 1. Define el corte
-| Tipo | Corte |
-|---|---|
-| Mensual | último día del mes (si es feriado, el día hábil anterior); `--fecha-corte AAAA-MM-DD` o `--mes AAAA-MM` |
-| Diario | el día anterior; **lunes ⇒ sábado** (CMG Mora lo calcula solo) |
+## 1. Define la fecha de corte (en el `.env`)
+Los reportes los ejecutas tú cuando lo necesites; **nada corre solo**. La fecha de corte la escribes en tu `.env`:
+
+```ini
+FECHA_CORTE_MENSUAL=2026-09-30     # reportes mensuales: último día del mes (feriado: día hábil anterior)
+FECHA_CORTE_DIARIA=2026-10-05      # reportes diarios (opcional)
+```
+Prioridad: `--fecha-corte AAAA-MM-DD` en el comando **>** `.env` **>** (solo diarios) día anterior, lunes ⇒ sábado. Cada reporte imprime al inicio `Fecha de corte: … (de dónde salió)`; confírmala antes de seguir.
+Los reportes por mes (`bancarizados-producto`, `indicadores-clientes`) toman el mes de `FECHA_CORTE_MENSUAL`, o `--mes AAAA-MM`.
 
 ## 2. ¿Qué tablas usa y están al día?
 ```bash
-python main.py tablas <reporte>                                   # lista (no se conecta)
-python main.py tablas <reporte> --fecha-corte <corte> --verificar # consulta MAX(fecha) por tabla (solo SELECT)
+python main.py tablas <reporte>              # lista (no se conecta)
+python main.py tablas <reporte> --verificar  # consulta MAX(fecha) por tabla al corte del .env (solo SELECT)
 ```
 Estados: `OK` · `DESACTUALIZADA` (la última fecha cargada es anterior al corte) · `NO EXISTE` (tabla del día/mes aún no creada) · `SIN CONTROL` (catálogos y vistas: no se valida por fecha) · `ERROR` (revisar detalle).
 
@@ -27,13 +31,14 @@ Estados: `OK` · `DESACTUALIZADA` (la última fecha cargada es anterior al corte
 
 ## 3. Pedir la actualización (si hace falta)
 ```bash
-python main.py solicitud-actualizacion <reporte> --fecha-corte <corte> --verificar
+python main.py solicitud-actualizacion <reporte> --verificar
 ```
 Imprime el mensaje listo para enviar a quien actualiza en Producción (también queda en `data/outputs/solicitudes/`). Detalle: [solicitud de actualización](./solicitud-actualizacion-tablas.md). Cuando confirmen, vuelve al paso 2.
 
 ## 4. Ejecuta
 ```bash
-python main.py <reporte> <argumentos del reporte>     # ver la guía de cada reporte; --help lista las opciones
+python main.py <reporte>                     # usa la fecha del .env; --fecha-corte AAAA-MM-DD la cambia solo esta vez
+python main.py <reporte> --help              # opciones del reporte
 ```
 
 ## 5. Valida antes de entregar
