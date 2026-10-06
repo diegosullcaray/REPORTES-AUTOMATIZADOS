@@ -36,6 +36,47 @@ _BORDE = Border(left=_FINO, right=_FINO, top=_FINO, bottom=_FINO)
 
 
 @dataclass(frozen=True)
+class Columna:
+    """Cómo sale una columna del resultado en el Excel: qué columna del SQL es, qué encabezado lleva y cómo se muestra."""
+
+    origen: str | tuple[str, ...]   # nombre(s) de la columna en el resultado (sin distinguir mayúsculas)
+    titulo: str                     # encabezado en el Excel
+    si_cero: str | None = None      # texto que reemplaza al valor 0 (p. ej. "-" o "NULL")
+    si_nulo: str | None = None      # texto que reemplaza a los nulos (p. ej. "NULL", como los pega SSMS)
+    formato: str | None = None      # formato de número/fecha de Excel (p. ej. "dd/mm/yyyy")
+
+
+class ColumnaFaltante(ValueError):
+    """El resultado no trae una columna que el formato del reporte espera."""
+
+
+def aplicar_columnas(df: pd.DataFrame, columnas: tuple[Columna, ...]) -> pd.DataFrame:
+    """Deja solo las columnas del formato, en su orden y con sus encabezados; aplica los reemplazos de 0 y nulos."""
+    por_nombre = {str(c).casefold(): c for c in df.columns}
+    salida: dict[str, pd.Series] = {}
+    formatos: dict[str, str] = {}
+    for col in columnas:
+        candidatas = (col.origen,) if isinstance(col.origen, str) else col.origen
+        real = next((por_nombre[c.casefold()] for c in candidatas if c.casefold() in por_nombre), None)
+        if real is None:
+            raise ColumnaFaltante(f"El resultado no trae la columna {' / '.join(candidatas)}; trae: {', '.join(map(str, df.columns))}")
+        serie = df[real]
+        if col.si_cero is not None or col.si_nulo is not None:
+            serie = serie.astype(object).copy()
+            if col.si_cero is not None:
+                es_cero = pd.to_numeric(serie, errors="coerce") == 0
+                serie[es_cero.fillna(False)] = col.si_cero
+            if col.si_nulo is not None:
+                serie[serie.isna()] = col.si_nulo
+        salida[col.titulo] = serie
+        if col.formato:
+            formatos[col.titulo] = col.formato
+    nuevo = pd.DataFrame(salida)
+    nuevo.attrs["formatos"] = formatos
+    return nuevo
+
+
+@dataclass(frozen=True)
 class Resumen:
     """Hoja de resumen jerárquico calculada a partir del resultado `origen` (índice en la lista de resultados)."""
 
@@ -51,6 +92,7 @@ class Resumen:
 # ---------------------------------------------------------------- tabla de datos
 def _normalizar(df: pd.DataFrame) -> pd.DataFrame:
     """Columnas con nombre texto único; fechas sin hora si todas son medianoche."""
+    attrs = dict(df.attrs)
     df = df.copy()
     vistos: dict[str, int] = {}
     nombres = []
@@ -63,6 +105,7 @@ def _normalizar(df: pd.DataFrame) -> pd.DataFrame:
         if pd.api.types.is_datetime64_any_dtype(df[c]):
             serie = df[c].dropna()
             df[c] = df[c].dt.date if not serie.empty and (serie == serie.dt.normalize()).all() else df[c]
+    df.attrs.update(attrs)
     return df
 
 
@@ -95,8 +138,13 @@ def escribir_tabla(ws, df: pd.DataFrame) -> None:
     ws.append(list(df.columns))
     for fila in df.itertuples(index=False, name=None):
         ws.append([_valor_excel(v) for v in fila])
+    formatos = df.attrs.get("formatos", {})
     for idx, c in enumerate(df.columns, 1):
-        if df[c].map(lambda v: isinstance(v, date) and not isinstance(v, datetime)).any():
+        if c in formatos:
+            for celdas in ws.iter_cols(min_col=idx, max_col=idx, min_row=2):
+                for x in celdas:
+                    x.number_format = formatos[c]
+        elif df[c].map(lambda v: isinstance(v, date) and not isinstance(v, datetime)).any():
             for celda in ws.iter_cols(min_col=idx, max_col=idx, min_row=2):
                 for x in celda:
                     x.number_format = "yyyy-mm-dd"

@@ -30,9 +30,10 @@ from pathlib import Path
 
 import pandas as pd
 
-from ..comun.fechas import nombre_de_archivo, resolver_corte
-from ..config import DIR_OUTPUTS, ConfiguracionError
-from ..db import leer_sql as _leer_sql
+from ...comun.fechas import nombre_de_archivo, resolver_corte
+from ...config import ConfiguracionError
+from ...registro import carpeta_salida
+from ...db import leer_sql as _leer_sql
 
 # =============================================================================
 # Configuración
@@ -42,7 +43,7 @@ EMPRESA = "FINANCIERA CONFIANZA"
 SERVIDOR_RCC, BASE_RCC = "rcc", "DBRCC"  # servidor 172.20.0.70, base DBRCC
 SERVIDOR_SLC, BASE_SLC = "slc", "slc"  # servidor 172.24.2.213, base slc (+ INTCOM por nombre de 3 partes)
 
-DIR_SALIDA_DEFECTO = DIR_OUTPUTS / "bancarizados"
+DIR_SALIDA_DEFECTO = carpeta_salida("bancarizados")
 LLAVE = ["TIPO_DOC", "NUM_DOC"]
 REPORTES = ("exclusivos_total", "productos_total", "productos_nuevos", "territorio")
 

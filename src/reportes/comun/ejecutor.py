@@ -25,7 +25,8 @@ import pandas as pd
 from ..config import DIR_OUTPUTS, ConfiguracionError
 from ..db import ejecutar_lote
 from ..verificacion import Estado, Resultado, mensaje_solicitud, nombre_resuelto, verificar_reporte
-from .excel import Resumen, guardar_libro
+from ..registro import DIA_ANTERIOR_SIMPLE, carpeta_salida
+from .excel import Columna, ColumnaFaltante, Resumen, aplicar_columnas, guardar_libro
 from .fechas import Cortes, fecha_iso, nombre_de_archivo, resolver_corte
 
 log = logging.getLogger("reportes")
@@ -40,6 +41,7 @@ class Hoja:
     nombre: str
     permite_vacio: bool = False
     columna_fecha: str | None = None  # si se indica, MAX(columna) del resultado debe ser >= corte
+    columnas: tuple[Columna, ...] = ()  # formato de columnas del Excel (origen, encabezado, reemplazo de 0/nulos, formato); vacío = todas tal cual
 
 
 @dataclass(frozen=True)
@@ -56,6 +58,7 @@ class ReporteLote:
     libro_compartido: bool = False    # varios comandos alimentan el mismo archivo (cada uno reemplaza solo sus hojas)
     vacio_valido: bool = False        # True si un resultado totalmente vacío es legítimo (p. ej. Castigos sin castigos en el mes)
     escribe_en_bd: bool = False       # True si el lote crea/borra tablas permanentes: exige --confirmar-escritura
+    entrega: object | None = None     # entrega posterior al Excel (p. ej. correo): argumentos(parser), antes(args, cortes), despues(args, lote, resultados, cortes, ruta)
     avisos: tuple[str, ...] = field(default_factory=tuple)  # notas que se muestran antes de ejecutar
 
 
@@ -101,7 +104,13 @@ def validar_resultados(r: ReporteLote, resultados: list[pd.DataFrame], cortes: C
 
 def exportar_excel(r: ReporteLote, resultados: list[pd.DataFrame], cortes: Cortes, carpeta: Path) -> Path:
     """Excel con el formato del legado: una hoja (tabla) por resultado + los resúmenes; sin hoja de control."""
-    hojas = [(_nombre_hoja(r, i), df) for i, df in enumerate(resultados)]
+    hojas = []
+    for i, df in enumerate(resultados):
+        cols = r.hojas[i].columnas if i < len(r.hojas) else ()
+        try:
+            hojas.append((_nombre_hoja(r, i), aplicar_columnas(df, cols) if cols else df))
+        except ColumnaFaltante as exc:
+            raise ErrorDatos(f"Hoja «{_nombre_hoja(r, i)}»: {exc}") from exc
     resumenes = [(rs, resultados[rs.origen]) for rs in r.resumenes if rs.origen < len(resultados)]
     return guardar_libro(carpeta / nombre_archivo(r, cortes), hojas, resumenes, compartido=r.libro_compartido)
 
@@ -119,6 +128,8 @@ def _parser(r: ReporteLote) -> argparse.ArgumentParser:
     p.add_argument("--confirmar-escritura", action="store_true", help="Requerido si el reporte crea/borra tablas permanentes")
     p.add_argument("--solo-verificar", action="store_true", help="Solo validar tablas y generar la solicitud; no ejecuta el reporte")
     p.add_argument("-v", "--verbose", action="store_true")
+    if r.entrega is not None:
+        r.entrega.argumentos(p)
     return p
 
 
@@ -140,10 +151,14 @@ def correr(r: ReporteLote, argv: list[str] | None = None) -> int:
     a = _parser(r).parse_args(argv)
     logging.basicConfig(level=logging.DEBUG if a.verbose else logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     try:
-        corte, origen = resolver_corte(r.frecuencia, a.fecha_corte)
+        corte, origen = resolver_corte(r.frecuencia, a.fecha_corte, lunes_sabado=r.comando not in DIA_ANTERIOR_SIMPLE)
         print(f"Fecha de corte: {corte:%Y-%m-%d} ({origen})")
         cortes = Cortes.mensual(corte) if r.frecuencia == "mensual" else Cortes(corte)
         sql = cortes.aplicar(r.sql)
+        if r.entrega is not None:  # atajo previo (p. ej. enviar a todos lo ya validado en la prueba)
+            rc = r.entrega.antes(a, cortes)
+            if rc is not None:
+                return rc
         if r.escribe_en_bd and not a.confirmar_escritura and not a.solo_verificar:
             raise ConfiguracionError(
                 f"«{r.comando}» crea/borra tablas permanentes en la base de datos. Repite con --confirmar-escritura si estás seguro."
@@ -192,8 +207,10 @@ def correr(r: ReporteLote, argv: list[str] | None = None) -> int:
             print(f"AVISO: {av}")
 
         # ---- 5. exportación
-        ruta = exportar_excel(r, resultados, cortes, a.salida or DIR_OUTPUTS / r.comando.replace("-", "_"))
+        ruta = exportar_excel(r, resultados, cortes, a.salida or carpeta_salida(r.comando))
         print(f"\n✓ {r.comando}: {sum(len(d) for d in resultados)} filas en {len(resultados)} hoja(s) → {ruta}")
+        if r.entrega is not None:
+            return r.entrega.despues(a, r, resultados, cortes, ruta)
         return SALIDA_OK
     except ConfiguracionError as exc:
         print(f"✗ Configuración: {exc}")

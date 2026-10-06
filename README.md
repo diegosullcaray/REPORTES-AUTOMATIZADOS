@@ -112,6 +112,12 @@ FECHA_CORTE_DIARIA=
 # Opcionales
 # REPORTES_DIR_INPUTS=D:\FINANCIERA CONFIANZA\data\inputs
 # REPORTES_DIR_OUTPUTS=D:\FINANCIERA CONFIANZA\data\outputs
+
+# Correo (solo reporte cartera-sin-asignar; ver su runbook)
+SMTP_USER=mis@confianza.pe
+SMTP_PASSWORD=<contraseña de aplicación>
+CORREO_PRUEBA=diego.sullcaray@confianza.pe
+GOOGLE_CHAT_WEBHOOK_URL=<webhook>
 ```
 
 **Conexiones**
@@ -157,7 +163,7 @@ python main.py solicitud-actualizacion saca-tu-garra --verificar
 :: 3) con todo OK, ejecuta el reporte
 python main.py saca-tu-garra
 
-:: 4) valida y entrega el Excel de data\outputs\saca_tu_garra\
+:: 4) valida y entrega el Excel de data\outputs\mensuales\piero\06_saca_tu_garra\
 ```
 
 **Qué hace el reporte al ejecutarse**
@@ -181,6 +187,8 @@ python main.py saca-tu-garra
 
 Los 5 reportes con lógica propia (`cmg-mora`, `bancarizados`, `bancarizados-producto`, `clientes-extranjeros`, `indicadores-clientes`) tienen sus propias opciones: `python main.py <reporte> --help` y su [runbook](governance/docs/development/runbooks/README.md).
 
+**Cartera sin asignar (diario) además envía correo**: por defecto manda una **prueba solo a tu correo**; con tu conforme: `python main.py cartera-sin-asignar --correo todos --conforme` (guía: [runbook](governance/docs/development/runbooks/cartera-sin-asignar.md)).
+
 **Códigos de salida de los reportes de lote:** `0` correcto · `1` error de datos o de ejecución · `2` configuración (`.env`, driver, fecha) · `3` tablas desactualizadas.
 
 ---
@@ -200,23 +208,46 @@ Procedimiento completo, con el orden sugerido de reportes y las tablas que suele
 
 ## 7. Reportes disponibles
 
-`python main.py listar` muestra la lista actual. Catálogo completo (tablas críticas, salida, avisos): [catálogo de comandos](governance/docs/development/runbooks/comandos.md).
+`python main.py listar` muestra la lista actual, **en el orden y con la numeración de las carpetas del legado**. Catálogo completo (tablas críticas, salida, avisos): [catálogo de comandos](governance/docs/development/runbooks/comandos.md).
 
-| Frecuencia | Comandos |
-|---|---|
-| Diarios | `cmg-mora`, `cmg-castigos`, `cartera-sin-asignar` |
-| Mensuales | `bancarizados`, `bancarizados-producto`, `clientes-extranjeros`, `indicadores-clientes`, `clientes-jovenes`, `productos-verdes`, `desembolsos-por-canal`, `fondeo-estable`, `heredados-pdm`, `contratacion-electronica`, `clientes-rurales-migrantes`, `michael-captaciones`, `michael-castigos`, `giovanni-captaciones`, `giovanni-seguros`, `giovanni-cartera-agro`, `saca-tu-garra`, `saldo-medio-vigente`, `tapp-saldo-medio-territorio` |
+| Nº | Diarias («01 TAREAS DIARIAS») | Comando |
+|---|---|---|
+| 02 | Cartera sin asignar (genera Excel + imagen y **envía por correo**: prueba → conforme → todos) | `cartera-sin-asignar` |
+| 04.1 / 04.2 | CMG Mora | `cmg-mora`, `cmg-castigos` |
+
+| Nº | Mensuales · heredados de **Piero** | Comando |
+|---|---|---|
+| 01 | Desembolsos por canal | `desembolsos-por-canal` |
+| 02 | Estadística de tramo - Fondeo estable | `fondeo-estable` |
+| 03 | Heredados PDM | `heredados-pdm` *(pendiente de definir su formato)* |
+| 04.1 / 04.2 | Ratio CE, clientes nuevos y migrantes | `contratacion-electronica`, `clientes-rurales-migrantes` |
+| 05.1 / 05.2 / 05.3 | Reportes para Giovanni | `giovanni-captaciones`, `giovanni-seguros`, `giovanni-cartera-agro` |
+| 06 | Saca tu garra | `saca-tu-garra` |
+| 07 | Saldo medio vigente | `saldo-medio-vigente` |
+| 08 | TAPP stock TPP mes saldo medio vigente territorio | `tapp-saldo-medio-territorio` |
+| 09.1 / 09.2 | Reporte mensual Michael Palacios | `michael-captaciones`, `michael-castigos` |
+
+| Nº | Mensuales · heredados de **Erick** | Comando |
+|---|---|---|
+| 01 | Productos verdes | `productos-verdes` |
+| 02 | Clientes jóvenes | `clientes-jovenes` |
+| 03.1 – 03.4 | Clientes exclusivos, desempeño social (Reporte Finanzas) | `bancarizados`, `bancarizados-producto`, `clientes-extranjeros`, `indicadores-clientes` |
 
 ---
 
 ## 8. Qué se genera y dónde
 
+Las salidas siguen la misma numeración del legado:
+
 | Ruta | Contenido | ¿Se sube a git? |
 |---|---|---|
-| `data\outputs\<reporte>\` | Excel / TXT generados, con el nombre del adjunto histórico (p. ej. `Desembolsos_canal_20260630.xlsx`, `Base Saca tu Garra_20260630.xlsx`) | No |
+| `data\outputs\mensuales\piero\<NN_nombre>\` | reportes mensuales heredados de Piero (p. ej. `01_desembolsos_por_canal\Desembolsos_canal_20260930.xlsx`, `06_saca_tu_garra\Base Saca tu Garra_20260930.xlsx`) | No |
+| `data\outputs\mensuales\erick\<NN_nombre>\` | reportes mensuales heredados de Erick (p. ej. `01_productos_verdes\7. Productos_verdes_sep26.xlsx`) | No |
+| `data\outputs\diarias\<NN_nombre>\` | reportes diarios (p. ej. `02_cartera_sin_asignar\Cartera-Sin asignar-2026-10-05.xlsx`, la imagen `Reporte_Temporal_…jpg` y el estado del envío) | No |
 | `data\outputs\solicitudes\` | mensajes para Producción (`solicitud_<reporte>_<AAAAMMDD>.txt`) | No |
-| `data\inputs\` | archivos de entrada (Excel base, p. ej. `cartera_sin_asignar_base.xlsm`) | No (solo la estructura) |
+| `data\inputs\` | archivos de entrada (Excel base y la lista de correos `correos_cartera_sin_asignar.txt`) | solo la estructura y la lista de correos |
 
+Con `REPORTES_DIR_OUTPUTS=D:\FINANCIERA CONFIANZA\02 TAREAS\05 TAREAS-AUTOMATIZADAS\data\outputs` las salidas mensuales quedan en `…\data\outputs\mensuales`.
 Los archivos contienen **datos de clientes**: no los subas al repositorio ni los compartas fuera de los destinatarios autorizados.
 
 ---
@@ -276,7 +307,11 @@ src/reportes/
   verificacion.py             ¿tablas al día? + mensaje para Producción
   comun/ejecutor.py           flujo común: conexión → tablas → consulta → validación → Excel
   comun/fechas.py             fecha de corte (.env / --fecha-corte) y tokens @@F@@…
-  diarios/  mensuales/        un módulo por reporte (el T-SQL va dentro)
+  comun/excel.py              formato Excel del legado (tabla, resumen jerárquico, columnas)
+  comun/imagen.py correo.py   imagen del resumen y envío por correo (cuenta MIS)
+  diarios/                    r02_cartera_sin_asignar.py, r04_1_cmg_mora.py … (número del legado)
+  mensuales/piero/            r01_desembolsos_por_canal.py … r09_2_michael_castigos.py
+  mensuales/erick/            r01_productos_verdes.py … r03_4_indicadores_clientes.py
 data/inputs/  data/outputs/   entradas y salidas locales (no versionadas)
 tests/                        pytest (no tocan las bases reales)
 governance/                   marco de gobernanza (agentes, skills, docs, scripts)

@@ -7,7 +7,7 @@ tablas al corte, ejecuta, valida datos y exporta a data/outputs/contratacion_ele
 
 from __future__ import annotations
 
-from ..comun.ejecutor import Hoja, ReporteLote, correr
+from ...comun.ejecutor import Hoja, ReporteLote, correr
 
 SQL = r"""
 declare @numope int,@mondes float,@fecha date

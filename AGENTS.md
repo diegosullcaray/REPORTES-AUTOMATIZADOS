@@ -8,7 +8,9 @@ Python + 3 servidores SQL Server (`mish`, `slc`, `rcc`); **la base de datos la e
 4. **`docs/LEGADO` es solo lectura**; el código vivo está en `src/` (el T-SQL va incrustado en cada reporte; **no hay carpeta `sql/`**); datos locales en `data/inputs/` (entradas) y `data/outputs/` (salidas), no versionados.
 5. **Reporte = módulo `.py`** con `ReporteLote`: fechas solo por tokens (`@@F@@`…), nunca literales; el ejecutor valida tablas al corte y datos, y exporta a Excel; **entradas** en `data/inputs/`, **salidas** en `data/outputs/`.
 6. **Los reportes los ejecuta una persona bajo demanda** (sin tareas programadas). La fecha de corte sale de `--fecha-corte` o del `.env` (`FECHA_CORTE_MENSUAL` / `FECHA_CORTE_DIARIA`), nunca de una constante en el código.
-7. **Vacío ≠ error**; variable crítica en 0 ⇒ abortar.
-8. Cada reporte: `main(argv) -> int`, registrado en `registro.py`, con `tests/test_<modulo>.py`.
-9. Antes de commitear: `python governance/scripts/verificar.py`. No regenerar la línea base para destrabar.
-10. Agentes: [governance/agents/README.md](governance/agents/README.md) · Skills: `governance/skills/`.
+7. **Orden del legado**: cada reporte conserva el número y el responsable (Piero/Erick) de su carpeta en `docs/LEGADO`: módulo `r<NN>_<nombre>.py` y salida `data/outputs/<mensuales/piero|mensuales/erick|diarias>/<NN_nombre>/`.
+8. **Correo**: la cuenta MIS, su contraseña y el webhook solo en `.env`. Antes de enviar a la lista siempre se envía una prueba a `CORREO_PRUEBA` y se espera el conforme del usuario.
+9. **Vacío ≠ error**; variable crítica en 0 ⇒ abortar.
+10. Cada reporte: `main(argv) -> int`, registrado en `registro.py`, con `tests/test_<modulo>.py`.
+11. Antes de commitear: `python governance/scripts/verificar.py`. No regenerar la línea base para destrabar.
+12. Agentes: [governance/agents/README.md](governance/agents/README.md) · Skills: `governance/skills/`.

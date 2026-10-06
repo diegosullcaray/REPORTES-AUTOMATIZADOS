@@ -21,7 +21,7 @@ def generar() -> str:
     from importlib import import_module
 
     from reportes.config import SERVIDORES
-    from reportes.registro import REPORTES
+    from reportes.registro import REPORTES, ordenados
 
     tests = sorted(p.name for p in (RAIZ / "tests").glob("test_*.py"))
     L = ["# Inventario de módulos", "",
@@ -32,17 +32,17 @@ def generar() -> str:
     for b in SERVIDORES.values():
         auth = "Windows (o SQL si hay USER/PASSWORD)" if b.windows_auth_defecto else "SQL (USER/PASSWORD)"
         L.append(f"| `{b.nombre}` | {b.servidor_defecto} | {auth} | `{b.prefijo}_SERVER`, `{b.prefijo}_USER`, `{b.prefijo}_PASSWORD` |")
-    L += ["", f"## Reportes ejecutables ({len(REPORTES)})", "", "| Comando | Frecuencia | Servidor | Base de datos | Módulo | Qué hace |", "|---|---|---|---|---|---|"]
-    for r in REPORTES.values():
+    L += ["", f"## Reportes ejecutables ({len(REPORTES)})", "", "| Responsable / Nº | Comando | Frecuencia | Servidor | Base de datos | Módulo | Qué hace |", "|---|---|---|---|---|---|---|"]
+    for r in ordenados():
         lote = getattr(import_module(r.modulo), "REPORTE", None)
         base = (lote.base or "—") if lote is not None else "propia (ver módulo)"
-        L.append(f"| `{r.nombre}` | {r.frecuencia} | {', '.join(r.servidores)} | {base} | `{r.modulo}` | {r.descripcion} |")
+        L.append(f"| {r.etiqueta} | `{r.nombre}` | {r.frecuencia} | {', '.join(r.servidores)} | {base} | `{r.modulo}` | {r.descripcion} |")
     L += ["", f"## Pruebas ({len(tests)} archivos)", ""] + [f"- `tests/{t}`" for t in tests]
     return "\n".join(L) + "\n"
 
 
 def generar_tablas() -> str:
-    from reportes.registro import frecuencia_de
+    from reportes.registro import REPORTES, frecuencia_de, ordenados
     from reportes.tablas import TABLAS, USO, reportes_que_usan
 
     L = ["# Inventario de tablas", "",
@@ -54,8 +54,8 @@ def generar_tablas() -> str:
          "- **Confianza** de la columna de fecha: `confirmada` (aparece en el SQL/código) · `convencion` (inferida por el prefijo H*/S* del core; "
          "**validar con el DBA**) · `por_confirmar`.", "",
          "## 1. Por reporte (¿qué debo tener actualizado?)", ""]
-    for rid in sorted(USO):
-        L += [f"### `{rid}` ({frecuencia_de(rid)})", "", "| Tabla | Conexión | Tipo | Columna de fecha | Confianza |", "|---|---|---|---|---|"]
+    for rid in [x.nombre for x in ordenados()]:
+        L += [f"### {REPORTES[rid].etiqueta} · `{rid}` ({frecuencia_de(rid)})", "", "| Tabla | Conexión | Tipo | Columna de fecha | Confianza |", "|---|---|---|---|---|"]
         for n in USO[rid]:
             t = TABLAS[n]
             L.append(f"| `{t.nombre}` | `{t.servidor}` | {t.tipo} | {('`' + t.col_fecha + '`') if t.col_fecha else '—'} | {t.confianza} |")
@@ -71,19 +71,23 @@ def generar_tablas() -> str:
 def generar_comandos() -> str:
     from importlib import import_module
 
-    from reportes.registro import REPORTES
+    from reportes.registro import TITULOS_GRUPO, ordenados
     from reportes.tablas import TABLAS, USO
 
     L = ["# Catálogo de comandos", "",
          "> **Generado** por `governance/scripts/generar_inventario.py` desde `registro.py`, `tablas.py` y los módulos. No editar a mano.", "",
          "Los reportes **los ejecutas tú, cuando quieras** (no hay tareas programadas): `python main.py <comando>`. La fecha de corte sale de `FECHA_CORTE_MENSUAL` / `FECHA_CORTE_DIARIA` del `.env`, o de `--fecha-corte AAAA-MM-DD` (que manda sobre el `.env`). El ejecutor común valida las tablas al corte "
-         "(si falta alguna, **no ejecuta** y deja el mensaje para Producción), consulta, valida los datos y exporta el Excel a `data/outputs/<comando>/`. "
+         "(si falta alguna, **no ejecuta** y deja el mensaje para Producción), consulta, valida los datos y exporta el Excel a `data/outputs/mensuales/<piero|erick>/<NN_nombre>/` (diarios: `data/outputs/diarias/<NN_nombre>/`). La numeración es la de las carpetas del legado. "
          "Proceso completo: [ejecutar un reporte](./ejecutar-un-reporte.md).", "",
          "Opciones comunes de los reportes de lote: `--solo-verificar` · `--forzar` · `--sin-verificar` · `--confirmar-escritura` (solo si escribe en BD) · `--salida DIR` · `-v`.", ""]
-    for r in REPORTES.values():
+    grupo_actual = None
+    for r in ordenados():
+        if r.grupo != grupo_actual:
+            grupo_actual = r.grupo
+            L += [f"# {TITULOS_GRUPO[r.grupo]}", ""]
         mod = import_module(r.modulo)
         lote = getattr(mod, "REPORTE", None)
-        L += [f"## `{r.nombre}` — {r.frecuencia}", "", r.descripcion, ""]
+        L += [f"## {r.etiqueta} · `{r.nombre}` — {r.frecuencia}", "", r.descripcion, ""]
         var = "FECHA_CORTE_MENSUAL" if r.frecuencia == "mensual" else "FECHA_CORTE_DIARIA"
         arg = f"[--fecha-corte AAAA-MM-DD]   # sin la opción usa {var} del .env"
         L += ["```bash", f"python main.py tablas {r.nombre} --verificar   # ¿tablas al día? (fecha del .env)", f"python main.py {r.nombre} {arg}", "```", ""]
@@ -97,7 +101,7 @@ def generar_comandos() -> str:
             patron = lote.archivo or ("".join(x.capitalize() for x in r.nombre.split("-")) + "_{AAAAMMDD}")
             hojas = ", ".join(f"`{h.nombre}`" for h in lote.hojas) or "una hoja por resultado (`Datos`, `Datos_2`…)"
             extra = "".join(f", `{rs.nombre}` (resumen jerárquico)" for rs in lote.resumenes)
-            L.append(f"- **Salida**: `data/outputs/{r.nombre.replace('-', '_')}/{patron}.xlsx` · hojas: {hojas}{extra}" + (" · libro compartido con otro comando" if lote.libro_compartido else ""))
+            L.append(f"- **Salida**: `data/outputs/{r.carpeta}/{patron}.xlsx` · hojas: {hojas}{extra}" + (" · libro compartido con otro comando" if lote.libro_compartido else ""))
             if lote.vacio_valido:
                 L.append("- **Vacío válido**: sí (puede no haber datos en el mes)")
             if lote.escribe_en_bd:

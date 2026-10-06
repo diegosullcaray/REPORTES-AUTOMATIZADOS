@@ -1,4 +1,4 @@
-"""Cartera sin asignar (diario): cartera por sectorista/territorio sin asignación.
+"""Cartera sin asignar (diario, legado «02 Cartera sin asignar»): cartera por sectorista/territorio sin asignación.
 
 Comando: python main.py cartera-sin-asignar --fecha-corte AAAA-MM-DD
 Lógica: T-SQL heredado de docs/LEGADO (fechas fijas convertidas en tokens @@F@@…); el ejecutor común valida
@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from ..comun.ejecutor import Hoja, ReporteLote, correr
 from ..comun.excel import Resumen
+from ..comun.entrega_correo import EntregaCorreoResumen
 
 SQL = r"""
 USE [storage]
@@ -75,10 +76,11 @@ REPORTE = ReporteLote(
     servidor="mish",
     base="storage",
     sql=SQL,
-    archivo="Cartera-Sin asignar_{AAAAMMDD}",
+    archivo="Cartera-Sin asignar-{AAAA-MM-DD}",
     hojas=(Hoja("DATA_MIS_v2"),),
     resumenes=(Resumen("RESUMEN_v2", ("NIVEL", "Grupo", "Territorio", "Corredor", "Agencia_Cli"), "Saldo_Capital",
                       "TERRITORIO POR CLIENTE", "SALDO CARTERA - MIS"),),
+    entrega=EntregaCorreoResumen(),   # correo con la tabla resumen (imagen) y el Excel: prueba -> conforme -> todos
 )
 
 

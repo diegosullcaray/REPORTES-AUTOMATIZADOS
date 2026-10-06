@@ -7,7 +7,8 @@ tablas al corte, ejecuta, valida datos y exporta a data/outputs/fondeo_estable/.
 
 from __future__ import annotations
 
-from ..comun.ejecutor import ReporteLote, correr
+from ...comun.ejecutor import Hoja, ReporteLote, correr
+from ...comun.excel import Columna
 
 SQL = r"""
 --Reportes Mensual Fondeo Estable
@@ -29,6 +30,12 @@ REPORTE = ReporteLote(
     base="storage",
     sql=SQL,
     archivo="Saldo_FondeoEstable_{AAAAMMDD}",
+    # Formato del Excel entregado: FECHA como 30/09/2026, RDESMAT = Matriz, HSALFESI = Saldo Fondeo Estable
+    hojas=(Hoja("Datos", columnas=(
+        Columna("FECHA", "FECHA", formato="dd/mm/yyyy"),
+        Columna("RDESMAT", "Matriz"),
+        Columna("HSALFESI", "Saldo Fondeo Estable"),
+    )),),
 )
 
 

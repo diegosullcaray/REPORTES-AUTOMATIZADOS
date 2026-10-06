@@ -7,7 +7,7 @@ tablas al corte, ejecuta, valida datos y exporta a data/outputs/michael_castigos
 
 from __future__ import annotations
 
-from ..comun.ejecutor import Hoja, ReporteLote, correr
+from ...comun.ejecutor import Hoja, ReporteLote, correr
 
 SQL = r"""
 --drop table appj.dbo.CUBO_CREDITOS

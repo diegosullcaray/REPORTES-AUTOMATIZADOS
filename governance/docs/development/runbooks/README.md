@@ -8,6 +8,7 @@ Guías operativas paso a paso. Úsalas **dentro del entorno** (`.venv` activado,
 | [Ejecutar un reporte (proceso estándar)](./ejecutar-un-reporte.md) | **cualquier** reporte: pre-vuelo → tablas → ejecución → validación → entrega |
 | [Pedir actualización de tablas a Producción](./solicitud-actualizacion-tablas.md) | una tabla no llegó al corte |
 | [**Catálogo de comandos**](./comandos.md) | los 22 comandos: tablas críticas, salida, avisos (generado) |
+| [`cartera-sin-asignar`](./cartera-sin-asignar.md) | diario: Excel + imagen + **correo (prueba → conforme → todos)** |
 | [`cmg-mora`](./cmg-mora.md) | diario |
 | [`bancarizados`](./bancarizados.md) | mensual |
 | [`bancarizados-producto`](./bancarizados-producto.md) | mensual |

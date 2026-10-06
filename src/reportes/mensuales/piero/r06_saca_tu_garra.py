@@ -7,7 +7,8 @@ tablas al corte, ejecuta, valida datos y exporta a data/outputs/saca_tu_garra/. 
 
 from __future__ import annotations
 
-from ..comun.ejecutor import ReporteLote, correr
+from ...comun.ejecutor import Hoja, ReporteLote, correr
+from ...comun.excel import Columna
 
 SQL = r"""
 use storage;
@@ -151,6 +152,14 @@ REPORTE = ReporteLote(
     base="storage",
     sql=SQL,
     archivo="Base Saca tu Garra_{AAAAMMDD}",
+    # Formato del Excel entregado: solo estas 5 columnas, con estos encabezados (0 en las dos primeras = "-", en las ratios = "NULL")
+    hojas=(Hoja("Datos", columnas=(
+        Columna("HASEOPER", "Usuario"),
+        Columna("VAR_VIGENTE", "Var. Saldo Vigente", si_cero="-"),
+        Columna(("PRODUCTIVIDAD", "PRODUCTIVDAD"), "Productividad", si_cero="-"),   # el SQL heredado la llama PRODUCTIVDAD
+        Columna("RatioRecuperacion0_30", "Efectividad -30 a 0", si_cero="NULL", si_nulo="NULL"),
+        Columna("RatioRecuperacion1_30", "Efectividad 1 a 30", si_cero="NULL", si_nulo="NULL"),
+    )),),
 )
 
 

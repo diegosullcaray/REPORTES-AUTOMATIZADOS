@@ -34,11 +34,11 @@ MESES_CORTO = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "o
 def nombre_de_archivo(patron: str, corte: date) -> str:
     """Sustituye en `patron` los tokens de fecha de los archivos del legado.
 
-    {AAAAMMDD} 20260630 · {AAAAMM} 202606 · {AAAA} 2026 · {AA} 26 · {MES} Junio · {mes3} jun · {MES3} JUN
+    {AAAA-MM-DD} 2026-06-30 · {AAAAMMDD} 20260630 · {AAAAMM} 202606 · {AAAA} 2026 · {AA} 26 · {MES} Junio · {mes3} jun · {MES3} JUN
     Ej.: "Desembolsos_canal_{AAAAMMDD}" -> Desembolsos_canal_20260630 · "Clientes_jóvenes_{mes3}{AA}" -> Clientes_jóvenes_jun26
     """
     tokens = {
-        "{AAAAMMDD}": f"{corte:%Y%m%d}", "{AAAAMM}": f"{corte:%Y%m}", "{AAAA}": f"{corte:%Y}", "{AA}": f"{corte:%y}",
+        "{AAAA-MM-DD}": f"{corte:%Y-%m-%d}", "{AAAAMMDD}": f"{corte:%Y%m%d}", "{AAAAMM}": f"{corte:%Y%m}", "{AAAA}": f"{corte:%Y}", "{AA}": f"{corte:%y}",
         "{MES}": MESES_LARGO[corte.month - 1], "{mes3}": MESES_CORTO[corte.month - 1], "{MES3}": MESES_CORTO[corte.month - 1].upper(),
     }
     for t, v in tokens.items():
@@ -61,7 +61,7 @@ def corte_del_env(frecuencia: str) -> date | None:
         raise ConfiguracionError(f"{variable} en el .env no es válida: {exc}") from exc
 
 
-def resolver_corte(frecuencia: str, cli: date | None = None, hoy: date | None = None) -> tuple[date, str]:
+def resolver_corte(frecuencia: str, cli: date | None = None, hoy: date | None = None, lunes_sabado: bool = True) -> tuple[date, str]:
     """Fecha de corte y de dónde salió. Prioridad: --fecha-corte > .env > (solo diaria) día anterior; mensual sin fecha = error."""
     if cli:
         return cli, "--fecha-corte"
@@ -69,16 +69,16 @@ def resolver_corte(frecuencia: str, cli: date | None = None, hoy: date | None = 
     if en_env:
         return en_env, f".env ({VAR_CORTE[frecuencia]})"
     if frecuencia == "diaria":
-        return dia_anterior_habil_simple(hoy), "por defecto: día anterior (lunes = sábado)"
+        return dia_anterior_habil_simple(hoy, lunes_sabado), "por defecto: día anterior" + (" (lunes = sábado)" if lunes_sabado else "")
     raise ConfiguracionError(
         "Falta la fecha de corte mensual: escribe FECHA_CORTE_MENSUAL=AAAA-MM-DD (fin de mes) en el .env o usa --fecha-corte AAAA-MM-DD"
     )
 
 
-def dia_anterior_habil_simple(hoy: date | None = None) -> date:
-    """Día anterior; lunes -> sábado (regla de los reportes diarios)."""
+def dia_anterior_habil_simple(hoy: date | None = None, lunes_sabado: bool = True) -> date:
+    """Día anterior. Con `lunes_sabado` (regla de CMG Mora) el lunes toma el sábado; sin ella, siempre ayer (Date - 1 del legado)."""
     hoy = hoy or date.today()
-    return hoy - timedelta(days=2 if hoy.weekday() == 0 else 1)
+    return hoy - timedelta(days=2 if lunes_sabado and hoy.weekday() == 0 else 1)
 
 
 @dataclass(frozen=True)

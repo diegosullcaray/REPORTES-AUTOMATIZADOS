@@ -14,8 +14,9 @@ src/reportes/
   comun/ejecutor.py  flujo común: conexión → tablas al corte → consulta → validación → Excel
   comun/fechas.py   cortes y tokens @@F@@…
   tablas.py         tablas de cada reporte (servidor, tipo, columna de fecha)
-  diarios/<reporte>.py       el SQL va incrustado en el módulo
-  mensuales/<reporte>.py
+  diarios/r<NN>_<nombre>.py              el SQL va incrustado en el módulo; <NN> = número del legado
+  mensuales/piero/r<NN>_<nombre>.py      heredados de Piero (01…09)
+  mensuales/erick/r<NN>_<nombre>.py      heredados de Erick (01…03)
 data/inputs/<reporte>/         archivos que entran (Excel/CSV, formatos base); no versionado
 data/outputs/<reporte>/        archivos que generan los reportes; no versionado
 tests/test_<modulo>.py

@@ -77,7 +77,7 @@ def test_reporte_mensual_sin_fecha_ni_env_sale_con_error_de_configuracion(capsys
 
 
 def test_reportes_con_cli_propio_toman_la_fecha_del_env(monkeypatch):
-    from reportes.mensuales import bancarizados, bancarizados_producto, clientes_extranjeros, indicadores_clientes
+    from reportes.mensuales.erick import r03_1_bancarizados as bancarizados, r03_2_bancarizados_producto as bancarizados_producto, r03_3_clientes_extranjeros as clientes_extranjeros, r03_4_indicadores_clientes as indicadores_clientes
 
     monkeypatch.setenv("FECHA_CORTE_MENSUAL", "2026-09-30")
     assert bancarizados.parsear_argumentos([]).fecha_corte == date(2026, 9, 30)
@@ -88,7 +88,7 @@ def test_reportes_con_cli_propio_toman_la_fecha_del_env(monkeypatch):
 
 
 def test_cli_propio_sin_fecha_ni_env_pide_el_env(capsys):
-    from reportes.mensuales import bancarizados
+    from reportes.mensuales.erick import r03_1_bancarizados as bancarizados
 
     with pytest.raises(SystemExit):
         bancarizados.parsear_argumentos([])

@@ -29,8 +29,30 @@ Una prueba compara el resumen generado con el `RESUMEN_v2` del Excel original ca
 
 No se replican las hojas ocultas del legado: `FILTRO` (parámetro de fecha de la consulta de Excel) y `CORREOS` / `Hoja1` (listas de correos del envío por Outlook).
 
+## `saca-tu-garra` (según `governance/tasks/tarea.md`)
+Solo estas 5 columnas, en este orden y con estos encabezados:
+
+| Encabezado | Columna del SQL | Regla |
+|---|---|---|
+| Usuario | `HASEOPER` | — |
+| Var. Saldo Vigente | `VAR_VIGENTE` | si el valor es 0 → `-` |
+| Productividad | `PRODUCTIVDAD` (así se llama en el SQL heredado; se acepta también `PRODUCTIVIDAD`) | si el valor es 0 → `-` |
+| Efectividad -30 a 0 | `RatioRecuperacion0_30` | si el valor es 0 (o nulo) → `NULL` |
+| Efectividad 1 a 30 | `RatioRecuperacion1_30` | si el valor es 0 (o nulo) → `NULL` |
+
+## `fondeo-estable` (según `governance/tasks/tarea.md`)
+| Encabezado | Columna del SQL | Formato |
+|---|---|---|
+| FECHA | `FECHA` | `dd/mm/aaaa` (p. ej. `30/09/2026`) |
+| Matriz | `RDESMAT` | — |
+| Saldo Fondeo Estable | `HSALFESI` | — |
+
+`heredados-pdm`: pendiente de definir su formato.
+
+Si una columna esperada no viene en el resultado, el reporte se detiene con un error que nombra la columna y las que sí llegaron.
+
 ## Nombres de archivo (de los adjuntos históricos)
-Tokens: `{AAAAMMDD}` `{AAAAMM}` `{AAAA}` `{AA}` `{MES}` (Junio) `{mes3}` (jun) `{MES3}` (JUN).
+Tokens: `{AAAA-MM-DD}` `{AAAAMMDD}` `{AAAAMM}` `{AAAA}` `{AA}` `{MES}` (Junio) `{mes3}` (jun) `{MES3}` (JUN).
 
 | Comando | Archivo | Origen |
 |---|---|---|
@@ -45,7 +67,7 @@ Tokens: `{AAAAMMDD}` `{AAAAMM}` `{AAAA}` `{AA}` `{MES}` (Junio) `{mes3}` (jun) `
 | `bancarizados` | `clientes_nuevos_bancarizados_exclusivos_{MES3}{AA}.xlsx` | adjunto histórico |
 | `clientes-extranjeros` | `ClientesExtranjeros {MES3} {AAAA}-TIPODOC.xlsx` | adjunto histórico |
 | `indicadores-clientes` | `Info para Finanzas {MES3}{AA}.xlsx` | adjunto histórico |
-| `cartera-sin-asignar` | `Cartera-Sin asignar_{AAAAMMDD}.xlsx` | nombre del Excel base |
+| `cartera-sin-asignar` | `Cartera-Sin asignar-{AAAA-MM-DD}.xlsx` (+ `Reporte_Temporal_{AAAA-MM-DD}.jpg`) | nombre que ponía la macro al adjunto |
 | `giovanni-cartera-agro` | `Cartera Vigente Agro_{AAAAMMDD}.xlsx`; hojas `Saldo vigente`, `Saldo vigente (cierre anterior)`, `Clientes` | NOTAS («Saldo vigente» con 2 resultados y «Clientes») |
 | `giovanni-captaciones`, `giovanni-seguros`, `saldo-medio-vigente` | nombre convencional (`… _{AAAAMMDD}`) | sin adjunto histórico |
 | resto | `Comando_{AAAAMMDD}.xlsx` | convención |
@@ -55,4 +77,4 @@ Tokens: `{AAAAMMDD}` `{AAAAMM}` `{AAAA}` `{AA}` `{MES}` (Junio) `{mes3}` (jun) `
 ## Pendiente (necesita los Excel originales)
 Para igualar el resto de reportes al detalle (orden y nombre exacto de columnas, hojas auxiliares, tablas dinámicas, formatos numéricos, colores) hacen falta los Excel entregados: `Desembolsos_canal_20260630.xlsx`, `Datos Cierre Junio 26.xlsx`, `Base Saca tu Garra_20260630.xlsx`, `Saldo_FondeoEstable_20260630.xlsx`, `PDM Heredado Junio 26.xlsx`, `SaldoMedio_TPPSTOCK_TPPMES_2023-2025.xlsx`, `Clientes_jóvenes_jul26.xlsx`, `7. Productos_verdes_jul26.xlsx`, `clientes_nuevos_bancarizados_exclusivos_JUL26.xlsx`, `ClientesExtranjeros JUL 2026-TIPODOC.xlsx`, `Info para Finanzas JUL26.xlsx`. Con ellos se declaran las hojas (`hojas=`), resúmenes (`resumenes=`) y formatos de cada reporte.
 - Los nombres de hoja de varios reportes siguen siendo `Datos` / `Datos_2` hasta tener esos archivos.
-- El legado también enviaba la tabla `RESUMEN_v2` como imagen (`Reporte_Temporal.jpg`, macro de Outlook): no se genera la imagen ni se envía correo (la entrega es manual).
+- `cartera-sin-asignar` sí genera la imagen del resumen (`Reporte_Temporal_<fecha>.jpg`, mismo aspecto que la del legado) y la envía por correo ([runbook](../development/runbooks/cartera-sin-asignar.md)); el resto de reportes se entrega a mano.

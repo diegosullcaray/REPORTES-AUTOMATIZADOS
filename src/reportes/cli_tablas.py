@@ -7,7 +7,7 @@ from datetime import date, datetime
 from pathlib import Path
 
 from .config import DIR_OUTPUTS, ConfiguracionError
-from .registro import frecuencia_de
+from .registro import DIA_ANTERIOR_SIMPLE, frecuencia_de
 from .tablas import USO, tablas_de
 from .verificacion import Estado, fecha_esperada, mensaje_solicitud, nombre_resuelto, verificar_reporte
 
@@ -40,7 +40,7 @@ def cmd_tablas(argv: list[str]) -> int:
         return _listar()
     try:
         frecuencia = frecuencia_de(a.reporte)
-        fecha = fecha_esperada(frecuencia, fecha_corte=a.fecha_corte) if a.verificar else (a.fecha_corte or date.today())
+        fecha = fecha_esperada(frecuencia, fecha_corte=a.fecha_corte, lunes_sabado=a.reporte not in DIA_ANTERIOR_SIMPLE) if a.verificar else (a.fecha_corte or date.today())
         if not a.verificar:
             for t in tablas_de(a.reporte):
                 col = t.col_fecha or "-"

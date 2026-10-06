@@ -13,4 +13,5 @@ data/*
 data/inputs/*
 data/outputs/*
 !data/inputs/.gitkeep
+!data/inputs/correos_*.txt
 !data/outputs/.gitkeep

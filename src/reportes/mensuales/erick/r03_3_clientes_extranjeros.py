@@ -32,9 +32,10 @@ from pathlib import Path
 
 import pandas as pd
 
-from ..comun.fechas import nombre_de_archivo, resolver_corte
-from ..config import DIR_OUTPUTS, ConfiguracionError
-from ..db import leer_sql
+from ...comun.fechas import nombre_de_archivo, resolver_corte
+from ...config import ConfiguracionError
+from ...registro import carpeta_salida
+from ...db import leer_sql
 
 # =============================================================================
 # Configuración
@@ -44,7 +45,7 @@ SERVIDOR_RCC = "rcc"  # servidor 172.20.0.70
 BASE_POR_SERVIDOR = {"slc": "slc", "rcc": "DBRCC"}  # base de datos que abre cada servidor
 LINKED_SERVER_RCC = "rcc_cd"
 
-DIR_SALIDA_DEFECTO = DIR_OUTPUTS / "clientes_extranjeros"
+DIR_SALIDA_DEFECTO = carpeta_salida("clientes-extranjeros")
 COLUMNAS = ["CIERRE", "TIPO", "COD_PAIS", "NACIONALIDAD", "CLIENTES"]
 HOJAS = ("consolidado", "creditos", "pasivos", "seguros")
 

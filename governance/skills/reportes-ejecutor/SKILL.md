@@ -41,6 +41,11 @@ def main(argv=None) -> int:
 
 La regla `fechas-fijas-en-sql` bloquea fechas literales en el T-SQL.
 
+## Formato, orden y entrega
+- **Ubicación y nombre**: `src/reportes/mensuales/<piero|erick>/r<NN>_<nombre>.py` (o `diarios/`), con el número de su carpeta del legado; se registra en `registro.py` con `grupo`, `orden` y `carpeta` de salida.
+- **Columnas del Excel**: `Hoja("Datos", columnas=(Columna("HASEOPER", "Usuario"), Columna("VAR", "Var.", si_cero="-"), Columna("FECHA", "FECHA", formato="dd/mm/yyyy")))` deja solo esas columnas, con ese encabezado y esos reemplazos.
+- **Entrega por correo**: `entrega=EntregaCorreoResumen()` (ver `cartera-sin-asignar`): prueba a `CORREO_PRUEBA` → `--correo todos --conforme`.
+
 ## Reglas
 - El `servidor` y la `base` deben coincidir con el mapa de [servidores y bases](../../docs/data/servidores-y-bases.md) (`storage` vive en `mish`, no en `slc`); la regla `servidor-coherente` lo exige.
 - Un reporte que **crea/borra tablas permanentes** declara `escribe_en_bd=True` (exige `--confirmar-escritura`).

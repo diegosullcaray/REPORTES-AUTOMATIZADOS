@@ -7,7 +7,7 @@ tablas al corte, ejecuta, valida datos y exporta a data/outputs/productos_verdes
 
 from __future__ import annotations
 
-from ..comun.ejecutor import ReporteLote, correr
+from ...comun.ejecutor import ReporteLote, correr
 
 SQL = r"""
 IF OBJECT_ID('tempdb..#jer_ods') IS NOT NULL

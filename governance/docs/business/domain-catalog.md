@@ -1,5 +1,7 @@
 # Catálogo de reportes
 
+Numeración y responsable = carpetas del legado (`docs/LEGADO`): **Diarias** 02, 04; **Piero** 01–09; **Erick** 01–03 (ver [registro](../../../src/reportes/registro.py) y `python main.py listar`).
+
 Todos son ejecutables con `python main.py <comando> --fecha-corte AAAA-MM-DD`. Qué hace cada comando, sus tablas críticas y su salida: [catálogo de comandos](../development/runbooks/comandos.md) (generado). Quién pide cada reporte y a quién se entrega (según las notas heredadas):
 
 | Comando | Solicitante / destinatarios | Nota clave |

@@ -93,10 +93,16 @@ def r_registro():
                 yield Hallazgo("registro-sincronizado", "error", "src/reportes/registro.py", f"{r.nombre}: servidor '{b}' no está en config.SERVIDORES")
     registrados = {r.modulo for r in REPORTES.values()}
     for carpeta in ("diarios", "mensuales"):
-        for p in (RAIZ / "src" / "reportes" / carpeta).glob("*.py"):
-            mod = f"reportes.{carpeta}.{p.stem}"
+        for p in sorted((RAIZ / "src" / "reportes" / carpeta).rglob("*.py")):
+            mod = ".".join(p.relative_to(RAIZ / "src").with_suffix("").parts)
             if p.stem != "__init__" and mod not in registrados:
                 yield Hallazgo("registro-sincronizado", "aviso", rel(p), "módulo sin registrar en registro.py")
+    for r in REPORTES.values():
+        esperado = "r" + r.orden.replace(".", "_")
+        if not r.modulo.rsplit(".", 1)[1].startswith(esperado + "_"):
+            yield Hallazgo("registro-sincronizado", "error", "src/reportes/registro.py", f"{r.nombre}: el módulo debe empezar por {esperado}_ (número del legado {r.orden})")
+        if not r.carpeta.split("/")[-1].startswith(r.orden.split(".")[0] + "_"):
+            yield Hallazgo("registro-sincronizado", "error", "src/reportes/registro.py", f"{r.nombre}: la carpeta de salida debe empezar por {r.orden.split('.')[0]}_")
 
 
 def r_nombres():

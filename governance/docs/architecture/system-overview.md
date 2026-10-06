@@ -11,8 +11,11 @@ src/reportes/
   cli_tablas.py                 subcomandos `tablas` y `solicitud-actualizacion`
   comun/ejecutor.py             flujo común de todo reporte de lote
   comun/fechas.py               cortes y tokens @@F@@…
-  diarios/<reporte>.py          reportes diarios
-  mensuales/<reporte>.py        reportes mensuales
+  diarios/r<NN>_<nombre>.py     reportes diarios (número de «01 TAREAS DIARIAS»)
+  mensuales/piero/r<NN>_…       reportes heredados de Piero (01…09)
+  mensuales/erick/r<NN>_…       reportes heredados de Erick (01…03)
+  comun/excel.py imagen.py correo.py entrega_correo.py   formato Excel, imagen del resumen y correo (cuenta MIS)
+data/outputs/<mensuales/piero|mensuales/erick|diarias>/<NN_nombre>/   salidas con el orden del legado
 data/inputs/                    archivos que entran (Excel/CSV, formatos base) — no versionado
 data/outputs/                   resultados que generan los reportes — no versionado
 tests/                          pytest

@@ -32,9 +32,10 @@ from pathlib import Path
 import pandas as pd
 from openpyxl.utils import get_column_letter
 
-from ..comun.fechas import resolver_corte
-from ..config import DIR_OUTPUTS, ConfiguracionError
-from ..db import leer_ultimo_resultado as _leer_ultimo
+from ...comun.fechas import resolver_corte
+from ...config import ConfiguracionError
+from ...registro import carpeta_salida
+from ...db import leer_ultimo_resultado as _leer_ultimo
 
 # =============================================================================
 # Configuración
@@ -48,7 +49,7 @@ AGRUPACION_PRODUCTOS = {
 }
 SIN_PRODUCTO = "SIN PRODUCTO"
 
-DIR_SALIDA_DEFECTO = DIR_OUTPUTS / "bancarizados_producto"
+DIR_SALIDA_DEFECTO = carpeta_salida("bancarizados-producto")
 MAX_HILOS = 4
 
 log = logging.getLogger("bancarizados_producto")

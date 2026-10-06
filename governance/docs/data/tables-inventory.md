@@ -9,30 +9,7 @@ Sirve para el cierre de mes: saber **qué tablas necesita cada reporte** y **a q
 
 ## 1. Por reporte (¿qué debo tener actualizado?)
 
-### `bancarizados` (mensual)
-
-| Tabla | Conexión | Tipo | Columna de fecha | Confianza |
-|---|---|---|---|---|
-| `dbrcc.dbo.rcccab{yyyymmdd}` | `rcc` | dinamica | — | por_confirmar |
-| `dbrcc.dbo.rccdet{yyyymmdd}` | `rcc` | dinamica | — | por_confirmar |
-| `db{yyyymm}.dbo.ccd{yyyymmdd}` | `rcc` | dinamica | — | por_confirmar |
-| `dw_metadata.dbo.wjercor03` | `rcc` | otro | — | por_confirmar |
-| `dw_raw.dbo.clientes` | `rcc` | otro | — | por_confirmar |
-| `intcom.dbo.an_productos` | `slc` | otro | — | por_confirmar |
-| `intcom.dbo.ccd` | `slc` | stock | `Fecha_Cierre` | confirmada |
-
-### `bancarizados-producto` (mensual)
-
-| Tabla | Conexión | Tipo | Columna de fecha | Confianza |
-|---|---|---|---|---|
-| `csd.dbo.clientes_ds` | `slc` | stock | `HFECPRO` | confirmada |
-| `dwh.dbo.bregmod001` | `slc` | referencia | — | por_confirmar |
-| `dwh.dbo.gdesemcre001` | `slc` | procedimiento | — | por_confirmar |
-| `dwh.dbo.rtipcre001` | `slc` | referencia | — | por_confirmar |
-| `dwh.dbo.rtipcre002` | `slc` | referencia | — | por_confirmar |
-| `dwh.dbo.rtipcre003` | `slc` | referencia | — | por_confirmar |
-
-### `cartera-sin-asignar` (diaria)
+### Diarias 02 · `cartera-sin-asignar` (diaria)
 
 | Tabla | Conexión | Tipo | Columna de fecha | Confianza |
 |---|---|---|---|---|
@@ -44,45 +21,7 @@ Sirve para el cierre de mes: saber **qué tablas necesita cada reporte** y **a q
 | `storage.ref.fjercor02` | `mish` | otro | — | por_confirmar |
 | `storage.ref.vjercor03` | `mish` | otro | — | por_confirmar |
 
-### `clientes-extranjeros` (mensual)
-
-| Tabla | Conexión | Tipo | Columna de fecha | Confianza |
-|---|---|---|---|---|
-| `intcom.dbo.ccd` | `slc` | stock | `Fecha_Cierre` | confirmada |
-| `intcom.dbo.ccs_fund_f` | `slc` | stock | `fecha_reporte` | confirmada |
-| `rcc_cd.db{yyyymm}.dbo.ccp{yyyymmdd}` | `slc` | dinamica | — | por_confirmar |
-| `db{yyyymm}.dbo.ccp{yyyymmdd}` | `rcc` | dinamica | — | por_confirmar |
-
-### `clientes-jovenes` (mensual)
-
-| Tabla | Conexión | Tipo | Columna de fecha | Confianza |
-|---|---|---|---|---|
-| `csd.dbo.clientes_ds` | `slc` | stock | `HFECPRO` | confirmada |
-| `dwh.dbo.bregper001` | `slc` | referencia | — | por_confirmar |
-| `dwh.dbo.gdesemcre001` | `slc` | procedimiento | — | por_confirmar |
-| `dwh.dbo.hcarcre001` | `slc` | historica | `HFECPRO` | convencion |
-| `dwh.dbo.scarcre006` | `slc` | stock | `SFECPRO` | convencion |
-
-### `clientes-rurales-migrantes` (mensual)
-
-| Tabla | Conexión | Tipo | Columna de fecha | Confianza |
-|---|---|---|---|---|
-| `storage.com_act.hbcn001` | `mish` | historica | `HFECPRO` | confirmada |
-| `storage.com_act.hcda001` | `mish` | historica | `HFECPRO` | confirmada |
-| `storage.com_act.hcdr001` | `mish` | historica | `HFECPRO` | confirmada |
-| `storage.com_act.hcdr002` | `mish` | historica | `HFECPRO` | confirmada |
-| `storage.com_act.rfoc001` | `mish` | referencia | — | por_confirmar |
-| `storage.ref.rcalen001` | `mish` | referencia | — | por_confirmar |
-| `storage.ref.vurbrur01` | `mish` | otro | — | por_confirmar |
-
-### `cmg-castigos` (diaria)
-
-| Tabla | Conexión | Tipo | Columna de fecha | Confianza |
-|---|---|---|---|---|
-| `storage.com_act.sdas005` | `mish` | stock | `SFECPRO` | convencion |
-| `storage.ref.rcalen001` | `mish` | referencia | — | por_confirmar |
-
-### `cmg-mora` (diaria)
+### Diarias 04.1 · `cmg-mora` (diaria)
 
 | Tabla | Conexión | Tipo | Columna de fecha | Confianza |
 |---|---|---|---|---|
@@ -93,14 +32,14 @@ Sirve para el cierre de mes: saber **qué tablas necesita cada reporte** y **a q
 | `dw_raw_v2.dbo.cmgmora_strjercor` | `rcc` | otro | — | por_confirmar |
 | `storage.com_act.sbtvrie001` | `mish` | destino | — | por_confirmar |
 
-### `contratacion-electronica` (mensual)
+### Diarias 04.2 · `cmg-castigos` (diaria)
 
 | Tabla | Conexión | Tipo | Columna de fecha | Confianza |
 |---|---|---|---|---|
-| `storage.com_act.wcdce001` | `mish` | historica | `hfecpro` | confirmada |
-| `storage.com_act.wcdce002` | `mish` | historica | `hfecpro` | confirmada |
+| `storage.com_act.sdas005` | `mish` | stock | `SFECPRO` | convencion |
+| `storage.ref.rcalen001` | `mish` | referencia | — | por_confirmar |
 
-### `desembolsos-por-canal` (mensual)
+### Piero 01 · `desembolsos-por-canal` (mensual)
 
 | Tabla | Conexión | Tipo | Columna de fecha | Confianza |
 |---|---|---|---|---|
@@ -114,47 +53,14 @@ Sirve para el cierre de mes: saber **qué tablas necesita cada reporte** y **a q
 | `storage.ref.fjercor02` | `mish` | otro | — | por_confirmar |
 | `storage.ref.rtcm001` | `mish` | referencia | — | por_confirmar |
 
-### `fondeo-estable` (mensual)
+### Piero 02 · `fondeo-estable` (mensual)
 
 | Tabla | Conexión | Tipo | Columna de fecha | Confianza |
 |---|---|---|---|---|
 | `storage.com_pas.wjas008` | `mish` | historica | `hfecpro` | confirmada |
 | `storage.ref.vjercor04` | `mish` | otro | — | por_confirmar |
 
-### `giovanni-captaciones` (mensual)
-
-| Tabla | Conexión | Tipo | Columna de fecha | Confianza |
-|---|---|---|---|---|
-| `storage.com_pas.retp001` | `mish` | referencia | — | por_confirmar |
-| `storage.com_pas.sdps010` | `mish` | stock | `SFECPRO` | convencion |
-| `storage.com_pas.sdps013` | `mish` | stock | `SFECPRO` | confirmada |
-| `storage.com_pas.wjas004` | `mish` | historica | `HFECPRO` | confirmada |
-| `storage.ref.vjercor04` | `mish` | otro | — | por_confirmar |
-
-### `giovanni-cartera-agro` (mensual)
-
-| Tabla | Conexión | Tipo | Columna de fecha | Confianza |
-|---|---|---|---|---|
-| `storage.com_act.hcda001` | `mish` | historica | `HFECPRO` | confirmada |
-| `storage.com_act.retp001` | `mish` | referencia | — | por_confirmar |
-| `storage.com_act.retp002` | `mish` | referencia | — | por_confirmar |
-| `storage.com_act.retp003` | `mish` | referencia | — | por_confirmar |
-| `storage.ref.fjercor02` | `mish` | otro | — | por_confirmar |
-| `storage.ref.wjercor03` | `mish` | otro | — | por_confirmar |
-
-### `giovanni-seguros` (mensual)
-
-| Tabla | Conexión | Tipo | Columna de fecha | Confianza |
-|---|---|---|---|---|
-| `storage.com.vdmcom01` | `mish` | otro | — | por_confirmar |
-| `storage.com_act.retp001` | `mish` | referencia | — | por_confirmar |
-| `storage.com_act.retp002` | `mish` | referencia | — | por_confirmar |
-| `storage.com_act.retp003` | `mish` | referencia | — | por_confirmar |
-| `storage.com_act.sdaf002` | `mish` | stock | `SFECPRO` | convencion |
-| `storage.com_seg.sdsf001` | `mish` | stock | `SFECPRO` | convencion |
-| `storage.ref.wjercor03` | `mish` | otro | — | por_confirmar |
-
-### `heredados-pdm` (mensual)
+### Piero 03 · `heredados-pdm` (mensual)
 
 | Tabla | Conexión | Tipo | Columna de fecha | Confianza |
 |---|---|---|---|---|
@@ -169,22 +75,89 @@ Sirve para el cierre de mes: saber **qué tablas necesita cada reporte** y **a q
 | `dwh.dbo.rtipcre002` | `slc` | referencia | — | por_confirmar |
 | `dwh.dbo.rtipcre003` | `slc` | referencia | — | por_confirmar |
 
-### `indicadores-clientes` (mensual)
+### Piero 04.1 · `contratacion-electronica` (mensual)
 
 | Tabla | Conexión | Tipo | Columna de fecha | Confianza |
 |---|---|---|---|---|
-| `csd.dbo.clientes_ds` | `slc` | stock | `HFECPRO` | confirmada |
-| `dwh.dbo.bregper001` | `slc` | referencia | — | por_confirmar |
-| `dwh.dbo.hcarcap001` | `slc` | historica | `HFECPRO` | confirmada |
-| `dwh.dbo.scarcap001` | `slc` | stock | `SFECPRO` | convencion |
-| `dwh.dbo.scarcap003` | `slc` | stock | `SFECPRO` | convencion |
-| `intcom.bt.fsd002` | `slc` | otro | — | por_confirmar |
-| `intcom.bt.sngc13` | `slc` | stock | `FECHA_REPORTE` | confirmada |
-| `intcom.dbo.ccd` | `slc` | stock | `Fecha_Cierre` | confirmada |
-| `intcom.dbo.ccs_fund_f` | `slc` | stock | `fecha_reporte` | confirmada |
-| `intcom.dbo.distritos_rural_alv` | `slc` | otro | — | por_confirmar |
+| `storage.com_act.wcdce001` | `mish` | historica | `hfecpro` | confirmada |
+| `storage.com_act.wcdce002` | `mish` | historica | `hfecpro` | confirmada |
 
-### `michael-captaciones` (mensual)
+### Piero 04.2 · `clientes-rurales-migrantes` (mensual)
+
+| Tabla | Conexión | Tipo | Columna de fecha | Confianza |
+|---|---|---|---|---|
+| `storage.com_act.hbcn001` | `mish` | historica | `HFECPRO` | confirmada |
+| `storage.com_act.hcda001` | `mish` | historica | `HFECPRO` | confirmada |
+| `storage.com_act.hcdr001` | `mish` | historica | `HFECPRO` | confirmada |
+| `storage.com_act.hcdr002` | `mish` | historica | `HFECPRO` | confirmada |
+| `storage.com_act.rfoc001` | `mish` | referencia | — | por_confirmar |
+| `storage.ref.rcalen001` | `mish` | referencia | — | por_confirmar |
+| `storage.ref.vurbrur01` | `mish` | otro | — | por_confirmar |
+
+### Piero 05.1 · `giovanni-captaciones` (mensual)
+
+| Tabla | Conexión | Tipo | Columna de fecha | Confianza |
+|---|---|---|---|---|
+| `storage.com_pas.retp001` | `mish` | referencia | — | por_confirmar |
+| `storage.com_pas.sdps010` | `mish` | stock | `SFECPRO` | convencion |
+| `storage.com_pas.sdps013` | `mish` | stock | `SFECPRO` | confirmada |
+| `storage.com_pas.wjas004` | `mish` | historica | `HFECPRO` | confirmada |
+| `storage.ref.vjercor04` | `mish` | otro | — | por_confirmar |
+
+### Piero 05.2 · `giovanni-seguros` (mensual)
+
+| Tabla | Conexión | Tipo | Columna de fecha | Confianza |
+|---|---|---|---|---|
+| `storage.com.vdmcom01` | `mish` | otro | — | por_confirmar |
+| `storage.com_act.retp001` | `mish` | referencia | — | por_confirmar |
+| `storage.com_act.retp002` | `mish` | referencia | — | por_confirmar |
+| `storage.com_act.retp003` | `mish` | referencia | — | por_confirmar |
+| `storage.com_act.sdaf002` | `mish` | stock | `SFECPRO` | convencion |
+| `storage.com_seg.sdsf001` | `mish` | stock | `SFECPRO` | convencion |
+| `storage.ref.wjercor03` | `mish` | otro | — | por_confirmar |
+
+### Piero 05.3 · `giovanni-cartera-agro` (mensual)
+
+| Tabla | Conexión | Tipo | Columna de fecha | Confianza |
+|---|---|---|---|---|
+| `storage.com_act.hcda001` | `mish` | historica | `HFECPRO` | confirmada |
+| `storage.com_act.retp001` | `mish` | referencia | — | por_confirmar |
+| `storage.com_act.retp002` | `mish` | referencia | — | por_confirmar |
+| `storage.com_act.retp003` | `mish` | referencia | — | por_confirmar |
+| `storage.ref.fjercor02` | `mish` | otro | — | por_confirmar |
+| `storage.ref.wjercor03` | `mish` | otro | — | por_confirmar |
+
+### Piero 06 · `saca-tu-garra` (mensual)
+
+| Tabla | Conexión | Tipo | Columna de fecha | Confianza |
+|---|---|---|---|---|
+| `storage.com_act.hcda001` | `mish` | historica | `HFECPRO` | confirmada |
+| `storage.com_act.hcma001` | `mish` | historica | `HFECPRO` | convencion |
+| `storage.com_act.hctc001` | `mish` | historica | `HFECPRO` | convencion |
+| `storage.com_act.sdae002` | `mish` | stock | `sfecpro` | confirmada |
+| `storage.com_act.sdae003` | `mish` | stock | `SFECPRO` | convencion |
+| `storage.ref.rcalen001` | `mish` | referencia | — | por_confirmar |
+
+### Piero 07 · `saldo-medio-vigente` (mensual)
+
+| Tabla | Conexión | Tipo | Columna de fecha | Confianza |
+|---|---|---|---|---|
+| `storage.com_act.sdas001` | `mish` | stock | `sfecpro` | confirmada |
+| `storage.com_act.wjas001` | `mish` | historica | `HFECPRO` | confirmada |
+
+### Piero 08 · `tapp-saldo-medio-territorio` (mensual)
+
+| Tabla | Conexión | Tipo | Columna de fecha | Confianza |
+|---|---|---|---|---|
+| `appj.dbo.salmediovigente1` | `mish` | historica | `HFECPRO` | confirmada |
+| `storage.com_act.retp001` | `mish` | referencia | — | por_confirmar |
+| `storage.com_act.sdaf002` | `mish` | stock | `SFECPRO` | convencion |
+| `storage.com_act.sdas001` | `mish` | stock | `sfecpro` | confirmada |
+| `storage.ref.fjercor02` | `mish` | otro | — | por_confirmar |
+| `storage.ref.rcalen001` | `mish` | referencia | — | por_confirmar |
+| `storage.util.fvecfec01` | `mish` | otro | — | por_confirmar |
+
+### Piero 09.1 · `michael-captaciones` (mensual)
 
 | Tabla | Conexión | Tipo | Columna de fecha | Confianza |
 |---|---|---|---|---|
@@ -194,7 +167,7 @@ Sirve para el cierre de mes: saber **qué tablas necesita cada reporte** y **a q
 | `storage.com_pas.wcap001` | `mish` | historica | `HFECPRO` | confirmada |
 | `storage.ref.vjercor04` | `mish` | otro | — | por_confirmar |
 
-### `michael-castigos` (mensual)
+### Piero 09.2 · `michael-castigos` (mensual)
 
 | Tabla | Conexión | Tipo | Columna de fecha | Confianza |
 |---|---|---|---|---|
@@ -208,7 +181,7 @@ Sirve para el cierre de mes: saber **qué tablas necesita cada reporte** y **a q
 | `storage.ref.fjercor01` | `mish` | otro | — | por_confirmar |
 | `storage.ref.rtcm001` | `mish` | referencia | — | por_confirmar |
 
-### `productos-verdes` (mensual)
+### Erick 01 · `productos-verdes` (mensual)
 
 | Tabla | Conexión | Tipo | Columna de fecha | Confianza |
 |---|---|---|---|---|
@@ -226,35 +199,62 @@ Sirve para el cierre de mes: saber **qué tablas necesita cada reporte** y **a q
 | `dwh.dbo.vplaper001` | `slc` | otro | — | por_confirmar |
 | `slc.dbo.retp006` | `slc` | referencia | — | por_confirmar |
 
-### `saca-tu-garra` (mensual)
+### Erick 02 · `clientes-jovenes` (mensual)
 
 | Tabla | Conexión | Tipo | Columna de fecha | Confianza |
 |---|---|---|---|---|
-| `storage.com_act.hcda001` | `mish` | historica | `HFECPRO` | confirmada |
-| `storage.com_act.hcma001` | `mish` | historica | `HFECPRO` | convencion |
-| `storage.com_act.hctc001` | `mish` | historica | `HFECPRO` | convencion |
-| `storage.com_act.sdae002` | `mish` | stock | `sfecpro` | confirmada |
-| `storage.com_act.sdae003` | `mish` | stock | `SFECPRO` | convencion |
-| `storage.ref.rcalen001` | `mish` | referencia | — | por_confirmar |
+| `csd.dbo.clientes_ds` | `slc` | stock | `HFECPRO` | confirmada |
+| `dwh.dbo.bregper001` | `slc` | referencia | — | por_confirmar |
+| `dwh.dbo.gdesemcre001` | `slc` | procedimiento | — | por_confirmar |
+| `dwh.dbo.hcarcre001` | `slc` | historica | `HFECPRO` | convencion |
+| `dwh.dbo.scarcre006` | `slc` | stock | `SFECPRO` | convencion |
 
-### `saldo-medio-vigente` (mensual)
-
-| Tabla | Conexión | Tipo | Columna de fecha | Confianza |
-|---|---|---|---|---|
-| `storage.com_act.sdas001` | `mish` | stock | `sfecpro` | confirmada |
-| `storage.com_act.wjas001` | `mish` | historica | `HFECPRO` | confirmada |
-
-### `tapp-saldo-medio-territorio` (mensual)
+### Erick 03.1 · `bancarizados` (mensual)
 
 | Tabla | Conexión | Tipo | Columna de fecha | Confianza |
 |---|---|---|---|---|
-| `appj.dbo.salmediovigente1` | `mish` | historica | `HFECPRO` | confirmada |
-| `storage.com_act.retp001` | `mish` | referencia | — | por_confirmar |
-| `storage.com_act.sdaf002` | `mish` | stock | `SFECPRO` | convencion |
-| `storage.com_act.sdas001` | `mish` | stock | `sfecpro` | confirmada |
-| `storage.ref.fjercor02` | `mish` | otro | — | por_confirmar |
-| `storage.ref.rcalen001` | `mish` | referencia | — | por_confirmar |
-| `storage.util.fvecfec01` | `mish` | otro | — | por_confirmar |
+| `dbrcc.dbo.rcccab{yyyymmdd}` | `rcc` | dinamica | — | por_confirmar |
+| `dbrcc.dbo.rccdet{yyyymmdd}` | `rcc` | dinamica | — | por_confirmar |
+| `db{yyyymm}.dbo.ccd{yyyymmdd}` | `rcc` | dinamica | — | por_confirmar |
+| `dw_metadata.dbo.wjercor03` | `rcc` | otro | — | por_confirmar |
+| `dw_raw.dbo.clientes` | `rcc` | otro | — | por_confirmar |
+| `intcom.dbo.an_productos` | `slc` | otro | — | por_confirmar |
+| `intcom.dbo.ccd` | `slc` | stock | `Fecha_Cierre` | confirmada |
+
+### Erick 03.2 · `bancarizados-producto` (mensual)
+
+| Tabla | Conexión | Tipo | Columna de fecha | Confianza |
+|---|---|---|---|---|
+| `csd.dbo.clientes_ds` | `slc` | stock | `HFECPRO` | confirmada |
+| `dwh.dbo.bregmod001` | `slc` | referencia | — | por_confirmar |
+| `dwh.dbo.gdesemcre001` | `slc` | procedimiento | — | por_confirmar |
+| `dwh.dbo.rtipcre001` | `slc` | referencia | — | por_confirmar |
+| `dwh.dbo.rtipcre002` | `slc` | referencia | — | por_confirmar |
+| `dwh.dbo.rtipcre003` | `slc` | referencia | — | por_confirmar |
+
+### Erick 03.3 · `clientes-extranjeros` (mensual)
+
+| Tabla | Conexión | Tipo | Columna de fecha | Confianza |
+|---|---|---|---|---|
+| `intcom.dbo.ccd` | `slc` | stock | `Fecha_Cierre` | confirmada |
+| `intcom.dbo.ccs_fund_f` | `slc` | stock | `fecha_reporte` | confirmada |
+| `rcc_cd.db{yyyymm}.dbo.ccp{yyyymmdd}` | `slc` | dinamica | — | por_confirmar |
+| `db{yyyymm}.dbo.ccp{yyyymmdd}` | `rcc` | dinamica | — | por_confirmar |
+
+### Erick 03.4 · `indicadores-clientes` (mensual)
+
+| Tabla | Conexión | Tipo | Columna de fecha | Confianza |
+|---|---|---|---|---|
+| `csd.dbo.clientes_ds` | `slc` | stock | `HFECPRO` | confirmada |
+| `dwh.dbo.bregper001` | `slc` | referencia | — | por_confirmar |
+| `dwh.dbo.hcarcap001` | `slc` | historica | `HFECPRO` | confirmada |
+| `dwh.dbo.scarcap001` | `slc` | stock | `SFECPRO` | convencion |
+| `dwh.dbo.scarcap003` | `slc` | stock | `SFECPRO` | convencion |
+| `intcom.bt.fsd002` | `slc` | otro | — | por_confirmar |
+| `intcom.bt.sngc13` | `slc` | stock | `FECHA_REPORTE` | confirmada |
+| `intcom.dbo.ccd` | `slc` | stock | `Fecha_Cierre` | confirmada |
+| `intcom.dbo.ccs_fund_f` | `slc` | stock | `fecha_reporte` | confirmada |
+| `intcom.dbo.distritos_rural_alv` | `slc` | otro | — | por_confirmar |
 
 ## 2. Por tabla (si se actualiza esta, ¿a qué reportes afecta?)
 

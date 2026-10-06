@@ -16,14 +16,17 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
 
-from reportes.registro import REPORTES  # noqa: E402
+from reportes.registro import GRUPOS, REPORTES, TITULOS_GRUPO, ordenados  # noqa: E402
 
 
 def main(argv: list[str]) -> int:
     if not argv or argv[0] in {"-h", "--help", "listar"}:
         print("Reportes disponibles (python main.py <reporte> --help):\n")
-        for r in REPORTES.values():
-            print(f"  {r.nombre:<28} [{r.frecuencia:<7}] servidor={','.join(r.servidores):<8} {r.descripcion}")
+        for grupo in GRUPOS:
+            print(f"{TITULOS_GRUPO[grupo]}")
+            for r in (x for x in ordenados() if x.grupo == grupo):
+                print(f"  {r.orden:<5} {r.nombre:<28} servidor={','.join(r.servidores):<8} {r.descripcion}")
+            print()
         print("\n  probar-conexiones        verifica los 3 servidores (mish, slc, rcc)")
         print("  tablas <reporte>         tablas que usa; con --fecha-corte X --verificar: ¿están al día?")
         print("  solicitud-actualizacion <reporte> --fecha-corte X [--verificar]   mensaje para Producción")

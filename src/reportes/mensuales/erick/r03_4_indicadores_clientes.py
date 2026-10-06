@@ -33,9 +33,10 @@ from pathlib import Path
 import pandas as pd
 from openpyxl.utils import get_column_letter
 
-from ..comun.fechas import nombre_de_archivo, resolver_corte
-from ..config import DIR_OUTPUTS, ConfiguracionError
-from ..db import leer_sql
+from ...comun.fechas import nombre_de_archivo, resolver_corte
+from ...config import ConfiguracionError
+from ...registro import carpeta_salida
+from ...db import leer_sql
 
 # =============================================================================
 # Configuración
@@ -46,7 +47,7 @@ SERVIDOR_INTCOM = "slc"  # servidor 172.24.2.213: INTCOM y DWH (nombres de 3 par
 SERVIDOR_213 = "slc"  # el mismo servidor: csd.dbo.Clientes_DS
 BASE = "slc"  # base de datos que abre la conexión
 
-DIR_SALIDA_DEFECTO = DIR_OUTPUTS / "indicadores_clientes"
+DIR_SALIDA_DEFECTO = carpeta_salida("indicadores-clientes")
 HILOS_DEFECTO = 4  # Consultas simultáneas contra el servidor
 ORDEN_INDICADORES = ["TOTAL", "GENERO", "RURALIDAD", "EDAD", "BANCARIZACION"]
 COLUMNAS_SQL = ["FECHA", "INDICADOR", "CATEGORIA", "CLIENTES"]

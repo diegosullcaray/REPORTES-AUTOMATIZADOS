@@ -7,7 +7,7 @@ tablas al corte, ejecuta, valida datos y exporta a data/outputs/clientes_rurales
 
 from __future__ import annotations
 
-from ..comun.ejecutor import ReporteLote, correr
+from ...comun.ejecutor import ReporteLote, correr
 
 SQL = r"""
 use storage

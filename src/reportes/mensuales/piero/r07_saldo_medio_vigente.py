@@ -7,7 +7,7 @@ tablas al corte, ejecuta, valida datos y exporta a data/outputs/saldo_medio_vige
 
 from __future__ import annotations
 
-from ..comun.ejecutor import Hoja, ReporteLote, correr
+from ...comun.ejecutor import Hoja, ReporteLote, correr
 
 SQL = r"""
 select HFECPRO,HSALMEDMNVIGE  from storage.com_Act.wjas001 where hfecpro='@@F@@' and htipcod=7

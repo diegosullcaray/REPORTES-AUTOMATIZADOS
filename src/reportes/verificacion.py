@@ -31,9 +31,9 @@ class Resultado:
     detalle: str = ""
 
 
-def fecha_esperada(frecuencia: str, hoy: date | None = None, fecha_corte: date | None = None) -> date:
+def fecha_esperada(frecuencia: str, hoy: date | None = None, fecha_corte: date | None = None, lunes_sabado: bool = True) -> date:
     """Corte a validar. Prioridad: argumento > .env (FECHA_CORTE_DIARIA/MENSUAL) > diaria: día anterior (lunes -> sábado)."""
-    return resolver_corte(frecuencia, fecha_corte, hoy)[0]
+    return resolver_corte(frecuencia, fecha_corte, hoy, lunes_sabado)[0]
 
 
 def nombre_resuelto(tabla: Tabla, fecha: date) -> str:

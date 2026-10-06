@@ -14,7 +14,7 @@ Sub ActualizarSQL_AmbasHojas()
     ' CONFIGURACIÓN: RUTAS Y WEBHOOK
     ' ==========================================
     rutaLogoLocal = "D:\FINANCIERA CONFIANZA\03 RECURSOS\logo.png"
-    urlWebhook = "https://chat.googleapis.com/v1/spaces/AAQAmeym9-k/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=sKoJT9awQOo0RMoAsEQP1rcY_EztBtmtVS7yqiZlPsg"
+    urlWebhook = "https://chat.googleapis.com/v1/spaces/AAQAmeym9-k/messages?key=<OCULTO: va en .env como GOOGLE_CHAT_WEBHOOK_URL>&token=<OCULTO>"
     
     ' ==========================================
     ' 0. FECHA AUTOMÁTICA (DÍA ANTERIOR)
@@ -186,7 +186,7 @@ Sub ActualizarSQL_AmbasHojas()
         .Item("http://schemas.microsoft.com/cdo/configuration/smtpusessl") = True
         .Item("http://schemas.microsoft.com/cdo/configuration/smtpauthenticate") = 1
         .Item("http://schemas.microsoft.com/cdo/configuration/sendusername") = "mis@confianza.pe"
-        .Item("http://schemas.microsoft.com/cdo/configuration/sendpassword") = "ogqqcbsjsbftxbix"
+        .Item("http://schemas.microsoft.com/cdo/configuration/sendpassword") = "<OCULTO: va en .env como SMTP_PASSWORD>"
         .Update
     End With
 

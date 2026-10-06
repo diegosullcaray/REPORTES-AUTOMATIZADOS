@@ -6,7 +6,8 @@ import datetime
 import os
 
 from ..comun.fechas import fecha_iso, resolver_corte
-from ..config import DIR_OUTPUTS, ConfiguracionError
+from ..config import ConfiguracionError
+from ..registro import carpeta_salida
 from ..db import conexion_pyodbc
 
 def generar_inserts_sql(fecha_corte: datetime.date | None = None):
@@ -21,7 +22,7 @@ def generar_inserts_sql(fecha_corte: datetime.date | None = None):
     fec_tabla = fecha_ejec.strftime('%Y%m%d') # Para buscar PROV_PROY_YYYYMMDD_0
     
     # Ruta de salida
-    ruta_salida = DIR_OUTPUTS / 'cmg_mora'
+    ruta_salida = carpeta_salida('cmg-mora')
     os.makedirs(ruta_salida, exist_ok=True)
     
     try:
