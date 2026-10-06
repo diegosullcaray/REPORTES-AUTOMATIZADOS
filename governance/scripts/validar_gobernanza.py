@@ -1,0 +1,198 @@
+"""Motor de reglas de gobernanza de REPORTES-AUTOMATIZADOS.
+
+    python governance/scripts/validar_gobernanza.py                    # todos los hallazgos
+    python governance/scripts/validar_gobernanza.py --listar           # catálogo de reglas
+    python governance/scripts/validar_gobernanza.py --linea-base --check   # exige cero hallazgos NUEVOS
+    python governance/scripts/validar_gobernanza.py --guardar-linea-base   # congelar deuda (deliberado, ADR-0003)
+    python governance/scripts/validar_gobernanza.py --regla=secretos-en-codigo
+
+Código de salida: 1 si hay errores (o hallazgos nuevos con --check); los avisos no bloquean.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import sys
+from dataclasses import dataclass
+from datetime import date
+from pathlib import Path
+
+RAIZ = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(RAIZ / "src"))
+LINEA_BASE = RAIZ / "governance" / "gobernanza.linea-base.json"
+FUENTES = [p for p in (RAIZ / "src").rglob("*.py") if "__pycache__" not in p.parts] + [RAIZ / "main.py"]
+SQLS = sorted((RAIZ / "sql").rglob("*.sql"))
+
+
+@dataclass(frozen=True)
+class Hallazgo:
+    regla: str
+    nivel: str  # error | aviso
+    archivo: str
+    detalle: str
+
+    @property
+    def clave(self) -> str:
+        return f"{self.regla}|{self.archivo}|{self.detalle}"
+
+
+def rel(p: Path) -> str:
+    return p.relative_to(RAIZ).as_posix()
+
+
+# ---------------------------------------------------------------- reglas
+def r_secretos(): 
+    patrones = [
+        (re.compile(r"(?i)\b(PWD|UID)=(?![{;'\"\s])[^;'\"\s]+"), "cadena de conexión con credencial literal"),
+        (re.compile(r"(?i)\b(password|passwd|pwd|clave)\s*=\s*r?[\"'][^\"']{3,}[\"']"), "contraseña asignada como literal"),
+    ]
+    for p in FUENTES + SQLS:
+        for n, linea in enumerate(p.read_text(encoding="utf-8", errors="ignore").splitlines(), 1):
+            if linea.lstrip().startswith(("#", "--")):
+                continue
+            for rx, msg in patrones:
+                if rx.search(linea):
+                    yield Hallazgo("secretos-en-codigo", "error", rel(p), f"L{n}: {msg}")
+
+
+def r_conexion(): 
+    for p in FUENTES:
+        if p.name == "db.py":
+            continue
+        txt = p.read_text(encoding="utf-8")
+        for rx, msg in ((r"pyodbc\.connect\(", "pyodbc.connect fuera de db.py"), (r"\bcreate_engine\(", "create_engine fuera de db.py")):
+            if re.search(rx, txt):
+                yield Hallazgo("conexion-solo-en-db", "error", rel(p), msg)
+
+
+def r_rutas(): 
+    rx = re.compile(r"(?<![A-Za-z0-9_])[A-Z]:\\\\?[A-Za-z0-9_ ]")
+    for p in FUENTES + SQLS:
+        for n, linea in enumerate(p.read_text(encoding="utf-8", errors="ignore").splitlines(), 1):
+            if linea.lstrip().startswith(("#", "--")):
+                continue
+            if rx.search(linea):
+                yield Hallazgo("rutas-absolutas", "error", rel(p), f"L{n}: ruta absoluta de Windows")
+
+
+def r_registro():
+    from reportes.config import BASES
+    from reportes.registro import REPORTES
+
+    for r in REPORTES.values():
+        ruta = RAIZ / "src" / (r.modulo.replace(".", "/") + ".py")
+        if not ruta.exists():
+            yield Hallazgo("registro-sincronizado", "error", "src/reportes/registro.py", f"{r.nombre}: módulo {r.modulo} no existe")
+            continue
+        if not re.search(r"^def main\(", ruta.read_text(encoding="utf-8"), re.M):
+            yield Hallazgo("registro-sincronizado", "error", rel(ruta), "el módulo no define main(argv)")
+        for b in r.bases:
+            if b not in BASES:
+                yield Hallazgo("registro-sincronizado", "error", "src/reportes/registro.py", f"{r.nombre}: base '{b}' no está en config.BASES")
+    registrados = {r.modulo for r in REPORTES.values()}
+    for carpeta in ("diarios", "mensuales"):
+        for p in (RAIZ / "src" / "reportes" / carpeta).glob("*.py"):
+            mod = f"reportes.{carpeta}.{p.stem}"
+            if p.stem != "__init__" and mod not in registrados:
+                yield Hallazgo("registro-sincronizado", "aviso", rel(p), "módulo sin registrar en registro.py")
+
+
+def r_nombres():
+    ok = re.compile(r"^[a-z0-9_]+(\.[a-z]+)?$")
+    for p in SQLS + [x for x in (RAIZ / "src").rglob("*.py")]:
+        if "__pycache__" in p.parts:
+            continue
+        for parte in p.relative_to(RAIZ).parts:
+            if not ok.match(parte):
+                yield Hallazgo("nombres-canonicos", "aviso", rel(p), f"'{parte}' debe ser snake_case sin espacios ni tildes")
+                break
+
+
+def r_prueba():
+    tests = {p.name for p in (RAIZ / "tests").rglob("test_*.py")} if (RAIZ / "tests").exists() else set()
+    for p in FUENTES:
+        if p.stem in {"__init__", "main"}:
+            continue
+        if f"test_{p.stem}.py" not in tests:
+            yield Hallazgo("prueba-vecina", "aviso", rel(p), "sin tests/test_<modulo>.py")
+
+
+def r_env():
+    from reportes.config import BASES
+
+    ejemplo = (RAIZ / ".env.example").read_text(encoding="utf-8")
+    for b in BASES.values():
+        for suf in ("SERVER", "DATABASE", "USER", "PASSWORD"):
+            if f"{b.prefijo}_{suf}" not in ejemplo:
+                yield Hallazgo("env-example-completo", "error", ".env.example", f"falta {b.prefijo}_{suf}")
+
+
+def r_gitignore():
+    g = (RAIZ / ".gitignore").read_text(encoding="utf-8").splitlines()
+    for req in (".env", "salidas/*", "*.pkl"):
+        if req not in g:
+            yield Hallazgo("gitignore-protege-datos", "error", ".gitignore", f"falta '{req}'")
+
+
+def r_sql_huerfano():
+    codigo = "\n".join(p.read_text(encoding="utf-8") for p in FUENTES)
+    for p in SQLS:
+        if p.stem not in codigo and rel(p).split("/", 1)[1] not in codigo:
+            yield Hallazgo("sql-sin-reporte", "aviso", rel(p), "SQL no consumido por ningún módulo (pendiente de automatizar)")
+
+
+REGLAS = {
+    "secretos-en-codigo": (r_secretos, "Ninguna credencial literal en src/ ni sql/. Solo .env."),
+    "conexion-solo-en-db": (r_conexion, "pyodbc/SQLAlchemy se abren únicamente en reportes/db.py."),
+    "rutas-absolutas": (r_rutas, "Sin rutas D:\\... fijas; usar config.DIR_SALIDAS."),
+    "registro-sincronizado": (r_registro, "Todo reporte registrado existe, expone main() y usa alias de BD válidos."),
+    "nombres-canonicos": (r_nombres, "Archivos y carpetas en snake_case, sin espacios ni tildes."),
+    "prueba-vecina": (r_prueba, "Cada módulo tiene tests/test_<modulo>.py."),
+    "env-example-completo": (r_env, ".env.example declara las variables de las 3 conexiones."),
+    "gitignore-protege-datos": (r_gitignore, ".gitignore excluye .env, salidas y cachés."),
+    "sql-sin-reporte": (r_sql_huerfano, "SQL huérfano: deuda de automatización visible."),
+}
+
+
+def main(argv=None) -> int:
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--listar", action="store_true")
+    ap.add_argument("--regla")
+    ap.add_argument("--linea-base", action="store_true", help="descuenta la deuda congelada")
+    ap.add_argument("--sin-linea-base", action="store_true", help="muestra el pasivo completo")
+    ap.add_argument("--guardar-linea-base", action="store_true")
+    ap.add_argument("--check", action="store_true", help="falla si hay hallazgos nuevos")
+    a = ap.parse_args(argv)
+
+    if a.listar:
+        for n, (_, porque) in REGLAS.items():
+            print(f"  {n:<26} {porque}")
+        return 0
+
+    seleccion = {a.regla: REGLAS[a.regla]} if a.regla else REGLAS
+    hallazgos = [h for fn, _ in seleccion.values() for h in fn()]
+
+    if a.guardar_linea_base:
+        LINEA_BASE.write_text(json.dumps({
+            "generado": date.today().isoformat(),
+            "nota": "Deuda conocida al momento de congelar. Regenerar a propósito, nunca en automático. Ver ADR-0003.",
+            "claves": sorted(h.clave for h in hallazgos),
+        }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        print(f"Línea base guardada: {len(hallazgos)} hallazgos congelados.")
+        return 0
+
+    congeladas: set[str] = set()
+    if a.linea_base and not a.sin_linea_base and LINEA_BASE.exists():
+        congeladas = set(json.loads(LINEA_BASE.read_text(encoding="utf-8"))["claves"])
+    nuevos = [h for h in hallazgos if h.clave not in congeladas]
+    for h in nuevos:
+        print(f"[{h.nivel.upper():<5}] {h.regla:<24} {h.archivo}  {h.detalle}")
+    errores = sum(h.nivel == "error" for h in nuevos)
+    print(f"\n{len(nuevos)} hallazgos ({errores} errores, {len(nuevos) - errores} avisos); {len(hallazgos) - len(nuevos)} congelados en línea base.")
+    return 1 if errores or (a.check and nuevos) else 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
