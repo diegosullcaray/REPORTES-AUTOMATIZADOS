@@ -13,7 +13,7 @@ src/reportes/
   comun/           utilidades compartidas
   comun/ejecutor.py  flujo común: conexión → tablas al corte → consulta → validación → Excel
   comun/fechas.py   cortes y tokens @@F@@…
-  tablas.py         tablas de cada reporte (alias, tipo, columna de fecha)
+  tablas.py         tablas de cada reporte (servidor, tipo, columna de fecha)
   diarios/<reporte>.py       el SQL va incrustado en el módulo
   mensuales/<reporte>.py
 data/inputs/<reporte>/         archivos que entran (Excel/CSV, formatos base); no versionado

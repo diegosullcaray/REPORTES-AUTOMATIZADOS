@@ -1,4 +1,4 @@
-from reportes.config import BASES
+from reportes.config import SERVIDORES
 from reportes.tablas import TABLAS, USO, reportes_que_usan, tablas_de
 
 
@@ -10,7 +10,7 @@ def test_todo_uso_apunta_a_una_tabla_registrada():
 
 def test_alias_validos_y_columna_si_es_verificable():
     for t in TABLAS.values():
-        assert t.alias in BASES
+        assert t.servidor in SERVIDORES
         if t.tipo in {"historica", "stock"}:
             assert t.col_fecha, t.nombre
 

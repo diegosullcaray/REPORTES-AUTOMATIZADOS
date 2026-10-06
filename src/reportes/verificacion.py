@@ -64,9 +64,9 @@ def verificar_tabla(tabla: Tabla, fecha: date) -> Resultado:
         return Resultado(tabla, Estado.ERROR, detalle="nombre de tabla/columna inválido en el registro")
     try:
         if tabla.tipo == "dinamica":
-            leer_sql(tabla.alias, f"SELECT TOP 0 1 AS x FROM {nombre}")
+            leer_sql(tabla.servidor, f"SELECT TOP 0 1 AS x FROM {nombre}")
             return Resultado(tabla, Estado.OK, detalle="existe")
-        df = leer_sql(tabla.alias, f"SELECT MAX({tabla.col_fecha}) AS ultima FROM {nombre}")
+        df = leer_sql(tabla.servidor, f"SELECT MAX({tabla.col_fecha}) AS ultima FROM {nombre}")
         ultima = _a_fecha(df.iloc[0, 0])
         if ultima is None:
             return Resultado(tabla, Estado.DESACTUALIZADA, detalle="tabla sin datos")
@@ -98,7 +98,7 @@ def mensaje_solicitud(reporte: str, fecha: date, resultados: list[Resultado] | N
         if r is not None:
             extra = f" — última fecha cargada: {r.ultima_fecha:%d/%m/%Y}" if r.ultima_fecha else f" — {r.estado.value.lower()}"
         col = f" (columna de fecha: {t.col_fecha})" if t.col_fecha else ""
-        L.append(f"  • {nombre_resuelto(t, fecha)}  [conexión {t.alias}]{col}{extra}")
+        L.append(f"  • {nombre_resuelto(t, fecha)}  [conexión {t.servidor}]{col}{extra}")
     otras = [nombre_resuelto(t, fecha) for t in tablas_de(reporte) if not t.verificable and t.tipo in {"otro", "referencia"}]
     if otras:
         L += ["", "Si alguna de estas vistas/catálogos que también usa el reporte depende de esas cargas, valida que se refresque: "

@@ -3,7 +3,7 @@
 Un reporte es un módulo pequeño con un `ReporteLote` (el T-SQL del reporte con tokens de fecha `@@F@@`…, qué conexión
 usa y cómo se llaman las hojas). Este ejecutor hace todo lo demás, igual para todos:
 
-1. Conexión (alias dw_raw | rcc | slc) — falla con un mensaje claro si falta configuración.
+1. Conexión al servidor del reporte (mish | slc | rcc) y a SU base de datos (`base=`) — falla con un mensaje claro si falta configuración.
 2. **Tablas al corte**: por cada tabla del reporte compara MAX(fecha) con el corte. Si falta alguna, NO ejecuta,
    dice cuáles son y deja listo el mensaje para Producción (`data/outputs/solicitudes/`). Código de salida 3.
 3. Ejecuta el lote en una sola sesión (tablas temporales) y recoge todos los resultados.
@@ -49,8 +49,9 @@ class ReporteLote:
     comando: str                      # nombre en main.py (= clave en tablas.USO)
     descripcion: str
     frecuencia: str                   # diaria | mensual
-    alias: str                        # conexión: dw_raw | rcc | slc
+    servidor: str                     # conexión (servidor): mish | slc | rcc
     sql: str                          # T-SQL (puede traer GO) con tokens @@F@@, @@F_ISO@@, @@F_ANT@@…
+    base: str | None = None           # base de datos de ESTE reporte (catálogo inicial); None = la de su USE / nombres de 3 partes
     hojas: tuple[Hoja, ...] = ()
     archivo: str = ""                 # prefijo del Excel (defecto: comando en CamelCase)
     vacio_valido: bool = False        # True si un resultado totalmente vacío es legítimo (p. ej. Castigos sin castigos en el mes)
@@ -113,7 +114,7 @@ def exportar_excel(r: ReporteLote, resultados: list[pd.DataFrame], cortes: Corte
             hoja = r.hojas[i] if i < len(r.hojas) else Hoja(f"Resultado_{i + 1}")
             df.to_excel(xl, sheet_name=_limpiar_nombre_hoja(hoja.nombre, usados), index=False)
         control = [("Reporte", r.comando), ("Corte", f"{cortes.corte:%Y-%m-%d}"),
-                   ("Generado", f"{datetime.now():%Y-%m-%d %H:%M}"), ("Conexión", r.alias)]
+                   ("Generado", f"{datetime.now():%Y-%m-%d %H:%M}"), ("Servidor", r.servidor), ("Base de datos", r.base or "(la del USE / 3 partes)")]
         control += [(f"Filas · {(r.hojas[i].nombre if i < len(r.hojas) else f'Resultado_{i + 1}')}", len(df)) for i, df in enumerate(resultados)]
         control += [(f"Tabla · {nombre_resuelto(v.tabla, cortes.corte)}", f"{v.estado.value}" + (f" ({v.ultima_fecha:%Y-%m-%d})" if v.ultima_fecha else ""))
                     for v in verificacion]
@@ -178,7 +179,7 @@ def correr(r: ReporteLote, argv: list[str] | None = None) -> int:
             controlables = [x for x in verificacion if x.estado is not Estado.SIN_CONTROL]
             if controlables and all(x.estado is Estado.ERROR for x in controlables):
                 raise ConfiguracionError(
-                    f"No pude verificar ninguna tabla ({controlables[0].detalle}). Revisa la conexión «{r.alias}» con "
+                    f"No pude verificar ninguna tabla ({controlables[0].detalle}). Revisa la conexión «{r.servidor}» con "
                     "`python main.py probar-conexiones` (o usa --sin-verificar bajo tu responsabilidad)."
                 )
             malas = [x for x in verificacion if x.estado in {Estado.DESACTUALIZADA, Estado.NO_EXISTE}]
@@ -189,7 +190,7 @@ def correr(r: ReporteLote, argv: list[str] | None = None) -> int:
                 ruta = _guardar_solicitud(r, cortes, verificacion)
                 print(f"\n✗ {len(malas)} tabla(s) sin actualizar al corte. Falta que Producción las cargue:")
                 for x in malas:
-                    print(f"   - {nombre_resuelto(x.tabla, cortes.corte)}  [{x.tabla.alias}]")
+                    print(f"   - {nombre_resuelto(x.tabla, cortes.corte)}  [{x.tabla.servidor}]")
                 print(f"\nMensaje listo para enviar: {ruta}")
                 if not a.forzar:
                     print("No se ejecutó el reporte. Cuando confirmen la carga, repite el comando (o usa --forzar bajo tu responsabilidad).")
@@ -199,8 +200,8 @@ def correr(r: ReporteLote, argv: list[str] | None = None) -> int:
             return SALIDA_OK
 
         # ---- 3. ejecución
-        print(f"▶ Ejecutando «{r.comando}» en {r.alias}…")
-        resultados = ejecutar_lote(r.alias, sql)
+        print(f"▶ Ejecutando «{r.comando}» en {r.servidor}" + (f" / {r.base}" if r.base else "") + "…")
+        resultados = ejecutar_lote(r.servidor, sql, r.base)
 
         # ---- 4. validación de datos
         avisos = validar_resultados(r, resultados, cortes)

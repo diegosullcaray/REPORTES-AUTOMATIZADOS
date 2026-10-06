@@ -1,6 +1,6 @@
 # REPORTES-AUTOMATIZADOS
 
-Automatización en Python de los reportes de Financiera Confianza sobre 3 bases de datos (`dw_raw`, `rcc`, `slc`).
+Automatización en Python de los reportes de Financiera Confianza sobre 3 servidores SQL Server (`mish`, `slc`, `rcc`); cada reporte elige su base de datos.
 
 - Gobernanza (estructura, agentes, skills, docs, compuertas): **[governance/readme.md](governance/readme.md)**
 - Reglas para agentes: [AGENTS.md](AGENTS.md)

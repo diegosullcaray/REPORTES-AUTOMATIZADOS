@@ -1,6 +1,6 @@
 # Marco de Gobernanza — Reportes Automatizados
 
-Centro de gobernanza, automatización y estándares técnicos de los **reportes automatizados de Financiera Confianza** (Finanzas / Riesgos / MIS): entorno **Python** que consulta **3 bases de datos SQL Server** (`dw_raw`, `rcc`, `slc`) y genera archivos de salida (Excel/TXT).
+Centro de gobernanza, automatización y estándares técnicos de los **reportes automatizados de Financiera Confianza** (Finanzas / Riesgos / MIS): entorno **Python** que consulta **3 servidores SQL Server** (`mish`, `slc`, `rcc`), cada reporte con su propia base de datos y genera archivos de salida (Excel/TXT).
 
 ```text
 governance/
@@ -43,7 +43,7 @@ Manual: [`scripts/README.md`](./scripts/README.md).
 | Skill | Qué resuelve |
 |---|---|
 | [`reportes-arquitectura-modulos`](./skills/reportes-arquitectura-modulos/SKILL.md) | dónde va cada archivo y cómo se registra un reporte |
-| [`reportes-conexiones-bd`](./skills/reportes-conexiones-bd/SKILL.md) | las 3 bases: alias, `.env`, `db.py`; nunca conexiones propias |
+| [`reportes-conexiones-bd`](./skills/reportes-conexiones-bd/SKILL.md) | los 3 servidores del `.env`, la base que elige cada reporte, `db.py`; nunca conexiones propias |
 | [`reportes-ejecutor`](./skills/reportes-ejecutor/SKILL.md) | cómo se construye un reporte `.py`: `ReporteLote`, tokens de fecha, validaciones, Excel |
 | [`reportes-secretos-y-salidas`](./skills/reportes-secretos-y-salidas/SKILL.md) | credenciales, datos de clientes y carpeta `data/outputs/` |
 | [`reportes-ejecucion-y-cierre`](./skills/reportes-ejecucion-y-cierre/SKILL.md) | cómo ejecutar un reporte: verificar tablas, pedir actualización, ejecutar, validar |

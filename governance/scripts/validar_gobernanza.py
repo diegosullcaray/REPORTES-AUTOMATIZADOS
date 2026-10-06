@@ -78,7 +78,7 @@ def r_rutas():
 
 
 def r_registro():
-    from reportes.config import BASES
+    from reportes.config import SERVIDORES
     from reportes.registro import REPORTES
 
     for r in REPORTES.values():
@@ -88,9 +88,9 @@ def r_registro():
             continue
         if not re.search(r"^def main\(", ruta.read_text(encoding="utf-8"), re.M):
             yield Hallazgo("registro-sincronizado", "error", rel(ruta), "el módulo no define main(argv)")
-        for b in r.bases:
-            if b not in BASES:
-                yield Hallazgo("registro-sincronizado", "error", "src/reportes/registro.py", f"{r.nombre}: base '{b}' no está en config.BASES")
+        for b in r.servidores:
+            if b not in SERVIDORES:
+                yield Hallazgo("registro-sincronizado", "error", "src/reportes/registro.py", f"{r.nombre}: servidor '{b}' no está en config.SERVIDORES")
     registrados = {r.modulo for r in REPORTES.values()}
     for carpeta in ("diarios", "mensuales"):
         for p in (RAIZ / "src" / "reportes" / carpeta).glob("*.py"):
@@ -138,11 +138,11 @@ def r_prueba():
 
 
 def r_env():
-    from reportes.config import BASES
+    from reportes.config import SERVIDORES
 
     ejemplo = (RAIZ / ".env.example").read_text(encoding="utf-8")
-    for b in BASES.values():
-        for suf in ("SERVER", "DATABASE", "USER", "PASSWORD"):
+    for b in SERVIDORES.values():
+        for suf in ("SERVER", "USER", "PASSWORD"):
             if f"{b.prefijo}_{suf}" not in ejemplo:
                 yield Hallazgo("env-example-completo", "error", ".env.example", f"falta {b.prefijo}_{suf}")
 
@@ -184,7 +184,7 @@ REGLAS = {
     "secretos-en-codigo": (r_secretos, "Ninguna credencial literal en src/. Solo .env."),
     "conexion-solo-en-db": (r_conexion, "pyodbc/SQLAlchemy se abren únicamente en reportes/db.py."),
     "rutas-absolutas": (r_rutas, "Sin rutas D:\\... fijas; usar config.DIR_OUTPUTS."),
-    "registro-sincronizado": (r_registro, "Todo reporte registrado existe, expone main() y usa alias de BD válidos."),
+    "registro-sincronizado": (r_registro, "Todo reporte registrado existe, expone main() y usa servidores válidos (mish/slc/rcc)."),
     "nombres-canonicos": (r_nombres, "Módulos en snake_case, sin espacios ni tildes."),
     "prueba-vecina": (r_prueba, "Cada módulo tiene tests/test_<modulo>.py."),
     "env-example-completo": (r_env, ".env.example declara las variables de las 3 conexiones."),

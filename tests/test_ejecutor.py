@@ -59,7 +59,7 @@ def _correr(monkeypatch, tmp_path, estados, resultados=None, extra=()):
     t = Tabla("storage.com_act.hcda001", "slc", "historica", "HFECPRO", "confirmada")
     monkeypatch.setattr(ejecutor, "DIR_OUTPUTS", tmp_path)
     monkeypatch.setattr(ejecutor, "verificar_reporte", lambda c, f: [Resultado(t, e, date(2026, 7, 29)) for e in estados])
-    monkeypatch.setattr(ejecutor, "ejecutar_lote", lambda alias, sql: resultados if resultados is not None else [pd.DataFrame({"f": [date(2026, 7, 31)]})])
+    monkeypatch.setattr(ejecutor, "ejecutar_lote", lambda servidor, sql, base=None: resultados if resultados is not None else [pd.DataFrame({"f": [date(2026, 7, 31)]})])
     return ejecutor.correr(LOTE, ["--fecha-corte", "2026-07-31", "--salida", str(tmp_path / "x"), *extra])
 
 

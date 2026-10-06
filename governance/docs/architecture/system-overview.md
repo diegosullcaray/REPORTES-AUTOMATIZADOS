@@ -6,7 +6,7 @@ src/reportes/
   config.py                     rutas + las 3 BD (lee .env)
   db.py                         ÚNICO acceso a BD
   registro.py                   catálogo de reportes
-  tablas.py                     registro de TABLAS por reporte (alias, tipo, columna de fecha)
+  tablas.py                     registro de TABLAS por reporte (servidor, tipo, columna de fecha)
   verificacion.py               ¿tablas al día? + mensaje de solicitud a Producción
   cli_tablas.py                 subcomandos `tablas` y `solicitud-actualizacion`
   comun/ejecutor.py             flujo común de todo reporte de lote

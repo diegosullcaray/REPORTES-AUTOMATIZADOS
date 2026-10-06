@@ -1,4 +1,4 @@
-"""Acceso único a las 3 bases de datos (dw_raw, rcc, slc)."""
+"""Acceso único a los 3 servidores (mish, slc, rcc). Cada llamada puede pedir su base de datos con `base=`."""
 
 from __future__ import annotations
 
@@ -10,20 +10,20 @@ import pandas as pd
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import URL, Engine
 
-from .config import ConfiguracionError, obtener_base
+from .config import ConfiguracionError, obtener_servidor
 
 
-def crear_engine(base: str) -> Engine:
-    """Engine SQLAlchemy para una de las 3 bases ('dw_raw', 'rcc', 'slc')."""
-    url = URL.create("mssql+pyodbc", query={"odbc_connect": obtener_base(base).cadena_odbc()})
+def crear_engine(servidor: str, base: str | None = None) -> Engine:
+    """Engine SQLAlchemy para uno de los 3 servidores ('mish', 'slc', 'rcc'); `base` = catálogo opcional."""
+    url = URL.create("mssql+pyodbc", query={"odbc_connect": obtener_servidor(servidor).cadena_odbc(base)})
     try:
         return create_engine(url, pool_pre_ping=True)
     except ImportError as exc:
         raise ConfiguracionError("Falta el driver ODBC / pyodbc: instala «ODBC Driver 17 for SQL Server» y `pip install -r requirements.txt`") from exc
 
 
-def leer_sql(base: str, consulta: str, params: dict | None = None) -> pd.DataFrame:
-    engine = crear_engine(base)
+def leer_sql(servidor: str, consulta: str, params: dict | None = None, base: str | None = None) -> pd.DataFrame:
+    engine = crear_engine(servidor, base)
     try:
         with engine.connect() as conn:
             return pd.read_sql(text(consulta), conn, params=params or {})
@@ -32,21 +32,21 @@ def leer_sql(base: str, consulta: str, params: dict | None = None) -> pd.DataFra
 
 
 @contextmanager
-def conexion_pyodbc(base: str, autocommit: bool = True) -> Iterator[Any]:
+def conexion_pyodbc(servidor: str, base: str | None = None, autocommit: bool = True) -> Iterator[Any]:
     """Conexión pyodbc cruda (lotes con tablas temporales, TRUNCATE/INSERT, etc.)."""
     try:
         import pyodbc  # import local: el resto del paquete funciona sin el driver instalado
     except ImportError as exc:
         raise ConfiguracionError("Falta el driver ODBC / pyodbc: instala «ODBC Driver 17 for SQL Server» y `pip install -r requirements.txt`") from exc
 
-    with closing(pyodbc.connect(obtener_base(base).cadena_odbc(), autocommit=autocommit)) as conn:
+    with closing(pyodbc.connect(obtener_servidor(servidor).cadena_odbc(base), autocommit=autocommit)) as conn:
         yield conn
 
 
-def leer_ultimo_resultado(base: str, sql: str, params: tuple = ()) -> pd.DataFrame:
+def leer_ultimo_resultado(servidor: str, sql: str, params: tuple = (), base: str | None = None) -> pd.DataFrame:
     """Ejecuta un lote en una sola sesión y devuelve el último conjunto de resultados."""
     resultado = None
-    with conexion_pyodbc(base) as conn, closing(conn.cursor()) as cursor:
+    with conexion_pyodbc(servidor, base) as conn, closing(conn.cursor()) as cursor:
         cursor.execute(sql, *params)
         while True:
             if cursor.description:
@@ -77,14 +77,14 @@ def _columnas_unicas(nombres: list[str]) -> list[str]:
     return salida
 
 
-def ejecutar_lote(base: str, sql: str) -> list[pd.DataFrame]:
+def ejecutar_lote(servidor: str, sql: str, base: str | None = None) -> list[pd.DataFrame]:
     """Ejecuta un script T-SQL completo en UNA sesión (tablas temporales, USE, EXEC) y devuelve cada resultado con filas/columnas.
 
     Un resultado sin filas pero con columnas se devuelve como DataFrame vacío (vacío válido); las sentencias sin resultado
     (INSERT, SELECT INTO, PRINT…) se ignoran.
     """
     resultados: list[pd.DataFrame] = []
-    with conexion_pyodbc(base) as conn, closing(conn.cursor()) as cursor:
+    with conexion_pyodbc(servidor, base) as conn, closing(conn.cursor()) as cursor:
         for i, lote in enumerate(partir_lotes(sql)):
             cursor.execute(("SET NOCOUNT ON;\n" if i == 0 else "") + lote)
             while True:
@@ -97,11 +97,11 @@ def ejecutar_lote(base: str, sql: str) -> list[pd.DataFrame]:
 
 
 def probar_conexiones() -> dict[str, str]:
-    """Devuelve 'OK' o el error de cada una de las 3 conexiones."""
-    from .config import BASES
+    """Devuelve 'OK' o el error de cada uno de los 3 servidores."""
+    from .config import SERVIDORES
 
     estado = {}
-    for nombre in BASES:
+    for nombre in SERVIDORES:
         try:
             leer_sql(nombre, "SELECT 1 AS ok")
             estado[nombre] = "OK"

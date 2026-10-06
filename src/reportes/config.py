@@ -26,18 +26,20 @@ class ConfiguracionError(RuntimeError):
 
 
 @dataclass(frozen=True)
-class BaseDatos:
-    """Una de las 3 conexiones del proyecto.
+class Servidor:
+    """Una de las 3 conexiones (SERVIDORES) del proyecto: un servidor SQL Server, no una base de datos.
 
-    `prefijo` es el prefijo de las variables de entorno (p. ej. DW_RAW -> DW_RAW_SERVER).
-    `usuario`/`clave` vacíos => autenticación de Windows (Trusted_Connection).
+    La base de datos (catálogo) la elige cada reporte con `base=` (o su propio `USE` / nombres de 3 partes);
+    por eso el `.env` solo declara servidor y credenciales.
+
+    `prefijo` es el prefijo de las variables de entorno (p. ej. SLC -> SLC_SERVER, SLC_USER, SLC_PASSWORD).
+    `usuario`/`clave` vacíos => autenticación de Windows (Trusted_Connection) si el servidor la permite.
     """
 
     nombre: str
     prefijo: str
     descripcion: str
     servidor_defecto: str
-    base_defecto: str
     windows_auth_defecto: bool
 
     @property
@@ -45,8 +47,9 @@ class BaseDatos:
         return os.getenv(f"{self.prefijo}_SERVER", self.servidor_defecto)
 
     @property
-    def base(self) -> str:
-        return os.getenv(f"{self.prefijo}_DATABASE", self.base_defecto)
+    def base_defecto(self) -> str | None:
+        """Catálogo inicial opcional para ese servidor (`<PREF>_DATABASE`); normalmente vacío."""
+        return os.getenv(f"{self.prefijo}_DATABASE") or None
 
     @property
     def usuario(self) -> str | None:
@@ -56,8 +59,12 @@ class BaseDatos:
     def clave(self) -> str | None:
         return os.getenv(f"{self.prefijo}_PASSWORD") or None
 
-    def cadena_odbc(self) -> str:
-        partes = [f"DRIVER={{{DRIVER_ODBC}}}", f"SERVER={self.servidor}", f"DATABASE={self.base}"]
+    def cadena_odbc(self, base: str | None = None) -> str:
+        """`base` (la que pide el reporte) manda sobre `<PREF>_DATABASE`; sin ninguna, se usa la base por defecto del login."""
+        partes = [f"DRIVER={{{DRIVER_ODBC}}}", f"SERVER={self.servidor}"]
+        catalogo = base or self.base_defecto
+        if catalogo:
+            partes.append(f"DATABASE={catalogo}")
         if self.usuario or self.clave:
             if not (self.usuario and self.clave):
                 raise ConfiguracionError(
@@ -73,37 +80,34 @@ class BaseDatos:
         return ";".join(partes)
 
 
-# --- Las 3 bases de datos -------------------------------------------------------
-BASES: dict[str, BaseDatos] = {
-    "dw_raw": BaseDatos(
-        nombre="dw_raw",
-        prefijo="DW_RAW",
-        descripcion="DW_Raw_v2 (staging CMG Mora); desde aquí también se consulta dbriesgos (nombres de 3 partes)",
-        servidor_defecto="172.20.0.70",
-        base_defecto="DW_Raw_v2",
-        windows_auth_defecto=False,
+# --- Las 3 conexiones (servidores) ------------------------------------------------
+SERVIDORES: dict[str, Servidor] = {
+    "mish": Servidor(
+        nombre="mish",
+        prefijo="MISH",
+        descripcion="Servidor MISHWBDDES01 (autenticación de Windows). Aún sin reportes asignados",
+        servidor_defecto="MISHWBDDES01",
+        windows_auth_defecto=True,
     ),
-    "rcc": BaseDatos(
-        nombre="rcc",
-        prefijo="RCC",
-        descripcion="DBRCC (Registro Consolidado de Créditos / deuda sistema financiero)",
-        servidor_defecto="172.20.0.70",
-        base_defecto="DBRCC",
-        windows_auth_defecto=False,
-    ),
-    "slc": BaseDatos(
+    "slc": Servidor(
         nombre="slc",
         prefijo="SLC",
-        descripcion="slc (servidor 213); desde aquí también INTCOM, DWH y csd (nombres de 3 partes)",
+        descripcion="Servidor 172.24.2.213 (Windows): bases slc, storage, dwh, intcom, csd, dma, appj…",
         servidor_defecto="172.24.2.213",
-        base_defecto="slc",
         windows_auth_defecto=True,
+    ),
+    "rcc": Servidor(
+        nombre="rcc",
+        prefijo="RCC",
+        descripcion="Servidor 172.20.0.70 (SQL; usuario master): bases DBRCC, DW_Raw_v2, dbriesgos, DW_Metadata…",
+        servidor_defecto="172.20.0.70",
+        windows_auth_defecto=False,
     ),
 }
 
 
-def obtener_base(nombre: str) -> BaseDatos:
+def obtener_servidor(nombre: str) -> Servidor:
     try:
-        return BASES[nombre.lower()]
+        return SERVIDORES[nombre.lower()]
     except KeyError:
-        raise ConfiguracionError(f"Base desconocida '{nombre}'. Opciones: {', '.join(BASES)}") from None
+        raise ConfiguracionError(f"Servidor desconocido '{nombre}'. Opciones: {', '.join(SERVIDORES)}") from None

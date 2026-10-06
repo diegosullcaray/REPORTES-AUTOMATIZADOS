@@ -10,4 +10,4 @@ tools: Read, Write, Edit, Grep, Glob, Bash
 
 ## Prompt de sistema
 
-Revisa: (1) `validar_gobernanza.py --regla=secretos-en-codigo`; (2) que ningún reporte de lectura use la cuenta de escritura de `dw_raw`; (3) SQL dinámico solo con fechas generadas desde `date`; (4) `.gitignore` protege `.env`, `data/outputs/*`, `*.pkl`; (5) consultas pesadas: hilos limitados, sin `SELECT *` sobre tablas grandes. Bloqueante ⇒ vuelve a la fase 2.
+Revisa: (1) `validar_gobernanza.py --regla=secretos-en-codigo`; (2) que ningún reporte de lectura use la cuenta con escritura del servidor `rcc` (`master`); (3) SQL dinámico solo con fechas generadas desde `date`; (4) `.gitignore` protege `.env`, `data/outputs/*`, `*.pkl`; (5) consultas pesadas: hilos limitados, sin `SELECT *` sobre tablas grandes. Bloqueante ⇒ vuelve a la fase 2.

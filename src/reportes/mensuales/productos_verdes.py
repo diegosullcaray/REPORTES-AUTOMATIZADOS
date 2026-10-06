@@ -134,7 +134,8 @@ REPORTE = ReporteLote(
     comando="productos-verdes",
     descripcion='Productos verdes (Manuel Siccha): crédito verde, ticket promedio y tasas',
     frecuencia="mensual",
-    alias="slc",
+    servidor="slc",
+    base="slc",
     sql=SQL,
 )
 

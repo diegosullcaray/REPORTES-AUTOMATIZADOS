@@ -5,7 +5,7 @@ Los 7 pasos valen para cualquier reporte. Sustituye `<reporte>` por su nombre (`
 ## 0. Una vez por sesión
 ```bash
 .venv\Scripts\activate
-python main.py probar-conexiones          # las 3 bases deben decir OK (dw_raw, rcc, slc)
+python main.py probar-conexiones          # los 3 servidores deben decir OK (mish, slc, rcc)
 ```
 Si alguna falla: revisa `.env` y la VPN/red ([setup](../setup-guide.md)). No sigas.
 

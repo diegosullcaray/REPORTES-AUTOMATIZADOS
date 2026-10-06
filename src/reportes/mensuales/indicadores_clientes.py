@@ -41,8 +41,9 @@ from ..db import leer_sql
 # =============================================================================
 # Ambos apuntan al 213 (ahí se consultó INTCOM en los scripts anteriores).
 # Si INTCOM/DWH están en otro servidor, cambia solo SERVIDOR_INTCOM.
-SERVIDOR_INTCOM = "slc"  # INTCOM y DWH (3 partes) vía la conexión slc
-SERVIDOR_213 = "slc"  # csd.dbo.Clientes_DS
+SERVIDOR_INTCOM = "slc"  # servidor 172.24.2.213: INTCOM y DWH (nombres de 3 partes)
+SERVIDOR_213 = "slc"  # el mismo servidor: csd.dbo.Clientes_DS
+BASE = "slc"  # base de datos que abre la conexión
 
 DIR_SALIDA_DEFECTO = DIR_OUTPUTS / "indicadores_clientes"
 HILOS_DEFECTO = 4  # Consultas simultáneas contra el servidor
@@ -371,10 +372,10 @@ def ejecutar_tarea(tarea: Tarea) -> pd.DataFrame:
     params = {"inicio_mes": tarea.mes.inicio, "inicio_mes_sig": tarea.mes.inicio_siguiente}
 
     with cronometro(str(tarea)):
-        df = leer_sql(reporte.servidor, reporte.sql, params)
+        df = leer_sql(reporte.servidor, reporte.sql, params, base=BASE)
 
     if df.empty:
-        ultima = leer_sql(reporte.servidor, reporte.sql_ultima_fecha).iloc[0, 0]
+        ultima = leer_sql(reporte.servidor, reporte.sql_ultima_fecha, base=BASE).iloc[0, 0]
         disponible = pd.Timestamp(ultima).date() if pd.notna(ultima) else "ninguna"
         raise SinDatosError(f"{tarea}: sin datos en {reporte.tabla} (última fecha disponible: {disponible})")
 

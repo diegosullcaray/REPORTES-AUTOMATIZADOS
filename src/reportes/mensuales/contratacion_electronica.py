@@ -29,7 +29,8 @@ REPORTE = ReporteLote(
     comando="contratacion-electronica",
     descripcion='Contratación electrónica: desembolsos habilitados y desembolsados (n.º de operaciones y monto)',
     frecuencia="mensual",
-    alias="slc",
+    servidor="slc",
+    base="slc",
     sql=SQL,
     hojas=(Hoja("CE habilitados"), Hoja("CE desembolsados"),),
 )

@@ -23,8 +23,8 @@ def main(argv: list[str]) -> int:
     if not argv or argv[0] in {"-h", "--help", "listar"}:
         print("Reportes disponibles (python main.py <reporte> --help):\n")
         for r in REPORTES.values():
-            print(f"  {r.nombre:<28} [{r.frecuencia:<7}] bases={','.join(r.bases):<8} {r.descripcion}")
-        print("\n  probar-conexiones        verifica las 3 conexiones (dw_raw, rcc, slc)")
+            print(f"  {r.nombre:<28} [{r.frecuencia:<7}] servidor={','.join(r.servidores):<8} {r.descripcion}")
+        print("\n  probar-conexiones        verifica los 3 servidores (mish, slc, rcc)")
         print("  tablas <reporte>         tablas que usa; con --fecha-corte X --verificar: ¿están al día?")
         print("  solicitud-actualizacion <reporte> --fecha-corte X [--verificar]   mensaje para Producción")
         return 0

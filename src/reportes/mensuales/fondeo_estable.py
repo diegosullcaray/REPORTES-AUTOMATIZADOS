@@ -25,7 +25,8 @@ REPORTE = ReporteLote(
     comando="fondeo-estable",
     descripcion='Estadística de tramo / Fondeo estable (Eddy Martínez)',
     frecuencia="mensual",
-    alias="slc",
+    servidor="slc",
+    base="slc",
     sql=SQL,
 )
 

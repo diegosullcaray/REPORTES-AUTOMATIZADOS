@@ -32,7 +32,8 @@ REPORTE = ReporteLote(
     comando="cmg-castigos",
     descripcion='CMG Mora · recuperación de castigos 12M (SRECCAST12M): suma de SDAS005 en los últimos 11 cierres',
     frecuencia="diaria",
-    alias="slc",
+    servidor="slc",
+    base="storage",
     sql=SQL,
     hojas=(Hoja("Castigos 12M"),),
 )

@@ -18,18 +18,25 @@ SALIDA_COMANDOS = RAIZ / "governance" / "docs" / "development" / "runbooks" / "c
 
 
 def generar() -> str:
-    from reportes.config import BASES
+    from importlib import import_module
+
+    from reportes.config import SERVIDORES
     from reportes.registro import REPORTES
 
     tests = sorted(p.name for p in (RAIZ / "tests").glob("test_*.py"))
     L = ["# Inventario de módulos", "",
          "> **Generado** por `governance/scripts/generar_inventario.py`. No editar a mano: `python governance/scripts/generar_inventario.py`.", "",
-         "## Bases de datos", "", "| Alias | Servidor (defecto) | Base (defecto) | Variables |", "|---|---|---|---|"]
-    for b in BASES.values():
-        L.append(f"| `{b.nombre}` | {b.servidor_defecto} | {b.base_defecto} | `{b.prefijo}_SERVER/DATABASE/USER/PASSWORD` |")
-    L += ["", f"## Reportes ejecutables ({len(REPORTES)})", "", "| Comando | Frecuencia | Conexión | Módulo | Qué hace |", "|---|---|---|---|---|"]
+         "## Conexiones (3 servidores)", "",
+         "El `.env` define **servidores**; la **base de datos la elige cada reporte** (`base=` en su `ReporteLote`, o su propio `USE` / nombres de 3 partes).", "",
+         "| Conexión | Servidor (defecto) | Autenticación | Variables `.env` |", "|---|---|---|---|"]
+    for b in SERVIDORES.values():
+        auth = "Windows (o SQL si hay USER/PASSWORD)" if b.windows_auth_defecto else "SQL (USER/PASSWORD)"
+        L.append(f"| `{b.nombre}` | {b.servidor_defecto} | {auth} | `{b.prefijo}_SERVER`, `{b.prefijo}_USER`, `{b.prefijo}_PASSWORD` |")
+    L += ["", f"## Reportes ejecutables ({len(REPORTES)})", "", "| Comando | Frecuencia | Servidor | Base de datos | Módulo | Qué hace |", "|---|---|---|---|---|---|"]
     for r in REPORTES.values():
-        L.append(f"| `{r.nombre}` | {r.frecuencia} | {', '.join(r.bases)} | `{r.modulo}` | {r.descripcion} |")
+        lote = getattr(import_module(r.modulo), "REPORTE", None)
+        base = (lote.base or "—") if lote is not None else "propia (ver módulo)"
+        L.append(f"| `{r.nombre}` | {r.frecuencia} | {', '.join(r.servidores)} | {base} | `{r.modulo}` | {r.descripcion} |")
     L += ["", f"## Pruebas ({len(tests)} archivos)", ""] + [f"- `tests/{t}`" for t in tests]
     return "\n".join(L) + "\n"
 
@@ -51,13 +58,13 @@ def generar_tablas() -> str:
         L += [f"### `{rid}` ({frecuencia_de(rid)})", "", "| Tabla | Conexión | Tipo | Columna de fecha | Confianza |", "|---|---|---|---|---|"]
         for n in USO[rid]:
             t = TABLAS[n]
-            L.append(f"| `{t.nombre}` | `{t.alias}` | {t.tipo} | {('`' + t.col_fecha + '`') if t.col_fecha else '—'} | {t.confianza} |")
+            L.append(f"| `{t.nombre}` | `{t.servidor}` | {t.tipo} | {('`' + t.col_fecha + '`') if t.col_fecha else '—'} | {t.confianza} |")
         L.append("")
     L += ["## 2. Por tabla (si se actualiza esta, ¿a qué reportes afecta?)", "", "| Tabla | Conexión | Tipo | Reportes |", "|---|---|---|---|"]
     for n in sorted(TABLAS):
         t = TABLAS[n]
         usos = reportes_que_usan(n)
-        L.append(f"| `{n}` | `{t.alias}` | {t.tipo} | {', '.join(f'`{u}`' for u in usos) if usos else '— (solo SQL legado)'} |")
+        L.append(f"| `{n}` | `{t.servidor}` | {t.tipo} | {', '.join(f'`{u}`' for u in usos) if usos else '— (solo SQL legado)'} |")
     return "\n".join(L) + "\n"
 
 
@@ -80,10 +87,12 @@ def generar_comandos() -> str:
         arg = "--fecha-corte AAAA-MM-DD" if r.frecuencia == "mensual" else "[--fecha-corte AAAA-MM-DD]"
         L += ["```bash", f"python main.py tablas {r.nombre} --fecha-corte AAAA-MM-DD --verificar   # ¿tablas al día?", f"python main.py {r.nombre} {arg}", "```", ""]
         criticas = [TABLAS[n] for n in USO[r.nombre] if TABLAS[n].verificable]
-        L.append(f"- **Conexión**: `{'`, `'.join(r.bases)}` · **Tablas**: {len(USO[r.nombre])} ({len(criticas)} verificables por fecha) → [inventario](../../data/tables-inventory.md)")
+        L.append(f"- **Servidor**: `{'`, `'.join(r.servidores)}` · **Tablas**: {len(USO[r.nombre])} ({len(criticas)} verificables por fecha) → [inventario](../../data/tables-inventory.md)")
         if criticas:
             L.append("- **Críticas** (se validan al corte): " + ", ".join(f"`{t.nombre}`" for t in criticas))
         if lote is not None:
+            if lote.base:
+                L.append(f"- **Base de datos**: `{lote.base}` (editable en el módulo; el servidor lo define el `.env`)")
             L.append(f"- **Salida**: `data/outputs/{r.nombre.replace('-', '_')}/{lote.archivo or ''.join(x.capitalize() for x in r.nombre.split('-'))}_<AAAAMMDD>.xlsx` (+ hoja `Control`)")
             if lote.vacio_valido:
                 L.append("- **Vacío válido**: sí (puede no haber datos en el mes)")

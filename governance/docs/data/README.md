@@ -29,6 +29,6 @@ Los reportes alimentan decisiones de Riesgos, Finanzas y la Gerencia. Un script 
 
 ```text
 ¿QUÉ?      reporte + SQL versionado         → identifica la consulta
-¿DE DÓNDE? alias de BD (dw_raw|rcc|slc) + tabla  → delimita el origen
+¿DE DÓNDE? servidor (mish|slc|rcc) + base + tabla  → delimita el origen
 ¿DE CUÁNDO? fecha de corte                  → fija el momento (fin de mes, día hábil previo, lunes→sábado)
 ```

@@ -38,8 +38,8 @@ from ..db import leer_sql as _leer_sql
 # =============================================================================
 EMPRESA = "FINANCIERA CONFIANZA"
 
-SERVIDOR_RCC = "rcc"  # DBRCC
-SERVIDOR_SLC = "slc"  # slc (+ INTCOM, DWH, csd)
+SERVIDOR_RCC, BASE_RCC = "rcc", "DBRCC"  # servidor 172.20.0.70, base DBRCC
+SERVIDOR_SLC, BASE_SLC = "slc", "slc"  # servidor 172.24.2.213, base slc (+ INTCOM por nombre de 3 partes)
 
 DIR_SALIDA_DEFECTO = DIR_OUTPUTS / "bancarizados"
 LLAVE = ["TIPO_DOC", "NUM_DOC"]
@@ -83,8 +83,8 @@ class Periodo:
         return {"inicio_mes": self.inicio_mes, "inicio_mes_sig": self.inicio_mes_siguiente}
 
 
-def leer_sql(base: str, consulta: str, params: dict) -> pd.DataFrame:
-    return _leer_sql(base, consulta, params)
+def leer_sql(servidor: str, base: str, consulta: str, params: dict) -> pd.DataFrame:
+    return _leer_sql(servidor, consulta, params, base=base)
 
 
 @contextmanager
@@ -213,11 +213,11 @@ WHERE C.FECHA_CIERRE >= :inicio_mes AND C.FECHA_CIERRE < :inicio_mes_sig
 
 
 def extraer_clientes(p: Periodo) -> pd.DataFrame:
-    return leer_sql(SERVIDOR_RCC, sql_clientes_exclusivos(p), {**p.params_sql, "empresa": EMPRESA})
+    return leer_sql(SERVIDOR_RCC, BASE_RCC, sql_clientes_exclusivos(p), {**p.params_sql, "empresa": EMPRESA})
 
 
 def extraer_productos(p: Periodo) -> pd.DataFrame:
-    return leer_sql(SERVIDOR_SLC, SQL_PRODUCTOS, p.params_sql)
+    return leer_sql(SERVIDOR_SLC, BASE_SLC, SQL_PRODUCTOS, p.params_sql)
 
 
 # =============================================================================

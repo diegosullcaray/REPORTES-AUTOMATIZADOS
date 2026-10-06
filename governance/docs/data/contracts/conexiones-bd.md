@@ -1,30 +1,36 @@
-# Contrato: conexiones a bases de datos
+# Contrato: conexiones (servidores) y bases de datos
 
-Las **3 conexiones** del proyecto se definen en `src/reportes/config.py` y se configuran por `.env`. El único código autorizado a abrirlas es `src/reportes/db.py` (regla `conexion-solo-en-db`).
+El `.env` define **3 conexiones = 3 servidores**. La **base de datos no se fija en el `.env`: la elige cada reporte**, porque en un mismo servidor viven varias bases y cada reporte usa las suyas (por `base=`, por su propio `USE` o por nombres de 3 partes).
 
-| Alias | Servidor | Base | Autenticación | Alcance adicional (3 partes) | Permisos requeridos |
-|---|---|---|---|---|---|
-| `dw_raw` | 172.20.0.70 | `DW_Raw_v2` | SQL: `DW_RAW_USER` / `DW_RAW_PASSWORD` | `dbriesgos` | **lectura + escritura** (TRUNCATE/INSERT/UPDATE en `CMGMora_Recaudo`) |
-| `rcc` | 172.20.0.70 | `DBRCC` | SQL: `RCC_USER` / `RCC_PASSWORD` | — | solo lectura |
-| `slc` | 172.24.2.213 | `slc` | Windows (o `SLC_USER`/`SLC_PASSWORD`) | `INTCOM`, `DWH`, `csd`, `DMA`, `storage`; linked server `rcc_cd` | solo lectura |
+Se definen en `src/reportes/config.py` (`SERVIDORES`); el único código autorizado a abrirlas es `src/reportes/db.py` (regla `conexion-solo-en-db`).
 
-## Uso desde código
+| Conexión | Servidor | Autenticación | Variables `.env` | Bases que usan los reportes |
+|---|---|---|---|---|
+| `mish` | `MISHWBDDES01` | Windows | `MISH_SERVER`, `MISH_USER`, `MISH_PASSWORD` | — (reservada; ningún reporte la usa aún) |
+| `slc` | `172.24.2.213` | Windows (o SQL si hay USER/PASSWORD) | `SLC_SERVER`, `SLC_USER`, `SLC_PASSWORD` | `slc`, `storage`, `dwh`, `intcom`, `csd`, `dma`, `appj`; linked server `rcc_cd` |
+| `rcc` | `172.20.0.70` | SQL (usuario `master`) | `RCC_SERVER`, `RCC_USER`, `RCC_PASSWORD` | `DBRCC`, `DW_Raw_v2`, `dbriesgos`, `DW_Metadata` |
+
+USER/PASSWORD vacíos ⇒ autenticación de Windows (solo si el servidor la admite por defecto: `mish`, `slc`). Usuario sin contraseña (o al revés) es error de configuración.
+
+## ¿Qué base usa cada reporte?
+Cada reporte lo declara en su código:
 
 ```python
-from reportes.db import leer_sql, ejecutar_lote, leer_ultimo_resultado, conexion_pyodbc
-
-df = leer_sql("slc", "select top 5 * from csd.dbo.Clientes_DS where HFECPRO = :f", {"f": "2026-06-30"})
-resultados = ejecutar_lote("slc", sql_tsql)   # script completo con #temp/USE/GO -> lista de DataFrames
+REPORTE = ReporteLote(comando="saca-tu-garra", servidor="slc", base="storage", sql=SQL, ...)   # reportes de lote
+leer_sql("rcc", consulta, params, base="DBRCC")                                                  # consulta puntual
+conexion_pyodbc("rcc", base="DW_Raw_v2")                                                         # escritura (CMG Mora)
 ```
 
-- `leer_sql(alias, sql, params)`: SELECT parametrizado → DataFrame.
-- `ejecutar_lote(alias, tsql)`: script T-SQL completo (GO, `USE`, `#temp`, `EXEC`) en una sesión → todos los resultados.
-- `leer_ultimo_resultado(alias, sql, params)`: lotes con tabla temporal / SP en una sola sesión.
-- `conexion_pyodbc(alias)`: escrituras y control transaccional (CMG Mora).
+Orden de prioridad del catálogo inicial: `base=` del reporte → `<PREFIJO>_DATABASE` del `.env` (opcional) → la base por defecto del login. Con nombres de 3 partes (`dwh.dbo.tabla`) la base inicial es indiferente.
+
+## Uso desde código
+- `leer_sql(servidor, sql, params, base=None)`: SELECT parametrizado → DataFrame.
+- `ejecutar_lote(servidor, tsql, base=None)`: script T-SQL completo (GO, `USE`, `#temp`, `EXEC`) en una sesión → todos los resultados.
+- `leer_ultimo_resultado(servidor, sql, params, base=None)`: lote con tabla temporal / SP en una sesión.
+- `conexion_pyodbc(servidor, base=None)`: escrituras y control transaccional (CMG Mora).
 
 ## Reglas
-
-1. Un alias desconocido lanza `ConfiguracionError`; no hay valores por defecto de credenciales.
-2. Usuario sin contraseña (o al revés) es error de configuración.
-3. Verificación: `python main.py probar-conexiones`.
-4. Supuesto pendiente de validar con el responsable: que estos tres alias sean las tres bases previstas.
+1. Un servidor desconocido lanza `ConfiguracionError`; no hay credenciales por defecto.
+2. Verificación: `python main.py probar-conexiones` (los 3 servidores).
+3. Permisos: `rcc` se usa hoy con `master` para **todo** (lectura y escritura en `DW_Raw_v2`): ver [SEC-002](../../security/findings.md).
+4. Agregar un servidor nuevo requiere una entrada en `config.SERVIDORES`, su bloque en `.env.example` y un ADR; agregar una **base** nueva no requiere nada en el `.env`.

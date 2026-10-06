@@ -3,7 +3,7 @@
 - **Comando** (`registro.py`):
 - **Frecuencia / hora límite**:
 - **Solicitante / destinatarios**:
-- **Alias de BD** (`dw_raw|rcc|slc`) y tablas:
+- **Servidor** (`mish|slc|rcc`), **base de datos** y tablas:
 - **Fecha de corte** (regla: fin de mes, hábil previo, lunes→sábado…):
 - **Tablas que consume** (nombre completo, conexión, columna de fecha, quién las carga):
 - **Lógica** (módulo `src/reportes/…`, tokens de fecha usados):

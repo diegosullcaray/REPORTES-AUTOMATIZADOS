@@ -70,7 +70,8 @@ REPORTE = ReporteLote(
     comando="heredados-pdm",
     descripcion='Heredados PDM: validar Cubo y tablas PDM completos al corte antes de ejecutar',
     frecuencia="mensual",
-    alias="slc",
+    servidor="slc",
+    base="slc",
     sql=SQL,
     avisos=('Antes de entregar valida que el Cubo y las tablas PDM estén completos a la fecha (si faltan datos el reporte sale mal).',),
 )

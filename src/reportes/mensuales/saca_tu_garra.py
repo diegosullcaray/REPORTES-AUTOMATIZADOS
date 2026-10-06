@@ -147,7 +147,8 @@ REPORTE = ReporteLote(
     comando="saca-tu-garra",
     descripcion='Saca tu garra (Giancarlos): entregar 8:00–8:30 AM',
     frecuencia="mensual",
-    alias="slc",
+    servidor="slc",
+    base="storage",
     sql=SQL,
 )
 

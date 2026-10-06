@@ -44,7 +44,7 @@ def cmd_tablas(argv: list[str]) -> int:
         if not a.verificar:
             for t in tablas_de(a.reporte):
                 col = t.col_fecha or "-"
-                print(f"  {nombre_resuelto(t, fecha):<58} {t.alias:<7} {t.tipo:<13} fecha:{col:<14} ({t.confianza})")
+                print(f"  {nombre_resuelto(t, fecha):<58} {t.servidor:<7} {t.tipo:<13} fecha:{col:<14} ({t.confianza})")
             return 0
         resultados = verificar_reporte(a.reporte, fecha)
     except (KeyError, ConfiguracionError) as exc:
@@ -53,7 +53,7 @@ def cmd_tablas(argv: list[str]) -> int:
     print(f"Reporte {a.reporte} — corte esperado {fecha:%Y-%m-%d}\n")
     for r in resultados:
         ult = f" última={r.ultima_fecha:%Y-%m-%d}" if r.ultima_fecha else ""
-        print(f"  {r.estado.value:<15} {nombre_resuelto(r.tabla, fecha):<58} {r.tabla.alias}{ult} {r.detalle}")
+        print(f"  {r.estado.value:<15} {nombre_resuelto(r.tabla, fecha):<58} {r.tabla.servidor}{ult} {r.detalle}")
     malas = [r for r in resultados if r.estado in {Estado.DESACTUALIZADA, Estado.NO_EXISTE, Estado.ERROR}]
     print(f"\n{len(malas)} tablas con problema de {len(resultados)}.")
     if any(r.estado in {Estado.DESACTUALIZADA, Estado.NO_EXISTE} for r in resultados):

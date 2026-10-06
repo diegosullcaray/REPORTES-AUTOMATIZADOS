@@ -38,8 +38,9 @@ from ..db import leer_sql
 # =============================================================================
 # Configuración
 # =============================================================================
-SERVIDOR_SLC = "slc"  # slc (+ INTCOM, DWH, csd)
-SERVIDOR_RCC = "rcc"  # DBRCC
+SERVIDOR_SLC = "slc"  # servidor 172.24.2.213 (+ INTCOM, DWH, csd por 3 partes)
+SERVIDOR_RCC = "rcc"  # servidor 172.20.0.70
+BASE_POR_SERVIDOR = {"slc": "slc", "rcc": "DBRCC"}  # base de datos que abre cada servidor
 LINKED_SERVER_RCC = "rcc_cd"
 
 DIR_SALIDA_DEFECTO = DIR_OUTPUTS / "clientes_extranjeros"
@@ -209,12 +210,12 @@ def definir_bloques(corte: Periodo, corte_seguros: Periodo, pasivos_directo: boo
 
 def ejecutar_bloque(bloque: Bloque) -> pd.DataFrame:
     with cronometro(f"Consultando {bloque.nombre}"):
-        df = leer_sql(bloque.servidor, bloque.consulta, bloque.params)
+        df = leer_sql(bloque.servidor, bloque.consulta, bloque.params, base=BASE_POR_SERVIDOR[bloque.servidor])
 
     if df.empty:
         mensaje = f"{bloque.nombre}: la consulta no devolvió filas"
         if bloque.sql_ultima_fecha:
-            ultima = leer_sql(bloque.servidor, bloque.sql_ultima_fecha).iloc[0, 0]
+            ultima = leer_sql(bloque.servidor, bloque.sql_ultima_fecha, base=BASE_POR_SERVIDOR[bloque.servidor]).iloc[0, 0]
             mensaje += f" (última fecha disponible: {pd.Timestamp(ultima).date()})"
         raise ValueError(mensaje)
 

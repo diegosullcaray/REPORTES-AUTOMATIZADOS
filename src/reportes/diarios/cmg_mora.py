@@ -1,6 +1,6 @@
 """CMG Mora (diario): recaudo + provisiones -> INSERTs para [storage].[com_act].[SBTVRIE001].
 
-Conexión: dw_raw (DW_Raw_v2; dbriesgos por nombre de 3 partes). Ver reportes.config / .env.
+Conexión: servidor rcc (172.20.0.70), base DW_Raw_v2 (dbriesgos por nombre de 3 partes). Ver reportes.config / .env.
 """
 import datetime
 from datetime import timedelta
@@ -35,7 +35,7 @@ def generar_inserts_sql():
     try:
         print("\nConectando a la base de datos SQL Server...")
         # Nos conectamos usando autenticación SQL (sin trusted_connection)
-        conn_ctx = conexion_pyodbc('dw_raw')
+        conn_ctx = conexion_pyodbc('rcc', base='DW_Raw_v2')
         conn = conn_ctx.__enter__()
         cursor = conn.cursor()
         

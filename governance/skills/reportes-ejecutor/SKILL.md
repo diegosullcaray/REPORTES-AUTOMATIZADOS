@@ -16,7 +16,7 @@ select ... from storage.com_act.hcda001 where HFECPRO = @fec
 """
 
 REPORTE = ReporteLote(
-    comando="mi-reporte", descripcion="…", frecuencia="mensual", alias="slc", sql=SQL,
+    comando="mi-reporte", descripcion="…", frecuencia="mensual", servidor="slc", base="storage", sql=SQL,
     hojas=(Hoja("Resumen", columna_fecha="HFECPRO"),),   # opcional: nombre de cada resultado y validación de fecha
 )
 
@@ -25,7 +25,7 @@ def main(argv=None) -> int:
 ```
 
 ## Qué hace `correr()` (igual para todos)
-1. **Conexión** por alias (`dw_raw`/`rcc`/`slc`), sin credenciales en código.
+1. **Conexión** al servidor del reporte (`mish`/`slc`/`rcc`) y a **su** base (`base=`), sin credenciales en código.
 2. **Tablas al corte**: compara `MAX(fecha)` de cada tabla del reporte con el corte. Si falta alguna: no ejecuta, lista cuáles, guarda el mensaje para Producción y sale con código 3.
 3. Ejecuta el lote en una sesión (tablas `#temp`, `USE`, `GO`, `EXEC`) y recoge **todos** los resultados.
 4. **Datos**: todo vacío ⇒ error (salvo `vacio_valido=True`); `columna_fecha` del resultado < corte ⇒ error; hoja vacía ⇒ aviso.

@@ -114,7 +114,8 @@ REPORTE = ReporteLote(
     comando="clientes-jovenes",
     descripcion='Clientes jóvenes (Manuel Siccha): nuevos y stock de 18 a 30 años',
     frecuencia="mensual",
-    alias="slc",
+    servidor="slc",
+    base="slc",
     sql=SQL,
 )
 

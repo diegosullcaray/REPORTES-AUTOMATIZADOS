@@ -4,7 +4,7 @@ Es la fuente de verdad del inventario de tablas (`governance/docs/data/tables-in
 los comandos `python main.py tablas ...` y `python main.py solicitud-actualizacion ...`.
 
 Campos de `Tabla`:
-  alias     conexión desde la que se consulta (dw_raw | rcc | slc); ver config.BASES
+  servidor  conexión (servidor) desde la que se consulta (mish | slc | rcc); ver config.SERVIDORES. La base va en el nombre (3 partes)
   tipo      historica (una foto por fecha) | stock (saldo por fecha) | referencia (catálogo, sin fecha) | otro (vistas W*/V*, sin fecha conocida) |
             dinamica (el nombre lleva la fecha: {yyyymmdd}/{yyyymm}) | staging | destino | procedimiento
   col_fecha columna con la fecha de carga; permite saber si la tabla llegó al corte (MAX(col_fecha) >= corte)
@@ -20,7 +20,7 @@ from dataclasses import dataclass
 @dataclass(frozen=True)
 class Tabla:
     nombre: str
-    alias: str
+    servidor: str
     tipo: str
     col_fecha: str | None
     confianza: str
@@ -30,15 +30,15 @@ class Tabla:
         return self.tipo == "dinamica" or (self.col_fecha is not None and self.tipo in {"historica", "stock"})
 
 
-# (nombre, alias, tipo, col_fecha, confianza)
+# (nombre, servidor, tipo, col_fecha, confianza)
 _FILAS = [
     ('appj.dbo.salmediovigente1', 'slc', 'historica', 'HFECPRO', 'confirmada'),
     ('csd.dbo.clientes_ds', 'slc', 'stock', 'HFECPRO', 'confirmada'),
     ('dbrcc.dbo.rcccab{yyyymmdd}', 'rcc', 'dinamica', None, 'por_confirmar'),
     ('dbrcc.dbo.rccdet{yyyymmdd}', 'rcc', 'dinamica', None, 'por_confirmar'),
-    ('dbriesgos.dbo.gasto_prov_ope_diaria', 'dw_raw', 'stock', 'FC_DIA', 'confirmada'),
-    ('dbriesgos.dbo.prov_proy_{yyyymmdd}_0', 'dw_raw', 'dinamica', None, 'por_confirmar'),
-    ('dbriesgos.dbo.recaudo_diario_finanzas', 'dw_raw', 'stock', 'FECHA_CIERRE', 'confirmada'),
+    ('dbriesgos.dbo.gasto_prov_ope_diaria', 'rcc', 'stock', 'FC_DIA', 'confirmada'),
+    ('dbriesgos.dbo.prov_proy_{yyyymmdd}_0', 'rcc', 'dinamica', None, 'por_confirmar'),
+    ('dbriesgos.dbo.recaudo_diario_finanzas', 'rcc', 'stock', 'FECHA_CIERRE', 'confirmada'),
     ('db{yyyymm}.dbo.ccd{yyyymmdd}', 'rcc', 'dinamica', None, 'por_confirmar'),
     ('db{yyyymm}.dbo.ccp{yyyymmdd}', 'rcc', 'dinamica', None, 'por_confirmar'),
     ('dma.dbo.fecciebt', 'slc', 'otro', None, 'por_confirmar'),
@@ -47,8 +47,8 @@ _FILAS = [
     ('dma.dbo.mrvgrupopdm', 'slc', 'otro', None, 'por_confirmar'),
     ('dw_metadata.dbo.wjercor03', 'rcc', 'otro', None, 'por_confirmar'),
     ('dw_raw.dbo.clientes', 'rcc', 'otro', None, 'por_confirmar'),
-    ('dw_raw_v2.dbo.cmgmora_recaudo', 'dw_raw', 'staging', None, 'por_confirmar'),
-    ('dw_raw_v2.dbo.cmgmora_strjercor', 'dw_raw', 'otro', None, 'por_confirmar'),
+    ('dw_raw_v2.dbo.cmgmora_recaudo', 'rcc', 'staging', None, 'por_confirmar'),
+    ('dw_raw_v2.dbo.cmgmora_strjercor', 'rcc', 'otro', None, 'por_confirmar'),
     ('dwh.dbo.bregcap001', 'slc', 'referencia', None, 'por_confirmar'),
     ('dwh.dbo.bregmod001', 'slc', 'referencia', None, 'por_confirmar'),
     ('dwh.dbo.bregmod002', 'slc', 'referencia', None, 'por_confirmar'),

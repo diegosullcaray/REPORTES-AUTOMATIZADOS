@@ -38,7 +38,7 @@ from ..db import leer_ultimo_resultado as _leer_ultimo
 # =============================================================================
 # Configuración
 # =============================================================================
-BASE = "slc"  # csd.dbo.Clientes_DS y dwh (SP de desembolsos)
+BASE = "slc"  # base en el servidor slc; csd.dbo.Clientes_DS y dwh (SP de desembolsos) van por 3 partes
 
 # Agrupación de productos del reporte; los que no están aquí se reportan con su propio nombre
 AGRUPACION_PRODUCTOS = {
@@ -89,7 +89,7 @@ class Mes:
 
 def leer_ultimo_resultado(sql: str, params: tuple = ()) -> pd.DataFrame:
     """Lote completo en una sola sesión (el SP llena una tabla temporal); devuelve el último resultado."""
-    return _leer_ultimo(BASE, sql, params)
+    return _leer_ultimo("slc", sql, params, base=BASE)
 
 
 @contextmanager

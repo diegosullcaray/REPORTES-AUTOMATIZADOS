@@ -84,11 +84,11 @@ Sirve para el cierre de mes: saber **qué tablas necesita cada reporte** y **a q
 
 | Tabla | Conexión | Tipo | Columna de fecha | Confianza |
 |---|---|---|---|---|
-| `dbriesgos.dbo.gasto_prov_ope_diaria` | `dw_raw` | stock | `FC_DIA` | confirmada |
-| `dbriesgos.dbo.prov_proy_{yyyymmdd}_0` | `dw_raw` | dinamica | — | por_confirmar |
-| `dbriesgos.dbo.recaudo_diario_finanzas` | `dw_raw` | stock | `FECHA_CIERRE` | confirmada |
-| `dw_raw_v2.dbo.cmgmora_recaudo` | `dw_raw` | staging | — | por_confirmar |
-| `dw_raw_v2.dbo.cmgmora_strjercor` | `dw_raw` | otro | — | por_confirmar |
+| `dbriesgos.dbo.gasto_prov_ope_diaria` | `rcc` | stock | `FC_DIA` | confirmada |
+| `dbriesgos.dbo.prov_proy_{yyyymmdd}_0` | `rcc` | dinamica | — | por_confirmar |
+| `dbriesgos.dbo.recaudo_diario_finanzas` | `rcc` | stock | `FECHA_CIERRE` | confirmada |
+| `dw_raw_v2.dbo.cmgmora_recaudo` | `rcc` | staging | — | por_confirmar |
+| `dw_raw_v2.dbo.cmgmora_strjercor` | `rcc` | otro | — | por_confirmar |
 | `storage.com_act.sbtvrie001` | `slc` | destino | — | por_confirmar |
 
 ### `contratacion-electronica` (mensual)
@@ -262,9 +262,9 @@ Sirve para el cierre de mes: saber **qué tablas necesita cada reporte** y **a q
 | `csd.dbo.clientes_ds` | `slc` | stock | `bancarizados-producto`, `clientes-jovenes`, `indicadores-clientes` |
 | `dbrcc.dbo.rcccab{yyyymmdd}` | `rcc` | dinamica | `bancarizados` |
 | `dbrcc.dbo.rccdet{yyyymmdd}` | `rcc` | dinamica | `bancarizados` |
-| `dbriesgos.dbo.gasto_prov_ope_diaria` | `dw_raw` | stock | `cmg-mora` |
-| `dbriesgos.dbo.prov_proy_{yyyymmdd}_0` | `dw_raw` | dinamica | `cmg-mora` |
-| `dbriesgos.dbo.recaudo_diario_finanzas` | `dw_raw` | stock | `cmg-mora` |
+| `dbriesgos.dbo.gasto_prov_ope_diaria` | `rcc` | stock | `cmg-mora` |
+| `dbriesgos.dbo.prov_proy_{yyyymmdd}_0` | `rcc` | dinamica | `cmg-mora` |
+| `dbriesgos.dbo.recaudo_diario_finanzas` | `rcc` | stock | `cmg-mora` |
 | `db{yyyymm}.dbo.ccd{yyyymmdd}` | `rcc` | dinamica | `bancarizados` |
 | `db{yyyymm}.dbo.ccp{yyyymmdd}` | `rcc` | dinamica | — (solo SQL legado) |
 | `dma.dbo.fecciebt` | `slc` | otro | `heredados-pdm` |
@@ -273,8 +273,8 @@ Sirve para el cierre de mes: saber **qué tablas necesita cada reporte** y **a q
 | `dma.dbo.mrvgrupopdm` | `slc` | otro | `heredados-pdm` |
 | `dw_metadata.dbo.wjercor03` | `rcc` | otro | `bancarizados` |
 | `dw_raw.dbo.clientes` | `rcc` | otro | `bancarizados` |
-| `dw_raw_v2.dbo.cmgmora_recaudo` | `dw_raw` | staging | `cmg-mora` |
-| `dw_raw_v2.dbo.cmgmora_strjercor` | `dw_raw` | otro | `cmg-mora` |
+| `dw_raw_v2.dbo.cmgmora_recaudo` | `rcc` | staging | `cmg-mora` |
+| `dw_raw_v2.dbo.cmgmora_strjercor` | `rcc` | otro | `cmg-mora` |
 | `dwh.dbo.bregcap001` | `slc` | referencia | — (solo SQL legado) |
 | `dwh.dbo.bregmod001` | `slc` | referencia | `bancarizados-producto`, `heredados-pdm`, `productos-verdes` |
 | `dwh.dbo.bregmod002` | `slc` | referencia | — (solo SQL legado) |
