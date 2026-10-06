@@ -71,7 +71,7 @@ REPORTE = ReporteLote(
     comando="cartera-sin-asignar",
     descripcion='Cartera sin asignar (diario): cartera por sectorista/territorio sin asignación',
     frecuencia="diaria",
-    servidor="slc",
+    servidor="mish",
     base="storage",
     sql=SQL,
 )

@@ -121,8 +121,8 @@ REPORTE = ReporteLote(
     comando="michael-captaciones",
     descripcion='Reporte mensual de Michael Palacios · Captaciones (siempre debe traer datos)',
     frecuencia="mensual",
-    servidor="slc",
-    base="slc",
+    servidor="mish",
+    base="storage",
     sql=SQL,
     avisos=('Si WCAP001 no tiene la fecha, hay que correr antes el SP storage.com_pas.PSLWCAP001 (ver comentario del SQL original en docs/LEGADO).',),
 )

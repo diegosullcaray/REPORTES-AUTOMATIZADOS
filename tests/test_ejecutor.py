@@ -48,7 +48,7 @@ def test_fecha_del_resultado_anterior_al_corte_es_error():
 
 def test_exporta_excel_con_hoja_control(tmp_path):
     df = pd.DataFrame({"f": [date(2026, 7, 31)], "v": [1]})
-    t = Tabla("storage.com_act.hcda001", "slc", "historica", "HFECPRO", "confirmada")
+    t = Tabla("storage.com_act.hcda001", "historica", "HFECPRO", "confirmada")
     ruta = ejecutor.exportar_excel(LOTE, [df], Cortes(date(2026, 7, 31)), [Resultado(t, Estado.OK, date(2026, 7, 31))], [], tmp_path)
     hojas = pd.read_excel(ruta, sheet_name=None)
     assert set(hojas) == {"Datos", "Control"} and ruta.name == "SacaTuGarra_20260731.xlsx"
@@ -56,7 +56,7 @@ def test_exporta_excel_con_hoja_control(tmp_path):
 
 
 def _correr(monkeypatch, tmp_path, estados, resultados=None, extra=()):
-    t = Tabla("storage.com_act.hcda001", "slc", "historica", "HFECPRO", "confirmada")
+    t = Tabla("storage.com_act.hcda001", "historica", "HFECPRO", "confirmada")
     monkeypatch.setattr(ejecutor, "DIR_OUTPUTS", tmp_path)
     monkeypatch.setattr(ejecutor, "verificar_reporte", lambda c, f: [Resultado(t, e, date(2026, 7, 29)) for e in estados])
     monkeypatch.setattr(ejecutor, "ejecutar_lote", lambda servidor, sql, base=None: resultados if resultados is not None else [pd.DataFrame({"f": [date(2026, 7, 31)]})])

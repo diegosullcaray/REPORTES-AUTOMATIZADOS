@@ -20,12 +20,12 @@ def test_mensual_exige_fecha_corte(monkeypatch):
 
 
 def test_nombre_dinamico_se_resuelve():
-    t = Tabla("db{yyyymm}.dbo.ccd{yyyymmdd}", "rcc", "dinamica", None, "por_confirmar")
+    t = Tabla("db{yyyymm}.dbo.ccd{yyyymmdd}", "dinamica", None, "por_confirmar")
     assert v.nombre_resuelto(t, date(2026, 9, 30)) == "db202609.dbo.ccd20260930"
 
 
 def _tabla():
-    return Tabla("storage.com_act.hcda001", "slc", "historica", "HFECPRO", "confirmada")
+    return Tabla("storage.com_act.hcda001", "historica", "HFECPRO", "confirmada")
 
 
 def test_tabla_al_dia(monkeypatch):
@@ -47,17 +47,17 @@ def test_tabla_inexistente(monkeypatch):
         raise RuntimeError("Invalid object name 'x'")
 
     monkeypatch.setattr(v, "leer_sql", falla)
-    t = Tabla("db{yyyymm}.dbo.ccd{yyyymmdd}", "rcc", "dinamica", None, "por_confirmar")
+    t = Tabla("db{yyyymm}.dbo.ccd{yyyymmdd}", "dinamica", None, "por_confirmar")
     assert v.verificar_tabla(t, date(2026, 9, 30)).estado is v.Estado.NO_EXISTE
 
 
 def test_referencia_sin_control():
-    t = Tabla("storage.ref.rcalen001", "slc", "referencia", None, "por_confirmar")
+    t = Tabla("storage.ref.rcalen001", "referencia", None, "por_confirmar")
     assert v.verificar_tabla(t, date(2026, 9, 30)).estado is v.Estado.SIN_CONTROL
 
 
 def test_nombre_malicioso_no_se_ejecuta(monkeypatch):
     llamado = []
     monkeypatch.setattr(v, "leer_sql", lambda *a, **k: llamado.append(1))
-    t = Tabla("x; DROP TABLE y", "slc", "historica", "HFECPRO", "confirmada")
+    t = Tabla("x; DROP TABLE y", "historica", "HFECPRO", "confirmada")
     assert v.verificar_tabla(t, date(2026, 9, 30)).estado is v.Estado.ERROR and not llamado

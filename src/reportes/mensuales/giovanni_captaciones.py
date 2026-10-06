@@ -74,7 +74,7 @@ REPORTE = ReporteLote(
     comando="giovanni-captaciones",
     descripcion='Reportes Giovanni 1 · Saldo medio y saldo puntual de captaciones',
     frecuencia="mensual",
-    servidor="slc",
+    servidor="mish",
     base="storage",
     sql=SQL,
 )

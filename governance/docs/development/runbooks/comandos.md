@@ -80,7 +80,7 @@ python main.py tablas cartera-sin-asignar --verificar   # ¿tablas al día? (fec
 python main.py cartera-sin-asignar [--fecha-corte AAAA-MM-DD]   # sin la opción usa FECHA_CORTE_DIARIA del .env
 ```
 
-- **Servidor**: `slc` · **Tablas**: 7 (2 verificables por fecha) → [inventario](../../data/tables-inventory.md)
+- **Servidor**: `mish` · **Tablas**: 7 (2 verificables por fecha) → [inventario](../../data/tables-inventory.md)
 - **Críticas** (se validan al corte): `storage.com_act.hcda001`, `storage.com_act.sdas001`
 - **Base de datos**: `storage` (editable en el módulo; el servidor lo define el `.env`)
 - **Salida**: `data/outputs/cartera_sin_asignar/CarteraSinAsignar_<AAAAMMDD>.xlsx` (+ hoja `Control`)
@@ -94,7 +94,7 @@ python main.py tablas cmg-castigos --verificar   # ¿tablas al día? (fecha del 
 python main.py cmg-castigos [--fecha-corte AAAA-MM-DD]   # sin la opción usa FECHA_CORTE_DIARIA del .env
 ```
 
-- **Servidor**: `slc` · **Tablas**: 2 (1 verificables por fecha) → [inventario](../../data/tables-inventory.md)
+- **Servidor**: `mish` · **Tablas**: 2 (1 verificables por fecha) → [inventario](../../data/tables-inventory.md)
 - **Críticas** (se validan al corte): `storage.com_act.sdas005`
 - **Base de datos**: `storage` (editable en el módulo; el servidor lo define el `.env`)
 - **Salida**: `data/outputs/cmg_castigos/CmgCastigos_<AAAAMMDD>.xlsx` (+ hoja `Control`)
@@ -122,7 +122,7 @@ python main.py tablas desembolsos-por-canal --verificar   # ¿tablas al día? (f
 python main.py desembolsos-por-canal [--fecha-corte AAAA-MM-DD]   # sin la opción usa FECHA_CORTE_MENSUAL del .env
 ```
 
-- **Servidor**: `slc` · **Tablas**: 9 (5 verificables por fecha) → [inventario](../../data/tables-inventory.md)
+- **Servidor**: `mish` · **Tablas**: 9 (5 verificables por fecha) → [inventario](../../data/tables-inventory.md)
 - **Críticas** (se validan al corte): `storage.com_act.hcda001`, `storage.com_act.hcdr001`, `storage.com_act.hcdr002`, `storage.com_act.hdce001`, `storage.com_act.hmcm001`
 - **Base de datos**: `storage` (editable en el módulo; el servidor lo define el `.env`)
 - **Salida**: `data/outputs/desembolsos_por_canal/DesembolsosPorCanal_<AAAAMMDD>.xlsx` (+ hoja `Control`)
@@ -136,9 +136,9 @@ python main.py tablas fondeo-estable --verificar   # ¿tablas al día? (fecha de
 python main.py fondeo-estable [--fecha-corte AAAA-MM-DD]   # sin la opción usa FECHA_CORTE_MENSUAL del .env
 ```
 
-- **Servidor**: `slc` · **Tablas**: 2 (1 verificables por fecha) → [inventario](../../data/tables-inventory.md)
+- **Servidor**: `mish` · **Tablas**: 2 (1 verificables por fecha) → [inventario](../../data/tables-inventory.md)
 - **Críticas** (se validan al corte): `storage.com_pas.wjas008`
-- **Base de datos**: `slc` (editable en el módulo; el servidor lo define el `.env`)
+- **Base de datos**: `storage` (editable en el módulo; el servidor lo define el `.env`)
 - **Salida**: `data/outputs/fondeo_estable/FondeoEstable_<AAAAMMDD>.xlsx` (+ hoja `Control`)
 
 ## `heredados-pdm` — mensual
@@ -179,9 +179,9 @@ python main.py tablas contratacion-electronica --verificar   # ¿tablas al día?
 python main.py contratacion-electronica [--fecha-corte AAAA-MM-DD]   # sin la opción usa FECHA_CORTE_MENSUAL del .env
 ```
 
-- **Servidor**: `slc` · **Tablas**: 2 (2 verificables por fecha) → [inventario](../../data/tables-inventory.md)
+- **Servidor**: `mish` · **Tablas**: 2 (2 verificables por fecha) → [inventario](../../data/tables-inventory.md)
 - **Críticas** (se validan al corte): `storage.com_act.wcdce001`, `storage.com_act.wcdce002`
-- **Base de datos**: `slc` (editable en el módulo; el servidor lo define el `.env`)
+- **Base de datos**: `storage` (editable en el módulo; el servidor lo define el `.env`)
 - **Salida**: `data/outputs/contratacion_electronica/ContratacionElectronica_<AAAAMMDD>.xlsx` (+ hoja `Control`)
 
 ## `clientes-rurales-migrantes` — mensual
@@ -193,7 +193,7 @@ python main.py tablas clientes-rurales-migrantes --verificar   # ¿tablas al dí
 python main.py clientes-rurales-migrantes [--fecha-corte AAAA-MM-DD]   # sin la opción usa FECHA_CORTE_MENSUAL del .env
 ```
 
-- **Servidor**: `slc` · **Tablas**: 7 (4 verificables por fecha) → [inventario](../../data/tables-inventory.md)
+- **Servidor**: `mish` · **Tablas**: 7 (4 verificables por fecha) → [inventario](../../data/tables-inventory.md)
 - **Críticas** (se validan al corte): `storage.com_act.hbcn001`, `storage.com_act.hcda001`, `storage.com_act.hcdr001`, `storage.com_act.hcdr002`
 - **Base de datos**: `storage` (editable en el módulo; el servidor lo define el `.env`)
 - **Salida**: `data/outputs/clientes_rurales_migrantes/ClientesRuralesMigrantes_<AAAAMMDD>.xlsx` (+ hoja `Control`)
@@ -207,9 +207,9 @@ python main.py tablas michael-captaciones --verificar   # ¿tablas al día? (fec
 python main.py michael-captaciones [--fecha-corte AAAA-MM-DD]   # sin la opción usa FECHA_CORTE_MENSUAL del .env
 ```
 
-- **Servidor**: `slc` · **Tablas**: 5 (2 verificables por fecha) → [inventario](../../data/tables-inventory.md)
+- **Servidor**: `mish` · **Tablas**: 5 (2 verificables por fecha) → [inventario](../../data/tables-inventory.md)
 - **Críticas** (se validan al corte): `storage.com_pas.hcdp001`, `storage.com_pas.wcap001`
-- **Base de datos**: `slc` (editable en el módulo; el servidor lo define el `.env`)
+- **Base de datos**: `storage` (editable en el módulo; el servidor lo define el `.env`)
 - **Salida**: `data/outputs/michael_captaciones/MichaelCaptaciones_<AAAAMMDD>.xlsx` (+ hoja `Control`)
 - ⚠ Si WCAP001 no tiene la fecha, hay que correr antes el SP storage.com_pas.PSLWCAP001 (ver comentario del SQL original en docs/LEGADO).
 
@@ -222,9 +222,9 @@ python main.py tablas michael-castigos --verificar   # ¿tablas al día? (fecha 
 python main.py michael-castigos [--fecha-corte AAAA-MM-DD]   # sin la opción usa FECHA_CORTE_MENSUAL del .env
 ```
 
-- **Servidor**: `slc` · **Tablas**: 9 (2 verificables por fecha) → [inventario](../../data/tables-inventory.md)
+- **Servidor**: `mish` · **Tablas**: 9 (2 verificables por fecha) → [inventario](../../data/tables-inventory.md)
 - **Críticas** (se validan al corte): `storage.com_act.hcca001`, `storage.com_act.hcda001`
-- **Base de datos**: `slc` (editable en el módulo; el servidor lo define el `.env`)
+- **Base de datos**: `storage` (editable en el módulo; el servidor lo define el `.env`)
 - **Salida**: `data/outputs/michael_castigos/MichaelCastigos_<AAAAMMDD>.xlsx` (+ hoja `Control`)
 - **Vacío válido**: sí (puede no haber datos en el mes)
 
@@ -237,7 +237,7 @@ python main.py tablas giovanni-captaciones --verificar   # ¿tablas al día? (fe
 python main.py giovanni-captaciones [--fecha-corte AAAA-MM-DD]   # sin la opción usa FECHA_CORTE_MENSUAL del .env
 ```
 
-- **Servidor**: `slc` · **Tablas**: 5 (3 verificables por fecha) → [inventario](../../data/tables-inventory.md)
+- **Servidor**: `mish` · **Tablas**: 5 (3 verificables por fecha) → [inventario](../../data/tables-inventory.md)
 - **Críticas** (se validan al corte): `storage.com_pas.sdps010`, `storage.com_pas.sdps013`, `storage.com_pas.wjas004`
 - **Base de datos**: `storage` (editable en el módulo; el servidor lo define el `.env`)
 - **Salida**: `data/outputs/giovanni_captaciones/GiovanniCaptaciones_<AAAAMMDD>.xlsx` (+ hoja `Control`)
@@ -251,9 +251,9 @@ python main.py tablas giovanni-seguros --verificar   # ¿tablas al día? (fecha 
 python main.py giovanni-seguros [--fecha-corte AAAA-MM-DD]   # sin la opción usa FECHA_CORTE_MENSUAL del .env
 ```
 
-- **Servidor**: `slc` · **Tablas**: 7 (2 verificables por fecha) → [inventario](../../data/tables-inventory.md)
+- **Servidor**: `mish` · **Tablas**: 7 (2 verificables por fecha) → [inventario](../../data/tables-inventory.md)
 - **Críticas** (se validan al corte): `storage.com_act.sdaf002`, `storage.com_seg.sdsf001`
-- **Base de datos**: `slc` (editable en el módulo; el servidor lo define el `.env`)
+- **Base de datos**: `storage` (editable en el módulo; el servidor lo define el `.env`)
 - **Salida**: `data/outputs/giovanni_seguros/GiovanniSeguros_<AAAAMMDD>.xlsx` (+ hoja `Control`)
 
 ## `giovanni-cartera-agro` — mensual
@@ -265,7 +265,7 @@ python main.py tablas giovanni-cartera-agro --verificar   # ¿tablas al día? (f
 python main.py giovanni-cartera-agro [--fecha-corte AAAA-MM-DD]   # sin la opción usa FECHA_CORTE_MENSUAL del .env
 ```
 
-- **Servidor**: `slc` · **Tablas**: 6 (1 verificables por fecha) → [inventario](../../data/tables-inventory.md)
+- **Servidor**: `mish` · **Tablas**: 6 (1 verificables por fecha) → [inventario](../../data/tables-inventory.md)
 - **Críticas** (se validan al corte): `storage.com_act.hcda001`
 - **Base de datos**: `storage` (editable en el módulo; el servidor lo define el `.env`)
 - **Salida**: `data/outputs/giovanni_cartera_agro/GiovanniCarteraAgro_<AAAAMMDD>.xlsx` (+ hoja `Control`)
@@ -279,7 +279,7 @@ python main.py tablas saca-tu-garra --verificar   # ¿tablas al día? (fecha del
 python main.py saca-tu-garra [--fecha-corte AAAA-MM-DD]   # sin la opción usa FECHA_CORTE_MENSUAL del .env
 ```
 
-- **Servidor**: `slc` · **Tablas**: 6 (5 verificables por fecha) → [inventario](../../data/tables-inventory.md)
+- **Servidor**: `mish` · **Tablas**: 6 (5 verificables por fecha) → [inventario](../../data/tables-inventory.md)
 - **Críticas** (se validan al corte): `storage.com_act.hcda001`, `storage.com_act.hcma001`, `storage.com_act.hctc001`, `storage.com_act.sdae002`, `storage.com_act.sdae003`
 - **Base de datos**: `storage` (editable en el módulo; el servidor lo define el `.env`)
 - **Salida**: `data/outputs/saca_tu_garra/SacaTuGarra_<AAAAMMDD>.xlsx` (+ hoja `Control`)
@@ -293,9 +293,9 @@ python main.py tablas saldo-medio-vigente --verificar   # ¿tablas al día? (fec
 python main.py saldo-medio-vigente [--fecha-corte AAAA-MM-DD]   # sin la opción usa FECHA_CORTE_MENSUAL del .env
 ```
 
-- **Servidor**: `slc` · **Tablas**: 2 (2 verificables por fecha) → [inventario](../../data/tables-inventory.md)
+- **Servidor**: `mish` · **Tablas**: 2 (2 verificables por fecha) → [inventario](../../data/tables-inventory.md)
 - **Críticas** (se validan al corte): `storage.com_act.sdas001`, `storage.com_act.wjas001`
-- **Base de datos**: `slc` (editable en el módulo; el servidor lo define el `.env`)
+- **Base de datos**: `storage` (editable en el módulo; el servidor lo define el `.env`)
 - **Salida**: `data/outputs/saldo_medio_vigente/SaldoMedioVigente_<AAAAMMDD>.xlsx` (+ hoja `Control`)
 
 ## `tapp-saldo-medio-territorio` — mensual
@@ -307,7 +307,7 @@ python main.py tablas tapp-saldo-medio-territorio --verificar   # ¿tablas al d�
 python main.py tapp-saldo-medio-territorio [--fecha-corte AAAA-MM-DD]   # sin la opción usa FECHA_CORTE_MENSUAL del .env
 ```
 
-- **Servidor**: `slc` · **Tablas**: 7 (3 verificables por fecha) → [inventario](../../data/tables-inventory.md)
+- **Servidor**: `mish` · **Tablas**: 7 (3 verificables por fecha) → [inventario](../../data/tables-inventory.md)
 - **Críticas** (se validan al corte): `appj.dbo.salmediovigente1`, `storage.com_act.sdaf002`, `storage.com_act.sdas001`
 - **Base de datos**: `storage` (editable en el módulo; el servidor lo define el `.env`)
 - **Salida**: `data/outputs/tapp_saldo_medio_territorio/TappSaldoMedioTerritorio_<AAAAMMDD>.xlsx` (+ hoja `Control`)

@@ -180,6 +180,33 @@ def r_tablas():
             yield Hallazgo("tabla-fecha-por-validar", "aviso", "src/reportes/tablas.py", f"{t.nombre}: columna {t.col_fecha} inferida por prefijo; validar con el DBA")
 
 
+def r_servidor_coherente():
+    """Un T-SQL solo puede nombrar bases de SU servidor: las tablas de cada reporte deben vivir en el servidor que declara."""
+    from importlib import import_module
+
+    from reportes.config import ConfiguracionError, servidor_de_base
+    from reportes.registro import REPORTES
+    from reportes.tablas import TABLAS, USO
+
+    for r in REPORTES.values():
+        try:
+            usados = {TABLAS[n].servidor for n in USO.get(r.nombre, ()) if TABLAS[n].tipo != "destino"}
+        except ConfiguracionError as exc:
+            yield Hallazgo("servidor-coherente", "error", "src/reportes/config.py", f"{r.nombre}: {exc}")
+            continue
+        fuera = usados - set(r.servidores)
+        if fuera:
+            yield Hallazgo("servidor-coherente", "error", "src/reportes/registro.py",
+                           f"{r.nombre}: usa tablas de {sorted(fuera)} pero declara {list(r.servidores)}")
+        lote = getattr(import_module(r.modulo), "REPORTE", None)
+        if lote is not None:
+            if lote.servidor not in r.servidores:
+                yield Hallazgo("servidor-coherente", "error", "src/reportes/registro.py", f"{r.nombre}: ReporteLote.servidor '{lote.servidor}' no está en registro")
+            if lote.base and servidor_de_base(lote.base) != lote.servidor:
+                yield Hallazgo("servidor-coherente", "error", r.modulo.replace(".", "/") + ".py",
+                               f"base '{lote.base}' vive en {servidor_de_base(lote.base)}, no en {lote.servidor}")
+
+
 REGLAS = {
     "secretos-en-codigo": (r_secretos, "Ninguna credencial literal en src/. Solo .env."),
     "conexion-solo-en-db": (r_conexion, "pyodbc/SQLAlchemy se abren únicamente en reportes/db.py."),
@@ -190,6 +217,7 @@ REGLAS = {
     "env-example-completo": (r_env, ".env.example declara las variables de las 3 conexiones."),
     "gitignore-protege-datos": (r_gitignore, ".gitignore excluye .env, data/ (inputs y outputs) y cachés."),
     "tabla-sin-registrar": (r_tablas, "Toda tabla que consulta el código está en reportes/tablas.py y todo reporte declara sus tablas."),
+    "servidor-coherente": (r_servidor_coherente, "Las tablas y la base de cada reporte viven en el servidor que declara (config.BASES_DE)."),
     "fechas-fijas-en-sql": (r_fechas_fijas, "Sin fechas literales en el T-SQL incrustado: todo por tokens de fecha de corte."),
 }
 

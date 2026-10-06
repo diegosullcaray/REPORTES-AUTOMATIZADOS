@@ -8,6 +8,7 @@ Los reportes alimentan decisiones de Riesgos, Finanzas y la Gerencia. Un script 
 |---|---|
 | [Glosario](./glossary.md) | ¿Qué significa este término? |
 | [Catálogo](./catalog.md) | ¿Qué datos se consumen y de qué base salen? |
+| [Servidores y bases](./servidores-y-bases.md) | ¿Qué base vive en qué servidor? |
 | [Inventario de tablas](./tables-inventory.md) | **¿Qué tabla usa cada reporte y a quién pedir que la actualice?** (generado) |
 | [Contratos](./contracts/README.md) | ¿Cuál es la forma exacta del dato en el borde? |
 | [Linaje](./lineage.md) | ¿Por dónde pasó esta cifra? |

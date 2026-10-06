@@ -1,6 +1,6 @@
 # Setup
 
-Requisitos: Python 3.11+, **ODBC Driver 17 for SQL Server**, acceso de red a 172.20.0.70 y 172.24.2.213.
+Requisitos: Python 3.11+, **ODBC Driver 17 for SQL Server**, acceso de red a los 3 servidores: `MISHWBDDES01`, `172.24.2.213` y `172.20.0.70`.
 
 ```bash
 python -m venv .venv && .venv\Scripts\activate

@@ -58,7 +58,7 @@ def test_reporte_de_lote_usa_la_fecha_del_env(monkeypatch, tmp_path, capsys):
     from reportes.tablas import Tabla
 
     monkeypatch.setenv("FECHA_CORTE_MENSUAL", "2026-09-30")
-    t = Tabla("storage.com_act.hcda001", "slc", "historica", "HFECPRO", "confirmada")
+    t = Tabla("storage.com_act.hcda001", "historica", "HFECPRO", "confirmada")
     monkeypatch.setattr(ejecutor, "DIR_OUTPUTS", tmp_path)
     monkeypatch.setattr(ejecutor, "verificar_reporte", lambda c, f: [Resultado(t, Estado.OK, f)])
     llamadas = []

@@ -67,7 +67,7 @@ REPORTE = ReporteLote(
     comando="clientes-rurales-migrantes",
     descripcion='Clientes rurales y migrantes (Manuel Siccha): últimos 3 cierres',
     frecuencia="mensual",
-    servidor="slc",
+    servidor="mish",
     base="storage",
     sql=SQL,
 )

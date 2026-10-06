@@ -222,8 +222,8 @@ REPORTE = ReporteLote(
     comando="giovanni-seguros",
     descripcion='Reportes Giovanni 2 · Seguros multirriesgo (versión remasterizada). Valores en 0 se etiquetan «sin asignar»',
     frecuencia="mensual",
-    servidor="slc",
-    base="slc",
+    servidor="mish",
+    base="storage",
     sql=SQL,
 )
 

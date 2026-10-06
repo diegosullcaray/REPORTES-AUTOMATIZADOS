@@ -120,7 +120,7 @@ REPORTE = ReporteLote(
     comando="giovanni-cartera-agro",
     descripcion='Reportes Giovanni 3 · Cartera vigente Agro (cierre actual y cierre del mes anterior)',
     frecuencia="mensual",
-    servidor="slc",
+    servidor="mish",
     base="storage",
     sql=SQL,
 )

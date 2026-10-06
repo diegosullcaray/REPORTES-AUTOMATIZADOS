@@ -130,7 +130,7 @@ REPORTE = ReporteLote(
     comando="desembolsos-por-canal",
     descripcion='Desembolsos por canal: contratación electrónica (CT) vs agencia física (BT)',
     frecuencia="mensual",
-    servidor="slc",
+    servidor="mish",
     base="storage",
     sql=SQL,
 )

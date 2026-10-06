@@ -16,7 +16,7 @@ select ... from storage.com_act.hcda001 where HFECPRO = @fec
 """
 
 REPORTE = ReporteLote(
-    comando="mi-reporte", descripcion="…", frecuencia="mensual", servidor="slc", base="storage", sql=SQL,
+    comando="mi-reporte", descripcion="…", frecuencia="mensual", servidor="mish", base="storage", sql=SQL,
     hojas=(Hoja("Resumen", columna_fecha="HFECPRO"),),   # opcional: nombre de cada resultado y validación de fecha
 )
 
@@ -42,6 +42,7 @@ def main(argv=None) -> int:
 La regla `fechas-fijas-en-sql` bloquea fechas literales en el T-SQL.
 
 ## Reglas
+- El `servidor` y la `base` deben coincidir con el mapa de [servidores y bases](../../docs/data/servidores-y-bases.md) (`storage` vive en `mish`, no en `slc`); la regla `servidor-coherente` lo exige.
 - Un reporte que **crea/borra tablas permanentes** declara `escribe_en_bd=True` (exige `--confirmar-escritura`).
 - Un resultado legítimamente vacío (p. ej. Castigos) declara `vacio_valido=True`.
 - Toda tabla que consulte va en `src/reportes/tablas.py` (`TABLAS` y `USO`): sin eso no hay verificación de frescura ni mensaje a Producción (regla `tabla-sin-registrar`).

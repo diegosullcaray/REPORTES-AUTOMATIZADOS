@@ -37,16 +37,18 @@ python main.py saca-tu-garra          # un reporte, con la fecha de corte de tu 
 | Sistema | Windows con acceso a la red de la empresa (VPN si estás fuera) |
 | Python | **3.11 o superior** (se probó con 3.13) |
 | Driver ODBC | **ODBC Driver 17 for SQL Server** (si usas otro, defínelo con `DB_ODBC_DRIVER` en el `.env`) |
-| Accesos | Autenticación de Windows en `172.24.2.213` (SLC) y en `MISHWBDDES01` (MISH); usuario/contraseña SQL en `172.20.0.70` (RCC) |
+| Accesos | Autenticación de Windows en `MISHWBDDES01` (MISH) y `172.24.2.213` (SLC); usuario/contraseña SQL en `172.20.0.70` (RCC). **Los 3 se usan**: el reporte elige el servidor según las bases que consulta |
 | Excel cerrado | Los reportes escriben archivos `.xlsx`: si el archivo está abierto, falla al guardar |
 
 Los 3 servidores (cada reporte elige **su propia base de datos** dentro del servidor):
 
 | Conexión | Servidor | Autenticación | Bases que usan los reportes |
 |---|---|---|---|
-| `mish` | `MISHWBDDES01` | Windows | — (reservada, ningún reporte la usa aún) |
-| `slc` | `172.24.2.213` | Windows | `slc`, `storage`, `dwh`, `intcom`, `csd`, `dma`, `appj` |
-| `rcc` | `172.20.0.70` | SQL (usuario `master`) | `DBRCC`, `DW_Raw_v2`, `dbriesgos`, `DW_Metadata` |
+| `mish` | `MISHWBDDES01` | Windows | **`storage`** (cartera, castigos, saldos, captaciones, seguros, fondeo…) y `appj` |
+| `slc` | `172.24.2.213` | Windows | `dwh`, `dma`, `csd`, `intcom`, `slc` (clientes, desembolsos, productos) |
+| `rcc` | `172.20.0.70` | SQL (usuario `master`) | `dbriesgos`, `DBRCC`, `DW_Raw_v2`, `DW_Metadata`, `DB<AAAAMM>` (CMG Mora, bancarizados) |
+
+**Regla:** una consulta solo puede nombrar bases de **su** servidor; por eso cada reporte se conecta al servidor de las bases que usa (se valida automáticamente). Mapa completo de bases por servidor: [servidores y bases](governance/docs/data/servidores-y-bases.md).
 
 ---
 
@@ -234,6 +236,8 @@ Los archivos contienen **datos de clientes**: no los subas al repositorio ni los
 | `✗ Datos: Todos los resultados vinieron vacíos` | casi seguro falta cargar una tabla al corte | `python main.py tablas <reporte> --verificar` |
 | `✗ Datos: … llega solo hasta <fecha>, antes del corte` | tabla desactualizada | pide la actualización |
 | `… crea/borra tablas permanentes … --confirmar-escritura` | el reporte escribe en BD | repite con `--confirmar-escritura` solo si estás seguro |
+| `No sé en qué servidor vive la base '…'` | base nueva sin mapear | añádela a `BASES_DE` en `src/reportes/config.py` |
+| `Invalid object name` / `database … does not exist` | el reporte se conecta a un servidor que no tiene esa base | revisa que `servidor` y `base` del reporte coincidan con [servidores y bases](governance/docs/data/servidores-y-bases.md) |
 | `PermissionError` al exportar | el Excel de salida está abierto | ciérralo y repite |
 | `Error de base de datos al ejecutar …` | error SQL o de red | repite con `-v` y revisa el detalle |
 

@@ -19,8 +19,8 @@ REPORTE = ReporteLote(
     comando="saldo-medio-vigente",
     descripcion='Saldo medio vigente (Diana García): saldo medio del mes y saldos diarios',
     frecuencia="mensual",
-    servidor="slc",
-    base="slc",
+    servidor="mish",
+    base="storage",
     sql=SQL,
     hojas=(Hoja("Saldo medio mes", columna_fecha="HFECPRO"), Hoja("Saldo diario", columna_fecha="sfecpro"),),
 )

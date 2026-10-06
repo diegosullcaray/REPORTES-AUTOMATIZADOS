@@ -90,4 +90,4 @@ Detalle: [`agents/README.md`](./agents/README.md).
 | [`templates/`](./docs/templates/README.md) | ficha de reporte, feature, PR, bug, ADR, evidencia |
 | [`evidence/`](./docs/evidence/README.md) | auditorías e incidentes |
 
-Entradas frecuentes: [runbooks](./docs/development/runbooks/README.md) · [inventario de tablas](./docs/data/tables-inventory.md) · [índice general](./docs/README.md) · [onboarding](./docs/onboarding.md) · [contrato de conexiones](./docs/data/contracts/conexiones-bd.md) · [linaje](./docs/data/lineage.md) · [compuertas](./docs/development/quality-gates.md)
+Entradas frecuentes: [runbooks](./docs/development/runbooks/README.md) · [inventario de tablas](./docs/data/tables-inventory.md) · [índice general](./docs/README.md) · [onboarding](./docs/onboarding.md) · [servidores y bases](./docs/data/servidores-y-bases.md) · [contrato de conexiones](./docs/data/contracts/conexiones-bd.md) · [linaje](./docs/data/lineage.md) · [compuertas](./docs/development/quality-gates.md)

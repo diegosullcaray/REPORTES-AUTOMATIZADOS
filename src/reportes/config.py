@@ -7,6 +7,7 @@ Los secretos NUNCA van en el código: se leen de variables de entorno / archivo 
 from __future__ import annotations
 
 import os
+import re
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -85,25 +86,59 @@ SERVIDORES: dict[str, Servidor] = {
     "mish": Servidor(
         nombre="mish",
         prefijo="MISH",
-        descripcion="Servidor MISHWBDDES01 (autenticación de Windows). Aún sin reportes asignados",
+        descripcion="Servidor MISHWBDDES01 (Windows): storage, staging, mod_rep… (reportes de actividad: cartera, castigos, saldos, seguros)",
         servidor_defecto="MISHWBDDES01",
         windows_auth_defecto=True,
     ),
     "slc": Servidor(
         nombre="slc",
         prefijo="SLC",
-        descripcion="Servidor 172.24.2.213 (Windows): bases slc, storage, dwh, intcom, csd, dma, appj…",
+        descripcion="Servidor 172.24.2.213 (Windows): dwh, dma, csd, intcom, slc… (clientes, desembolsos, productos)",
         servidor_defecto="172.24.2.213",
         windows_auth_defecto=True,
     ),
     "rcc": Servidor(
         nombre="rcc",
         prefijo="RCC",
-        descripcion="Servidor 172.20.0.70 (SQL; usuario master): bases DBRCC, DW_Raw_v2, dbriesgos, DW_Metadata…",
+        descripcion="Servidor 172.20.0.70 (SQL; usuario master): DBRCC, dbriesgos, DW_Raw_v2, DW_Metadata, DB<AAAAMM>…",
         servidor_defecto="172.20.0.70",
         windows_auth_defecto=False,
     ),
 }
+
+
+# --- Dónde vive cada base de datos -----------------------------------------------------
+# Fuente: explorador de objetos de SSMS de cada servidor (capturas de 2026-10). Una consulta T-SQL solo puede
+# nombrar (3 partes) bases de SU servidor: por eso cada reporte se conecta al servidor de las bases que usa.
+BASES_DE: dict[str, tuple[str, ...]] = {
+    "mish": ("app", "gitea", "government", "inme", "junk", "metadata", "mide", "mod_app", "mod_gpa", "mod_rep",
+             "mod_sec", "mod_sys_admin", "mod_sys_login", "staging", "storage", "strategos",
+             "appj"),  # appj NO aparece en las capturas: se asume en MISH (tapp lo escribe en la misma sesión que lee storage). Por confirmar
+    "slc": ("abp", "aud", "crs", "csd", "dbs70", "dga", "dma", "dsa", "dwh", "etl", "intcom", "mds", "mla", "sla",
+            "slb", "slc", "sld", "sle", "slf", "slg", "tdj", "test_temp", "tmp", "wks",
+            "rcc_cd"),  # rcc_cd es un linked server definido en 172.24.2.213 que apunta a 172.20.0.70
+    "rcc": ("dbfinanzas", "dbfsh", "dbrcc", "dbriesgos", "dw_application", "dw_metadata", "dw_raw", "dw_raw_v2",
+            "dw_recycle", "dw_staging", "dw_staging_v2", "dw_summary", "dw_summary_v2", "gerencia_riesgos_bd",
+            "reportserver", "reportservertempdb"),  # + las bases mensuales DB<AAAAMM> (patrón, ver servidor_de_base)
+}
+# "DBEstudios" aparece en 172.24.2.213 y en 172.20.0.70: ambigua, ningún reporte la usa y por eso no se mapea.
+_SERVIDOR_DE_BASE = {b: srv for srv, bases in BASES_DE.items() for b in bases}
+
+
+def servidor_de_base(base: str) -> str:
+    """Servidor (mish | slc | rcc) donde vive una base de datos. Lanza ConfiguracionError si no se conoce."""
+    b = base.lower().strip("[]")
+    if re.fullmatch(r"db\d{6}|db\{yyyymm\}", b):
+        return "rcc"  # DB202511 … DB202610: bases mensuales del servidor 172.20.0.70
+    try:
+        return _SERVIDOR_DE_BASE[b]
+    except KeyError:
+        raise ConfiguracionError(f"No sé en qué servidor vive la base '{base}': añádela a config.BASES_DE") from None
+
+
+def servidor_de_tabla(nombre: str) -> str:
+    """Servidor de una tabla por su nombre de 3 partes (`base.esquema.tabla`)."""
+    return servidor_de_base(nombre.split(".")[0])
 
 
 def obtener_servidor(nombre: str) -> Servidor:

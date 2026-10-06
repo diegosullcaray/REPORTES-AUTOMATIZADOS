@@ -11,4 +11,4 @@ Qué origen consume cada reporte. **El detalle tabla por tabla (con columna de f
 | Indicadores de clientes | `slc` | `INTCOM.dbo.ccd`, `csd.dbo.Clientes_DS`, `DWH.dbo.HCARCAP001`, `INTCOM.dbo.CCS_FUND_F` | mes (seguros con desfase configurable) |
 | Resto de reportes (17 comandos de lote) | `slc` | ver [inventario de tablas](./tables-inventory.md) | fin de mes (diarios: día anterior) |
 
-> Los reportes de lote consultan sobre todo `DWH`, `INTCOM`, `DMA`, `storage` y `csd` desde `slc`. Verificar con el responsable antes de automatizar.
+> Los reportes de lote consultan `storage` (servidor `mish`) o `dwh`/`intcom`/`dma`/`csd` (servidor `slc`); ver [servidores y bases](./servidores-y-bases.md) y el [inventario de tablas](./tables-inventory.md).

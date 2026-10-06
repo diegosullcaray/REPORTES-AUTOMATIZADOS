@@ -90,8 +90,8 @@ REPORTE = ReporteLote(
     comando="michael-castigos",
     descripcion='Reporte mensual de Michael Palacios · Castigos (puede salir vacío: hay meses sin castigos)',
     frecuencia="mensual",
-    servidor="slc",
-    base="slc",
+    servidor="mish",
+    base="storage",
     sql=SQL,
     vacio_valido=True,
 )

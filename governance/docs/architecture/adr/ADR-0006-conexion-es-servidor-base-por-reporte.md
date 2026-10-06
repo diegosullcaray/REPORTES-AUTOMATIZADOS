@@ -11,7 +11,10 @@ La primera versión modeló «3 bases de datos» (`dw_raw`, `rcc`, `slc`) con un
 - `<PREFIJO>_DATABASE` en el `.env` queda como catálogo por defecto **opcional**; la base del reporte siempre manda.
 - El alias `dw_raw` desaparece: era `rcc` (mismo servidor `172.20.0.70`) con base `DW_Raw_v2`.
 
+## Ajuste posterior
+El mapa real de bases por servidor está en [ADR-0008](./ADR-0008-mapa-bases-servidores.md): `storage` vive en MISH (no en `172.24.2.213`).
+
 ## Consecuencias
 - Un reporte que cambia de base no toca el `.env`; agregar una base nueva no requiere configuración.
-- El servidor `mish` queda configurado pero sin reportes asignados.
+- (Ajustado por ADR-0008) `mish` aloja `storage`; los reportes que lo usan se conectan a `mish`.
 - El servidor `rcc` se usa con `master` para lectura y escritura: sigue abierto [SEC-002](../../security/findings.md) (usuario dedicado de mínimo privilegio).

@@ -7,7 +7,7 @@
 | **Saldo medio vigente** | Suma de saldos diarios ÷ días del mes; domingos/feriados repiten el saldo del día hábil anterior |
 | **Saldo puntual** | Saldo a una fecha concreta |
 | **CMG Mora** | Reporte diario de recaudo y provisiones de mora; lunes toma el sábado |
-| **SBTVRIE001** | Tabla destino `[storage].[com_act]` de los INSERTs de CMG Mora |
+| **SBTVRIE001** | Tabla destino `[storage].[com_act]` (servidor MISH) de los INSERTs de CMG Mora; el TXT se carga allí fuera de este proyecto |
 | **TER-GRU-COR** | Llave territorio-grupo-corredor para asignar `SCODREL` |
 | **RCC** | Registro consolidado de créditos (deuda en el sistema financiero) |
 | **Cliente exclusivo / bancarizado** | Cliente cuya deuda en RCC está 100 % en Financiera Confianza |

@@ -36,13 +36,13 @@ Sirve para el cierre de mes: saber **qué tablas necesita cada reporte** y **a q
 
 | Tabla | Conexión | Tipo | Columna de fecha | Confianza |
 |---|---|---|---|---|
-| `storage.com_act.hcda001` | `slc` | historica | `HFECPRO` | confirmada |
-| `storage.com_act.retp001` | `slc` | referencia | — | por_confirmar |
-| `storage.com_act.retp002` | `slc` | referencia | — | por_confirmar |
-| `storage.com_act.retp003` | `slc` | referencia | — | por_confirmar |
-| `storage.com_act.sdas001` | `slc` | stock | `sfecpro` | confirmada |
-| `storage.ref.fjercor02` | `slc` | otro | — | por_confirmar |
-| `storage.ref.vjercor03` | `slc` | otro | — | por_confirmar |
+| `storage.com_act.hcda001` | `mish` | historica | `HFECPRO` | confirmada |
+| `storage.com_act.retp001` | `mish` | referencia | — | por_confirmar |
+| `storage.com_act.retp002` | `mish` | referencia | — | por_confirmar |
+| `storage.com_act.retp003` | `mish` | referencia | — | por_confirmar |
+| `storage.com_act.sdas001` | `mish` | stock | `sfecpro` | confirmada |
+| `storage.ref.fjercor02` | `mish` | otro | — | por_confirmar |
+| `storage.ref.vjercor03` | `mish` | otro | — | por_confirmar |
 
 ### `clientes-extranjeros` (mensual)
 
@@ -65,20 +65,20 @@ Sirve para el cierre de mes: saber **qué tablas necesita cada reporte** y **a q
 
 | Tabla | Conexión | Tipo | Columna de fecha | Confianza |
 |---|---|---|---|---|
-| `storage.com_act.hbcn001` | `slc` | historica | `HFECPRO` | confirmada |
-| `storage.com_act.hcda001` | `slc` | historica | `HFECPRO` | confirmada |
-| `storage.com_act.hcdr001` | `slc` | historica | `HFECPRO` | confirmada |
-| `storage.com_act.hcdr002` | `slc` | historica | `HFECPRO` | confirmada |
-| `storage.com_act.rfoc001` | `slc` | referencia | — | por_confirmar |
-| `storage.ref.rcalen001` | `slc` | referencia | — | por_confirmar |
-| `storage.ref.vurbrur01` | `slc` | otro | — | por_confirmar |
+| `storage.com_act.hbcn001` | `mish` | historica | `HFECPRO` | confirmada |
+| `storage.com_act.hcda001` | `mish` | historica | `HFECPRO` | confirmada |
+| `storage.com_act.hcdr001` | `mish` | historica | `HFECPRO` | confirmada |
+| `storage.com_act.hcdr002` | `mish` | historica | `HFECPRO` | confirmada |
+| `storage.com_act.rfoc001` | `mish` | referencia | — | por_confirmar |
+| `storage.ref.rcalen001` | `mish` | referencia | — | por_confirmar |
+| `storage.ref.vurbrur01` | `mish` | otro | — | por_confirmar |
 
 ### `cmg-castigos` (diaria)
 
 | Tabla | Conexión | Tipo | Columna de fecha | Confianza |
 |---|---|---|---|---|
-| `storage.com_act.sdas005` | `slc` | stock | `SFECPRO` | convencion |
-| `storage.ref.rcalen001` | `slc` | referencia | — | por_confirmar |
+| `storage.com_act.sdas005` | `mish` | stock | `SFECPRO` | convencion |
+| `storage.ref.rcalen001` | `mish` | referencia | — | por_confirmar |
 
 ### `cmg-mora` (diaria)
 
@@ -89,68 +89,68 @@ Sirve para el cierre de mes: saber **qué tablas necesita cada reporte** y **a q
 | `dbriesgos.dbo.recaudo_diario_finanzas` | `rcc` | stock | `FECHA_CIERRE` | confirmada |
 | `dw_raw_v2.dbo.cmgmora_recaudo` | `rcc` | staging | — | por_confirmar |
 | `dw_raw_v2.dbo.cmgmora_strjercor` | `rcc` | otro | — | por_confirmar |
-| `storage.com_act.sbtvrie001` | `slc` | destino | — | por_confirmar |
+| `storage.com_act.sbtvrie001` | `mish` | destino | — | por_confirmar |
 
 ### `contratacion-electronica` (mensual)
 
 | Tabla | Conexión | Tipo | Columna de fecha | Confianza |
 |---|---|---|---|---|
-| `storage.com_act.wcdce001` | `slc` | historica | `hfecpro` | confirmada |
-| `storage.com_act.wcdce002` | `slc` | historica | `hfecpro` | confirmada |
+| `storage.com_act.wcdce001` | `mish` | historica | `hfecpro` | confirmada |
+| `storage.com_act.wcdce002` | `mish` | historica | `hfecpro` | confirmada |
 
 ### `desembolsos-por-canal` (mensual)
 
 | Tabla | Conexión | Tipo | Columna de fecha | Confianza |
 |---|---|---|---|---|
-| `storage.com_act.hcda001` | `slc` | historica | `HFECPRO` | confirmada |
-| `storage.com_act.hcdr001` | `slc` | historica | `HFECPRO` | confirmada |
-| `storage.com_act.hcdr002` | `slc` | historica | `HFECPRO` | confirmada |
-| `storage.com_act.hdce001` | `slc` | historica | `HFECPRO` | confirmada |
-| `storage.com_act.hmcm001` | `slc` | historica | `HFECPRO` | convencion |
-| `storage.com_act.rfoc001` | `slc` | referencia | — | por_confirmar |
-| `storage.gpr.vpph001` | `slc` | otro | — | por_confirmar |
-| `storage.ref.fjercor02` | `slc` | otro | — | por_confirmar |
-| `storage.ref.rtcm001` | `slc` | referencia | — | por_confirmar |
+| `storage.com_act.hcda001` | `mish` | historica | `HFECPRO` | confirmada |
+| `storage.com_act.hcdr001` | `mish` | historica | `HFECPRO` | confirmada |
+| `storage.com_act.hcdr002` | `mish` | historica | `HFECPRO` | confirmada |
+| `storage.com_act.hdce001` | `mish` | historica | `HFECPRO` | confirmada |
+| `storage.com_act.hmcm001` | `mish` | historica | `HFECPRO` | convencion |
+| `storage.com_act.rfoc001` | `mish` | referencia | — | por_confirmar |
+| `storage.gpr.vpph001` | `mish` | otro | — | por_confirmar |
+| `storage.ref.fjercor02` | `mish` | otro | — | por_confirmar |
+| `storage.ref.rtcm001` | `mish` | referencia | — | por_confirmar |
 
 ### `fondeo-estable` (mensual)
 
 | Tabla | Conexión | Tipo | Columna de fecha | Confianza |
 |---|---|---|---|---|
-| `storage.com_pas.wjas008` | `slc` | historica | `hfecpro` | confirmada |
-| `storage.ref.vjercor04` | `slc` | otro | — | por_confirmar |
+| `storage.com_pas.wjas008` | `mish` | historica | `hfecpro` | confirmada |
+| `storage.ref.vjercor04` | `mish` | otro | — | por_confirmar |
 
 ### `giovanni-captaciones` (mensual)
 
 | Tabla | Conexión | Tipo | Columna de fecha | Confianza |
 |---|---|---|---|---|
-| `storage.com_pas.retp001` | `slc` | referencia | — | por_confirmar |
-| `storage.com_pas.sdps010` | `slc` | stock | `SFECPRO` | convencion |
-| `storage.com_pas.sdps013` | `slc` | stock | `SFECPRO` | confirmada |
-| `storage.com_pas.wjas004` | `slc` | historica | `HFECPRO` | confirmada |
-| `storage.ref.vjercor04` | `slc` | otro | — | por_confirmar |
+| `storage.com_pas.retp001` | `mish` | referencia | — | por_confirmar |
+| `storage.com_pas.sdps010` | `mish` | stock | `SFECPRO` | convencion |
+| `storage.com_pas.sdps013` | `mish` | stock | `SFECPRO` | confirmada |
+| `storage.com_pas.wjas004` | `mish` | historica | `HFECPRO` | confirmada |
+| `storage.ref.vjercor04` | `mish` | otro | — | por_confirmar |
 
 ### `giovanni-cartera-agro` (mensual)
 
 | Tabla | Conexión | Tipo | Columna de fecha | Confianza |
 |---|---|---|---|---|
-| `storage.com_act.hcda001` | `slc` | historica | `HFECPRO` | confirmada |
-| `storage.com_act.retp001` | `slc` | referencia | — | por_confirmar |
-| `storage.com_act.retp002` | `slc` | referencia | — | por_confirmar |
-| `storage.com_act.retp003` | `slc` | referencia | — | por_confirmar |
-| `storage.ref.fjercor02` | `slc` | otro | — | por_confirmar |
-| `storage.ref.wjercor03` | `slc` | otro | — | por_confirmar |
+| `storage.com_act.hcda001` | `mish` | historica | `HFECPRO` | confirmada |
+| `storage.com_act.retp001` | `mish` | referencia | — | por_confirmar |
+| `storage.com_act.retp002` | `mish` | referencia | — | por_confirmar |
+| `storage.com_act.retp003` | `mish` | referencia | — | por_confirmar |
+| `storage.ref.fjercor02` | `mish` | otro | — | por_confirmar |
+| `storage.ref.wjercor03` | `mish` | otro | — | por_confirmar |
 
 ### `giovanni-seguros` (mensual)
 
 | Tabla | Conexión | Tipo | Columna de fecha | Confianza |
 |---|---|---|---|---|
-| `storage.com.vdmcom01` | `slc` | otro | — | por_confirmar |
-| `storage.com_act.retp001` | `slc` | referencia | — | por_confirmar |
-| `storage.com_act.retp002` | `slc` | referencia | — | por_confirmar |
-| `storage.com_act.retp003` | `slc` | referencia | — | por_confirmar |
-| `storage.com_act.sdaf002` | `slc` | stock | `SFECPRO` | convencion |
-| `storage.com_seg.sdsf001` | `slc` | stock | `SFECPRO` | convencion |
-| `storage.ref.wjercor03` | `slc` | otro | — | por_confirmar |
+| `storage.com.vdmcom01` | `mish` | otro | — | por_confirmar |
+| `storage.com_act.retp001` | `mish` | referencia | — | por_confirmar |
+| `storage.com_act.retp002` | `mish` | referencia | — | por_confirmar |
+| `storage.com_act.retp003` | `mish` | referencia | — | por_confirmar |
+| `storage.com_act.sdaf002` | `mish` | stock | `SFECPRO` | convencion |
+| `storage.com_seg.sdsf001` | `mish` | stock | `SFECPRO` | convencion |
+| `storage.ref.wjercor03` | `mish` | otro | — | por_confirmar |
 
 ### `heredados-pdm` (mensual)
 
@@ -186,25 +186,25 @@ Sirve para el cierre de mes: saber **qué tablas necesita cada reporte** y **a q
 
 | Tabla | Conexión | Tipo | Columna de fecha | Confianza |
 |---|---|---|---|---|
-| `storage.com_pas.hcdp001` | `slc` | historica | `HFECPRO` | confirmada |
-| `storage.com_pas.pslwcap001` | `slc` | otro | — | por_confirmar |
-| `storage.com_pas.retp001` | `slc` | referencia | — | por_confirmar |
-| `storage.com_pas.wcap001` | `slc` | historica | `HFECPRO` | confirmada |
-| `storage.ref.vjercor04` | `slc` | otro | — | por_confirmar |
+| `storage.com_pas.hcdp001` | `mish` | historica | `HFECPRO` | confirmada |
+| `storage.com_pas.pslwcap001` | `mish` | otro | — | por_confirmar |
+| `storage.com_pas.retp001` | `mish` | referencia | — | por_confirmar |
+| `storage.com_pas.wcap001` | `mish` | historica | `HFECPRO` | confirmada |
+| `storage.ref.vjercor04` | `mish` | otro | — | por_confirmar |
 
 ### `michael-castigos` (mensual)
 
 | Tabla | Conexión | Tipo | Columna de fecha | Confianza |
 |---|---|---|---|---|
-| `storage.com_act.hcca001` | `slc` | historica | `HFECPRO` | convencion |
-| `storage.com_act.hcda001` | `slc` | historica | `HFECPRO` | confirmada |
-| `storage.com_act.retp001` | `slc` | referencia | — | por_confirmar |
-| `storage.com_act.retp002` | `slc` | referencia | — | por_confirmar |
-| `storage.com_act.retp003` | `slc` | referencia | — | por_confirmar |
-| `storage.com_act.rfoc001` | `slc` | referencia | — | por_confirmar |
-| `storage.gpr.vpph001` | `slc` | otro | — | por_confirmar |
-| `storage.ref.fjercor01` | `slc` | otro | — | por_confirmar |
-| `storage.ref.rtcm001` | `slc` | referencia | — | por_confirmar |
+| `storage.com_act.hcca001` | `mish` | historica | `HFECPRO` | convencion |
+| `storage.com_act.hcda001` | `mish` | historica | `HFECPRO` | confirmada |
+| `storage.com_act.retp001` | `mish` | referencia | — | por_confirmar |
+| `storage.com_act.retp002` | `mish` | referencia | — | por_confirmar |
+| `storage.com_act.retp003` | `mish` | referencia | — | por_confirmar |
+| `storage.com_act.rfoc001` | `mish` | referencia | — | por_confirmar |
+| `storage.gpr.vpph001` | `mish` | otro | — | por_confirmar |
+| `storage.ref.fjercor01` | `mish` | otro | — | por_confirmar |
+| `storage.ref.rtcm001` | `mish` | referencia | — | por_confirmar |
 
 ### `productos-verdes` (mensual)
 
@@ -228,37 +228,37 @@ Sirve para el cierre de mes: saber **qué tablas necesita cada reporte** y **a q
 
 | Tabla | Conexión | Tipo | Columna de fecha | Confianza |
 |---|---|---|---|---|
-| `storage.com_act.hcda001` | `slc` | historica | `HFECPRO` | confirmada |
-| `storage.com_act.hcma001` | `slc` | historica | `HFECPRO` | convencion |
-| `storage.com_act.hctc001` | `slc` | historica | `HFECPRO` | convencion |
-| `storage.com_act.sdae002` | `slc` | stock | `sfecpro` | confirmada |
-| `storage.com_act.sdae003` | `slc` | stock | `SFECPRO` | convencion |
-| `storage.ref.rcalen001` | `slc` | referencia | — | por_confirmar |
+| `storage.com_act.hcda001` | `mish` | historica | `HFECPRO` | confirmada |
+| `storage.com_act.hcma001` | `mish` | historica | `HFECPRO` | convencion |
+| `storage.com_act.hctc001` | `mish` | historica | `HFECPRO` | convencion |
+| `storage.com_act.sdae002` | `mish` | stock | `sfecpro` | confirmada |
+| `storage.com_act.sdae003` | `mish` | stock | `SFECPRO` | convencion |
+| `storage.ref.rcalen001` | `mish` | referencia | — | por_confirmar |
 
 ### `saldo-medio-vigente` (mensual)
 
 | Tabla | Conexión | Tipo | Columna de fecha | Confianza |
 |---|---|---|---|---|
-| `storage.com_act.sdas001` | `slc` | stock | `sfecpro` | confirmada |
-| `storage.com_act.wjas001` | `slc` | historica | `HFECPRO` | confirmada |
+| `storage.com_act.sdas001` | `mish` | stock | `sfecpro` | confirmada |
+| `storage.com_act.wjas001` | `mish` | historica | `HFECPRO` | confirmada |
 
 ### `tapp-saldo-medio-territorio` (mensual)
 
 | Tabla | Conexión | Tipo | Columna de fecha | Confianza |
 |---|---|---|---|---|
-| `appj.dbo.salmediovigente1` | `slc` | historica | `HFECPRO` | confirmada |
-| `storage.com_act.retp001` | `slc` | referencia | — | por_confirmar |
-| `storage.com_act.sdaf002` | `slc` | stock | `SFECPRO` | convencion |
-| `storage.com_act.sdas001` | `slc` | stock | `sfecpro` | confirmada |
-| `storage.ref.fjercor02` | `slc` | otro | — | por_confirmar |
-| `storage.ref.rcalen001` | `slc` | referencia | — | por_confirmar |
-| `storage.util.fvecfec01` | `slc` | otro | — | por_confirmar |
+| `appj.dbo.salmediovigente1` | `mish` | historica | `HFECPRO` | confirmada |
+| `storage.com_act.retp001` | `mish` | referencia | — | por_confirmar |
+| `storage.com_act.sdaf002` | `mish` | stock | `SFECPRO` | convencion |
+| `storage.com_act.sdas001` | `mish` | stock | `sfecpro` | confirmada |
+| `storage.ref.fjercor02` | `mish` | otro | — | por_confirmar |
+| `storage.ref.rcalen001` | `mish` | referencia | — | por_confirmar |
+| `storage.util.fvecfec01` | `mish` | otro | — | por_confirmar |
 
 ## 2. Por tabla (si se actualiza esta, ¿a qué reportes afecta?)
 
 | Tabla | Conexión | Tipo | Reportes |
 |---|---|---|---|
-| `appj.dbo.salmediovigente1` | `slc` | historica | `tapp-saldo-medio-territorio` |
+| `appj.dbo.salmediovigente1` | `mish` | historica | `tapp-saldo-medio-territorio` |
 | `csd.dbo.clientes_ds` | `slc` | stock | `bancarizados-producto`, `clientes-jovenes`, `indicadores-clientes` |
 | `dbrcc.dbo.rcccab{yyyymmdd}` | `rcc` | dinamica | `bancarizados` |
 | `dbrcc.dbo.rccdet{yyyymmdd}` | `rcc` | dinamica | `bancarizados` |
@@ -305,45 +305,45 @@ Sirve para el cierre de mes: saber **qué tablas necesita cada reporte** y **a q
 | `intcom.dbo.distritos_rural_alv` | `slc` | otro | `indicadores-clientes` |
 | `rcc_cd.db{yyyymm}.dbo.ccp{yyyymmdd}` | `slc` | dinamica | — (solo SQL legado) |
 | `slc.dbo.retp006` | `slc` | referencia | `productos-verdes` |
-| `storage.com.vdmcom01` | `slc` | otro | `giovanni-seguros` |
-| `storage.com_act.hbcn001` | `slc` | historica | `clientes-rurales-migrantes` |
-| `storage.com_act.hcca001` | `slc` | historica | `michael-castigos` |
-| `storage.com_act.hcda001` | `slc` | historica | `cartera-sin-asignar`, `clientes-rurales-migrantes`, `desembolsos-por-canal`, `giovanni-cartera-agro`, `michael-castigos`, `saca-tu-garra` |
-| `storage.com_act.hcdr001` | `slc` | historica | `clientes-rurales-migrantes`, `desembolsos-por-canal` |
-| `storage.com_act.hcdr002` | `slc` | historica | `clientes-rurales-migrantes`, `desembolsos-por-canal` |
-| `storage.com_act.hcma001` | `slc` | historica | `saca-tu-garra` |
-| `storage.com_act.hctc001` | `slc` | historica | `saca-tu-garra` |
-| `storage.com_act.hdce001` | `slc` | historica | `desembolsos-por-canal` |
-| `storage.com_act.hmcm001` | `slc` | historica | `desembolsos-por-canal` |
-| `storage.com_act.retp001` | `slc` | referencia | `cartera-sin-asignar`, `giovanni-cartera-agro`, `giovanni-seguros`, `michael-castigos`, `tapp-saldo-medio-territorio` |
-| `storage.com_act.retp002` | `slc` | referencia | `cartera-sin-asignar`, `giovanni-cartera-agro`, `giovanni-seguros`, `michael-castigos` |
-| `storage.com_act.retp003` | `slc` | referencia | `cartera-sin-asignar`, `giovanni-cartera-agro`, `giovanni-seguros`, `michael-castigos` |
-| `storage.com_act.rfoc001` | `slc` | referencia | `clientes-rurales-migrantes`, `desembolsos-por-canal`, `michael-castigos` |
-| `storage.com_act.sbtvrie001` | `slc` | destino | `cmg-mora` |
-| `storage.com_act.sdae002` | `slc` | stock | `saca-tu-garra` |
-| `storage.com_act.sdae003` | `slc` | stock | `saca-tu-garra` |
-| `storage.com_act.sdaf002` | `slc` | stock | `giovanni-seguros`, `tapp-saldo-medio-territorio` |
-| `storage.com_act.sdas001` | `slc` | stock | `cartera-sin-asignar`, `saldo-medio-vigente`, `tapp-saldo-medio-territorio` |
-| `storage.com_act.sdas005` | `slc` | stock | `cmg-castigos` |
-| `storage.com_act.wcdce001` | `slc` | historica | `contratacion-electronica` |
-| `storage.com_act.wcdce002` | `slc` | historica | `contratacion-electronica` |
-| `storage.com_act.wjas001` | `slc` | historica | `saldo-medio-vigente` |
-| `storage.com_pas.hcdp001` | `slc` | historica | `michael-captaciones` |
-| `storage.com_pas.pslwcap001` | `slc` | otro | `michael-captaciones` |
-| `storage.com_pas.retp001` | `slc` | referencia | `giovanni-captaciones`, `michael-captaciones` |
-| `storage.com_pas.sdps010` | `slc` | stock | `giovanni-captaciones` |
-| `storage.com_pas.sdps013` | `slc` | stock | `giovanni-captaciones` |
-| `storage.com_pas.wcap001` | `slc` | historica | `michael-captaciones` |
-| `storage.com_pas.wjas004` | `slc` | historica | `giovanni-captaciones` |
-| `storage.com_pas.wjas008` | `slc` | historica | `fondeo-estable` |
-| `storage.com_seg.sdsf001` | `slc` | stock | `giovanni-seguros` |
-| `storage.gpr.vpph001` | `slc` | otro | `desembolsos-por-canal`, `michael-castigos` |
-| `storage.ref.fjercor01` | `slc` | otro | `michael-castigos` |
-| `storage.ref.fjercor02` | `slc` | otro | `cartera-sin-asignar`, `desembolsos-por-canal`, `giovanni-cartera-agro`, `tapp-saldo-medio-territorio` |
-| `storage.ref.rcalen001` | `slc` | referencia | `clientes-rurales-migrantes`, `cmg-castigos`, `saca-tu-garra`, `tapp-saldo-medio-territorio` |
-| `storage.ref.rtcm001` | `slc` | referencia | `desembolsos-por-canal`, `michael-castigos` |
-| `storage.ref.vjercor03` | `slc` | otro | `cartera-sin-asignar` |
-| `storage.ref.vjercor04` | `slc` | otro | `fondeo-estable`, `giovanni-captaciones`, `michael-captaciones` |
-| `storage.ref.vurbrur01` | `slc` | otro | `clientes-rurales-migrantes` |
-| `storage.ref.wjercor03` | `slc` | otro | `giovanni-cartera-agro`, `giovanni-seguros` |
-| `storage.util.fvecfec01` | `slc` | otro | `tapp-saldo-medio-territorio` |
+| `storage.com.vdmcom01` | `mish` | otro | `giovanni-seguros` |
+| `storage.com_act.hbcn001` | `mish` | historica | `clientes-rurales-migrantes` |
+| `storage.com_act.hcca001` | `mish` | historica | `michael-castigos` |
+| `storage.com_act.hcda001` | `mish` | historica | `cartera-sin-asignar`, `clientes-rurales-migrantes`, `desembolsos-por-canal`, `giovanni-cartera-agro`, `michael-castigos`, `saca-tu-garra` |
+| `storage.com_act.hcdr001` | `mish` | historica | `clientes-rurales-migrantes`, `desembolsos-por-canal` |
+| `storage.com_act.hcdr002` | `mish` | historica | `clientes-rurales-migrantes`, `desembolsos-por-canal` |
+| `storage.com_act.hcma001` | `mish` | historica | `saca-tu-garra` |
+| `storage.com_act.hctc001` | `mish` | historica | `saca-tu-garra` |
+| `storage.com_act.hdce001` | `mish` | historica | `desembolsos-por-canal` |
+| `storage.com_act.hmcm001` | `mish` | historica | `desembolsos-por-canal` |
+| `storage.com_act.retp001` | `mish` | referencia | `cartera-sin-asignar`, `giovanni-cartera-agro`, `giovanni-seguros`, `michael-castigos`, `tapp-saldo-medio-territorio` |
+| `storage.com_act.retp002` | `mish` | referencia | `cartera-sin-asignar`, `giovanni-cartera-agro`, `giovanni-seguros`, `michael-castigos` |
+| `storage.com_act.retp003` | `mish` | referencia | `cartera-sin-asignar`, `giovanni-cartera-agro`, `giovanni-seguros`, `michael-castigos` |
+| `storage.com_act.rfoc001` | `mish` | referencia | `clientes-rurales-migrantes`, `desembolsos-por-canal`, `michael-castigos` |
+| `storage.com_act.sbtvrie001` | `mish` | destino | `cmg-mora` |
+| `storage.com_act.sdae002` | `mish` | stock | `saca-tu-garra` |
+| `storage.com_act.sdae003` | `mish` | stock | `saca-tu-garra` |
+| `storage.com_act.sdaf002` | `mish` | stock | `giovanni-seguros`, `tapp-saldo-medio-territorio` |
+| `storage.com_act.sdas001` | `mish` | stock | `cartera-sin-asignar`, `saldo-medio-vigente`, `tapp-saldo-medio-territorio` |
+| `storage.com_act.sdas005` | `mish` | stock | `cmg-castigos` |
+| `storage.com_act.wcdce001` | `mish` | historica | `contratacion-electronica` |
+| `storage.com_act.wcdce002` | `mish` | historica | `contratacion-electronica` |
+| `storage.com_act.wjas001` | `mish` | historica | `saldo-medio-vigente` |
+| `storage.com_pas.hcdp001` | `mish` | historica | `michael-captaciones` |
+| `storage.com_pas.pslwcap001` | `mish` | otro | `michael-captaciones` |
+| `storage.com_pas.retp001` | `mish` | referencia | `giovanni-captaciones`, `michael-captaciones` |
+| `storage.com_pas.sdps010` | `mish` | stock | `giovanni-captaciones` |
+| `storage.com_pas.sdps013` | `mish` | stock | `giovanni-captaciones` |
+| `storage.com_pas.wcap001` | `mish` | historica | `michael-captaciones` |
+| `storage.com_pas.wjas004` | `mish` | historica | `giovanni-captaciones` |
+| `storage.com_pas.wjas008` | `mish` | historica | `fondeo-estable` |
+| `storage.com_seg.sdsf001` | `mish` | stock | `giovanni-seguros` |
+| `storage.gpr.vpph001` | `mish` | otro | `desembolsos-por-canal`, `michael-castigos` |
+| `storage.ref.fjercor01` | `mish` | otro | `michael-castigos` |
+| `storage.ref.fjercor02` | `mish` | otro | `cartera-sin-asignar`, `desembolsos-por-canal`, `giovanni-cartera-agro`, `tapp-saldo-medio-territorio` |
+| `storage.ref.rcalen001` | `mish` | referencia | `clientes-rurales-migrantes`, `cmg-castigos`, `saca-tu-garra`, `tapp-saldo-medio-territorio` |
+| `storage.ref.rtcm001` | `mish` | referencia | `desembolsos-por-canal`, `michael-castigos` |
+| `storage.ref.vjercor03` | `mish` | otro | `cartera-sin-asignar` |
+| `storage.ref.vjercor04` | `mish` | otro | `fondeo-estable`, `giovanni-captaciones`, `michael-captaciones` |
+| `storage.ref.vurbrur01` | `mish` | otro | `clientes-rurales-migrantes` |
+| `storage.ref.wjercor03` | `mish` | otro | `giovanni-cartera-agro`, `giovanni-seguros` |
+| `storage.util.fvecfec01` | `mish` | otro | `tapp-saldo-medio-territorio` |

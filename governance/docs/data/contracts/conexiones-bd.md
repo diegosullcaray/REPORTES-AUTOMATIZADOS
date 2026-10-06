@@ -6,17 +6,20 @@ Se definen en `src/reportes/config.py` (`SERVIDORES`); el único código autoriz
 
 | Conexión | Servidor | Autenticación | Variables `.env` | Bases que usan los reportes |
 |---|---|---|---|---|
-| `mish` | `MISHWBDDES01` | Windows | `MISH_SERVER`, `MISH_USER`, `MISH_PASSWORD` | — (reservada; ningún reporte la usa aún) |
-| `slc` | `172.24.2.213` | Windows (o SQL si hay USER/PASSWORD) | `SLC_SERVER`, `SLC_USER`, `SLC_PASSWORD` | `slc`, `storage`, `dwh`, `intcom`, `csd`, `dma`, `appj`; linked server `rcc_cd` |
-| `rcc` | `172.20.0.70` | SQL (usuario `master`) | `RCC_SERVER`, `RCC_USER`, `RCC_PASSWORD` | `DBRCC`, `DW_Raw_v2`, `dbriesgos`, `DW_Metadata` |
+| `mish` | `MISHWBDDES01` | Windows | `MISH_SERVER`, `MISH_USER`, `MISH_PASSWORD` | `storage` (+ `staging`, `mod_rep`, …) y `appj` |
+| `slc` | `172.24.2.213` | Windows (o SQL si hay USER/PASSWORD) | `SLC_SERVER`, `SLC_USER`, `SLC_PASSWORD` | `dwh`, `dma`, `csd`, `intcom`, `slc`; linked server `rcc_cd` → 172.20.0.70 |
+| `rcc` | `172.20.0.70` | SQL (usuario `master`) | `RCC_SERVER`, `RCC_USER`, `RCC_PASSWORD` | `dbriesgos`, `DBRCC`, `DW_Raw_v2`, `DW_Metadata`, `DB<AAAAMM>` |
 
 USER/PASSWORD vacíos ⇒ autenticación de Windows (solo si el servidor la admite por defecto: `mish`, `slc`). Usuario sin contraseña (o al revés) es error de configuración.
+
+## Una consulta solo ve las bases de su servidor
+SQL Server no cruza servidores con nombres de 3 partes: `storage.com_act.X` solo funciona conectado a MISH, `dwh.dbo.X` solo en `172.24.2.213`, `dbriesgos.dbo.X` solo en `172.20.0.70`. Por eso cada reporte se conecta al servidor de **sus** bases. El mapa base→servidor es `config.BASES_DE` ([servidores y bases](../servidores-y-bases.md)); la regla `servidor-coherente` falla si un reporte mezcla servidores o declara una base de otro. Un reporte que necesite datos de dos servidores se divide en dos consultas (como `bancarizados`: `rcc` + `slc`).
 
 ## ¿Qué base usa cada reporte?
 Cada reporte lo declara en su código:
 
 ```python
-REPORTE = ReporteLote(comando="saca-tu-garra", servidor="slc", base="storage", sql=SQL, ...)   # reportes de lote
+REPORTE = ReporteLote(comando="saca-tu-garra", servidor="mish", base="storage", sql=SQL, ...)   # reportes de lote
 leer_sql("rcc", consulta, params, base="DBRCC")                                                  # consulta puntual
 conexion_pyodbc("rcc", base="DW_Raw_v2")                                                         # escritura (CMG Mora)
 ```
@@ -33,4 +36,4 @@ Orden de prioridad del catálogo inicial: `base=` del reporte → `<PREFIJO>_DAT
 1. Un servidor desconocido lanza `ConfiguracionError`; no hay credenciales por defecto.
 2. Verificación: `python main.py probar-conexiones` (los 3 servidores).
 3. Permisos: `rcc` se usa hoy con `master` para **todo** (lectura y escritura en `DW_Raw_v2`): ver [SEC-002](../../security/findings.md).
-4. Agregar un servidor nuevo requiere una entrada en `config.SERVIDORES`, su bloque en `.env.example` y un ADR; agregar una **base** nueva no requiere nada en el `.env`.
+4. Una **base nueva** se añade a `config.BASES_DE` (si no, `No sé en qué servidor vive la base …`); un servidor nuevo requiere una entrada en `config.SERVIDORES`, su bloque en `.env.example` y un ADR; no requiere nada en el `.env`.

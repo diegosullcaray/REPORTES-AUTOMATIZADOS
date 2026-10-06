@@ -30,3 +30,14 @@ def test_tokens_resueltos_y_sin_fechas_fijas(nombre, lote):
 def test_tapp_declara_que_escribe_en_bd():
     assert dict(LOTES)["tapp-saldo-medio-territorio"].escribe_en_bd is True
     assert dict(LOTES)["michael-castigos"].vacio_valido is True
+
+
+@pytest.mark.parametrize("nombre,lote", LOTES)
+def test_servidor_y_base_coherentes_con_sus_tablas(nombre, lote):
+    from reportes.config import servidor_de_base
+    from reportes.tablas import tablas_de
+
+    assert REPORTES[nombre].servidores == (lote.servidor,)
+    if lote.base:
+        assert servidor_de_base(lote.base) == lote.servidor
+    assert {t.servidor for t in tablas_de(nombre) if t.tipo != "destino"} == {lote.servidor}
