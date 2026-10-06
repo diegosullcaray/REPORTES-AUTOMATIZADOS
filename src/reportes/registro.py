@@ -26,3 +26,15 @@ REPORTES: dict[str, Reporte] = {r.nombre: r for r in (
     Reporte("indicadores-clientes", "reportes.mensuales.indicadores_clientes", "mensual", ("slc",),
             "Indicadores de clientes para el Directorio"),
 )}
+
+
+def frecuencia_de(reporte: str) -> str:
+    """'diaria' | 'mensual' para un reporte automatizado o para una carpeta pendiente de sql/."""
+    from .config import DIR_SQL
+
+    if reporte in REPORTES:
+        return REPORTES[reporte].frecuencia
+    for frecuencia, carpeta in (("diaria", "diarias"), ("mensual", "mensuales")):
+        if (DIR_SQL / carpeta / reporte).is_dir():
+            return frecuencia
+    raise KeyError(f"Reporte desconocido: {reporte}")

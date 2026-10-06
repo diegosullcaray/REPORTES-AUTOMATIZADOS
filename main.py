@@ -2,6 +2,8 @@
 
     python main.py listar
     python main.py probar-conexiones
+    python main.py tablas <reporte> --fecha-corte 2026-10-31 --verificar
+    python main.py solicitud-actualizacion <reporte> --fecha-corte 2026-10-31 --verificar
     python main.py <reporte> [argumentos del reporte]
         ej.: python main.py bancarizados --fecha-corte 2026-06-30
 """
@@ -23,6 +25,8 @@ def main(argv: list[str]) -> int:
         for r in REPORTES.values():
             print(f"  {r.nombre:<24} [{r.frecuencia:<7}] bases={','.join(r.bases):<8} {r.descripcion}")
         print("\n  probar-conexiones        verifica las 3 conexiones (dw_raw, rcc, slc)")
+        print("  tablas <reporte>         tablas que usa; con --fecha-corte X --verificar: ¿están al día?")
+        print("  solicitud-actualizacion <reporte> --fecha-corte X [--verificar]   mensaje para Producción")
         return 0
     if argv[0] == "probar-conexiones":
         from reportes.db import probar_conexiones
@@ -31,6 +35,14 @@ def main(argv: list[str]) -> int:
         for nombre, resultado in estado.items():
             print(f"  {nombre:<8} {resultado}")
         return 0 if all(v == "OK" for v in estado.values()) else 1
+    if argv[0] == "tablas":
+        from reportes.cli_tablas import cmd_tablas
+
+        return cmd_tablas(argv[1:])
+    if argv[0] == "solicitud-actualizacion":
+        from reportes.cli_tablas import cmd_solicitud
+
+        return cmd_solicitud(argv[1:])
     reporte = REPORTES.get(argv[0])
     if reporte is None:
         print(f"Reporte desconocido '{argv[0]}'. Usa: python main.py listar", file=sys.stderr)

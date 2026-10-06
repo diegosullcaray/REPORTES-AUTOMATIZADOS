@@ -23,5 +23,7 @@ El archivo histórico del que parte todo está en `docs/LEGADO/` (raíz del repo
 | Ver qué reportes existen y cuáles faltan | [Catálogo de reportes](./business/domain-catalog.md) |
 | Saber a qué base conecta cada cosa | [Contrato de conexiones](./data/contracts/conexiones-bd.md) |
 | Agregar un reporte | [Guía de nuevo reporte](./development/report-creation-guide.md) |
+| **Ejecutar un reporte / cierre de mes** | [Runbooks](./development/runbooks/README.md) |
+| **Saber qué tabla usa cada reporte** | [Inventario de tablas](./data/tables-inventory.md) |
 | Rastrear una cifra | [Linaje](./data/lineage.md) |
 | Ver el estado generado del código | [Inventario](./architecture/module-inventory.md) |

@@ -21,6 +21,7 @@ from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(RAIZ / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 LINEA_BASE = RAIZ / "governance" / "gobernanza.linea-base.json"
 FUENTES = [p for p in (RAIZ / "src").rglob("*.py") if "__pycache__" not in p.parts] + [RAIZ / "main.py"]
 SQLS = sorted((RAIZ / "sql").rglob("*.sql"))
@@ -143,6 +144,29 @@ def r_sql_huerfano():
             yield Hallazgo("sql-sin-reporte", "aviso", rel(p), "SQL no consumido por ningún módulo (pendiente de automatizar)")
 
 
+def r_tablas():
+    import extraer_tablas as ex
+    from reportes.tablas import TABLAS, USO
+
+    usadas = set().union(*ex.por_reporte().values())
+    for n in sorted(usadas - set(TABLAS)):
+        yield Hallazgo("tabla-sin-registrar", "error", "src/reportes/tablas.py", f"{n}: la usa el código/SQL pero no está registrada")
+    for reporte, nombres in USO.items():
+        for n in nombres:
+            if n not in TABLAS:
+                yield Hallazgo("tabla-sin-registrar", "error", "src/reportes/tablas.py", f"USO[{reporte}] cita '{n}' inexistente en TABLAS")
+    from reportes.registro import REPORTES
+
+    for r in REPORTES:
+        if r not in USO:
+            yield Hallazgo("tabla-sin-registrar", "error", "src/reportes/tablas.py", f"reporte '{r}' sin tablas en USO")
+    for t in TABLAS.values():
+        if t.tipo in {"historica", "stock"} and not t.col_fecha:
+            yield Hallazgo("tabla-sin-fecha", "aviso", "src/reportes/tablas.py", f"{t.nombre}: sin columna de fecha, no se puede verificar")
+        if t.confianza == "convencion":
+            yield Hallazgo("tabla-fecha-por-validar", "aviso", "src/reportes/tablas.py", f"{t.nombre}: columna {t.col_fecha} inferida por prefijo; validar con el DBA")
+
+
 REGLAS = {
     "secretos-en-codigo": (r_secretos, "Ninguna credencial literal en src/ ni sql/. Solo .env."),
     "conexion-solo-en-db": (r_conexion, "pyodbc/SQLAlchemy se abren únicamente en reportes/db.py."),
@@ -152,6 +176,7 @@ REGLAS = {
     "prueba-vecina": (r_prueba, "Cada módulo tiene tests/test_<modulo>.py."),
     "env-example-completo": (r_env, ".env.example declara las variables de las 3 conexiones."),
     "gitignore-protege-datos": (r_gitignore, ".gitignore excluye .env, salidas y cachés."),
+    "tabla-sin-registrar": (r_tablas, "Toda tabla que consulta el código está en reportes/tablas.py y todo reporte declara sus tablas."),
     "sql-sin-reporte": (r_sql_huerfano, "SQL huérfano: deuda de automatización visible."),
 }
 

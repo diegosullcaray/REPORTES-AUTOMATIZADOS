@@ -16,5 +16,6 @@ Sigues las skills `reportes-arquitectura-modulos`, `reportes-conexiones-bd` y `r
 - Conexiones solo con `reportes.db` y un alias; credenciales solo en `.env`.
 - SQL en `sql/`, parámetros enlazados; sin rutas `D:\\` (usa `config.DIR_SALIDAS`).
 - `main(argv) -> int`, registrado en `registro.py`.
+- Registra cada tabla que consultes en `src/reportes/tablas.py` (alias, tipo, columna de fecha) y en `USO`; escribe su runbook en `docs/development/runbooks/`.
 - Cuatro casos: error, vacío válido, abortar, éxito. Un error SQL nunca se presenta como vacío.
 - Al terminar: `python governance/scripts/generar_inventario.py` y `python governance/scripts/verificar.py`.

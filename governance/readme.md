@@ -32,8 +32,9 @@ Qué verifica cada compuerta y cómo se maneja la deuda heredada: [compuertas de
 | Script | Para qué |
 |---|---|
 | [`verificar.py`](./scripts/verificar.py) | cadena única de compuertas |
-| [`validar_gobernanza.py`](./scripts/validar_gobernanza.py) | motor de 9 reglas (secretos, conexiones, rutas, registro, nombres, pruebas…) con línea base |
-| [`generar_inventario.py`](./scripts/generar_inventario.py) | deriva del código el inventario de reportes, bases y SQL |
+| [`validar_gobernanza.py`](./scripts/validar_gobernanza.py) | motor de 10 reglas (secretos, conexiones, rutas, registro, nombres, pruebas…) con línea base |
+| [`generar_inventario.py`](./scripts/generar_inventario.py) | deriva del código el inventario de reportes/SQL **y el de tablas** |
+| [`extraer_tablas.py`](./scripts/extraer_tablas.py) | extrae las tablas que consulta cada SQL/módulo (base de la regla `tabla-sin-registrar`) |
 
 Manual: [`scripts/README.md`](./scripts/README.md).
 
@@ -45,6 +46,7 @@ Manual: [`scripts/README.md`](./scripts/README.md).
 | [`reportes-conexiones-bd`](./skills/reportes-conexiones-bd/SKILL.md) | las 3 bases: alias, `.env`, `db.py`; nunca conexiones propias |
 | [`reportes-sql`](./skills/reportes-sql/SKILL.md) | cómo se escribe, parametriza y versiona el SQL |
 | [`reportes-secretos-y-salidas`](./skills/reportes-secretos-y-salidas/SKILL.md) | credenciales, datos de clientes y carpeta `salidas/` |
+| [`reportes-ejecucion-y-cierre`](./skills/reportes-ejecucion-y-cierre/SKILL.md) | cómo ejecutar un reporte: verificar tablas, pedir actualización, ejecutar, validar |
 | [`reportes-testing`](./skills/reportes-testing/SKILL.md) | pytest sin tocar las bases reales |
 | [`reportes-migrar-legado`](./skills/reportes-migrar-legado/SKILL.md) | cómo pasar un reporte manual de `docs/LEGADO` a automatizado |
 
@@ -69,12 +71,12 @@ Detalle: [`agents/README.md`](./agents/README.md).
 
 | Área | Qué contiene |
 |---|---|
-| [`data/`](./docs/data/README.md) | **eje**: glosario, catálogo, contratos (las 3 BD), linaje, calidad, clasificación, responsabilidades |
+| [`data/`](./docs/data/README.md) | **eje**: glosario, catálogo, **inventario de tablas**, contratos (las 3 BD), linaje, calidad, clasificación, responsabilidades |
 | [`architecture/`](./docs/architecture/README.md) | capas, flujo de datos, inventario generado, ADR |
 | [`business/`](./docs/business/README.md) | catálogo de reportes, solicitantes, procedimientos manuales heredados, roadmap |
-| [`development/`](./docs/development/README.md) | setup, convenciones, cómo crear un reporte, pruebas y compuertas |
+| [`development/`](./docs/development/README.md) | setup, convenciones, cómo crear un reporte, **runbooks (ejecución y cierre de mes)**, pruebas y compuertas |
 | [`security/`](./docs/security/README.md) | amenazas, hallazgos (credenciales expuestas) y remediación |
 | [`templates/`](./docs/templates/README.md) | ficha de reporte, feature, PR, bug, ADR, evidencia |
 | [`evidence/`](./docs/evidence/README.md) | auditorías e incidentes |
 
-Entradas frecuentes: [índice general](./docs/README.md) · [onboarding](./docs/onboarding.md) · [contrato de conexiones](./docs/data/contracts/conexiones-bd.md) · [linaje](./docs/data/lineage.md) · [compuertas](./docs/development/quality-gates.md)
+Entradas frecuentes: [runbooks](./docs/development/runbooks/README.md) · [inventario de tablas](./docs/data/tables-inventory.md) · [índice general](./docs/README.md) · [onboarding](./docs/onboarding.md) · [contrato de conexiones](./docs/data/contracts/conexiones-bd.md) · [linaje](./docs/data/lineage.md) · [compuertas](./docs/development/quality-gates.md)

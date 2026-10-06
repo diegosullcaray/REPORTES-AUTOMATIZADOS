@@ -13,6 +13,7 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(RAIZ / "src"))
 SALIDA = RAIZ / "governance" / "docs" / "architecture" / "module-inventory.md"
+SALIDA_TABLAS = RAIZ / "governance" / "docs" / "data" / "tables-inventory.md"
 
 
 def generar() -> str:
@@ -38,19 +39,48 @@ def generar() -> str:
     return "\n".join(L) + "\n"
 
 
+def generar_tablas() -> str:
+    from reportes.registro import frecuencia_de
+    from reportes.tablas import TABLAS, USO, reportes_que_usan
+
+    L = ["# Inventario de tablas", "",
+         "> **Generado** desde `src/reportes/tablas.py` por `governance/scripts/generar_inventario.py`. No editar a mano; "
+         "para cambiar algo edita `tablas.py` y regenera.", "",
+         "Sirve para el cierre de mes: saber **qué tablas necesita cada reporte** y **a qué reportes afecta una tabla** "
+         "antes de pedir a Producción que la actualice. Proceso: [cierre de mes](../development/runbooks/proceso-cierre-de-mes.md).", "",
+         f"- Tablas registradas: **{len(TABLAS)}** · Reportes con tablas: **{len(USO)}**",
+         "- **Confianza** de la columna de fecha: `confirmada` (aparece en el SQL/código) · `convencion` (inferida por el prefijo H*/S* del core; "
+         "**validar con el DBA**) · `por_confirmar`.", "",
+         "## 1. Por reporte (¿qué debo tener actualizado?)", ""]
+    for rid in sorted(USO):
+        L += [f"### `{rid}` ({frecuencia_de(rid)})", "", "| Tabla | Conexión | Tipo | Columna de fecha | Confianza |", "|---|---|---|---|---|"]
+        for n in USO[rid]:
+            t = TABLAS[n]
+            L.append(f"| `{t.nombre}` | `{t.alias}` | {t.tipo} | {('`' + t.col_fecha + '`') if t.col_fecha else '—'} | {t.confianza} |")
+        L.append("")
+    L += ["## 2. Por tabla (si se actualiza esta, ¿a qué reportes afecta?)", "", "| Tabla | Conexión | Tipo | Reportes |", "|---|---|---|---|"]
+    for n in sorted(TABLAS):
+        t = TABLAS[n]
+        usos = reportes_que_usan(n)
+        L.append(f"| `{n}` | `{t.alias}` | {t.tipo} | {', '.join(f'`{u}`' for u in usos) if usos else '— (solo SQL legado)'} |")
+    return "\n".join(L) + "\n"
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--check", action="store_true")
     a = ap.parse_args(argv)
-    nuevo = generar()
+    pares = [(SALIDA, generar()), (SALIDA_TABLAS, generar_tablas())]
     if a.check:
-        if not SALIDA.exists() or SALIDA.read_text(encoding="utf-8") != nuevo:
-            print("module-inventory.md desactualizado: ejecuta generar_inventario.py")
+        viejos = [d.name for d, nuevo in pares if not d.exists() or d.read_text(encoding="utf-8") != nuevo]
+        if viejos:
+            print(f"Desactualizado: {', '.join(viejos)}. Ejecuta generar_inventario.py")
             return 1
         return 0
-    SALIDA.parent.mkdir(parents=True, exist_ok=True)
-    SALIDA.write_text(nuevo, encoding="utf-8")
-    print(f"Escrito {SALIDA.relative_to(RAIZ)}")
+    for destino, nuevo in pares:
+        destino.parent.mkdir(parents=True, exist_ok=True)
+        destino.write_text(nuevo, encoding="utf-8")
+        print(f"Escrito {destino.relative_to(RAIZ)}")
     return 0
 
 

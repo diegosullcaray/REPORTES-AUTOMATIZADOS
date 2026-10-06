@@ -29,7 +29,7 @@
 | `sql/diarias/cmg_mora/p002_02_provisiones.sql` | pendiente de automatizar |
 | `sql/diarias/cmg_mora/p002_03_inserts.sql` | pendiente de automatizar |
 | `sql/diarias/cmg_mora/p002_castigos.sql` | pendiente de automatizar |
-| `sql/mensuales/clientes_jovenes/jovenes.sql` | pendiente de automatizar |
+| `sql/mensuales/clientes_jovenes/jovenes.sql` | consumido por código |
 | `sql/mensuales/desembolsos_por_canal/desembolsos_canal.sql` | pendiente de automatizar |
 | `sql/mensuales/finanzas_bancarizados/bancarizados.sql` | consumido por código |
 | `sql/mensuales/finanzas_extranjeros/clientes_extranjeros_tipodoc.sql` | pendiente de automatizar |
@@ -37,8 +37,8 @@
 | `sql/mensuales/finanzas_info_general/creditosql.sql` | consumido por código |
 | `sql/mensuales/finanzas_info_general/pasivos.sql` | consumido por código |
 | `sql/mensuales/finanzas_info_general/seguros.sql` | consumido por código |
-| `sql/mensuales/fondeo_estable/fondeo_estable.sql` | pendiente de automatizar |
-| `sql/mensuales/heredados_pdm/heredados_pdm.sql` | pendiente de automatizar |
+| `sql/mensuales/fondeo_estable/fondeo_estable.sql` | consumido por código |
+| `sql/mensuales/heredados_pdm/heredados_pdm.sql` | consumido por código |
 | `sql/mensuales/productos_verdes/info_prod_verdes_slc.sql` | pendiente de automatizar |
 | `sql/mensuales/ratio_ce_nuevos_migrantes/clientes_rurales_migrantes.sql` | pendiente de automatizar |
 | `sql/mensuales/ratio_ce_nuevos_migrantes/contratacion_electronica.sql` | pendiente de automatizar |
@@ -48,13 +48,16 @@
 | `sql/mensuales/reportes_giovanni/saldo_medio_puntual_captaciones.sql` | pendiente de automatizar |
 | `sql/mensuales/reportes_giovanni/seguros_original.sql` | pendiente de automatizar |
 | `sql/mensuales/reportes_giovanni/seguros_remasterizado.sql` | pendiente de automatizar |
-| `sql/mensuales/saca_tu_garra/saca_tu_garra.sql` | pendiente de automatizar |
-| `sql/mensuales/saldo_medio_vigente/saldo_medio_vigente.sql` | pendiente de automatizar |
+| `sql/mensuales/saca_tu_garra/saca_tu_garra.sql` | consumido por código |
+| `sql/mensuales/saldo_medio_vigente/saldo_medio_vigente.sql` | consumido por código |
 | `sql/mensuales/tapp_saldo_medio_territorio/tapp_stock_tppmes_salmediovigente_territorio.sql` | pendiente de automatizar |
 
-## Pruebas (4 archivos)
+## Pruebas (7 archivos)
 
+- `tests/test_cli_tablas.py`
 - `tests/test_config.py`
 - `tests/test_db.py`
 - `tests/test_registro.py`
+- `tests/test_tablas.py`
 - `tests/test_validar_gobernanza.py`
+- `tests/test_verificacion.py`
