@@ -5,7 +5,7 @@
 3. `db.leer_sql(alias, sql, params)` consulta (hilos opcionales entre bloques independientes).
 4. Validación: vacío ≠ error, fuente al corte, variables críticas.
 5. Transformación en pandas (normalizar llaves, agrupar productos).
-6. Exportación a `salidas/<reporte>/`.
+6. Exportación a `data/outputs/<reporte>/`.
 7. Entrega manual (correo) o carga (CMG Mora → `SBTVRIE001`).
 
 Ver [linaje](../data/lineage.md).

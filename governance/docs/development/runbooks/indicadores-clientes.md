@@ -1,6 +1,6 @@
 # Runbook: `indicadores-clientes` (mensual, Directorio)
 
-**Conexión**: `slc`. **Salida**: `salidas/indicadores_clientes/IndicadoresClientes_<AAAAMM>.xlsx` (`resumen`, `detalle`).
+**Conexión**: `slc`. **Salida**: `data/outputs/indicadores_clientes/IndicadoresClientes_<AAAAMM>.xlsx` (`resumen`, `detalle`).
 
 ## Antes
 ```bash

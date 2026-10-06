@@ -6,7 +6,7 @@ import argparse
 from datetime import date, datetime
 from pathlib import Path
 
-from .config import DIR_SALIDAS, ConfiguracionError
+from .config import DIR_OUTPUTS, ConfiguracionError
 from .registro import frecuencia_de
 from .tablas import USO, tablas_de
 from .verificacion import Estado, fecha_esperada, mensaje_solicitud, nombre_resuelto, verificar_reporte
@@ -73,7 +73,7 @@ def cmd_solicitud(argv: list[str]) -> int:
         print(exc.args[0] if exc.args else exc)
         return 2
     texto = mensaje_solicitud(a.reporte, fecha, resultados)
-    destino = Path(DIR_SALIDAS) / "solicitudes"
+    destino = Path(DIR_OUTPUTS) / "solicitudes"
     destino.mkdir(parents=True, exist_ok=True)
     archivo = destino / f"solicitud_{a.reporte}_{fecha:%Y%m%d}.txt"
     archivo.write_text(texto + "\n", encoding="utf-8")

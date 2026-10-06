@@ -1,11 +1,16 @@
 env/
 .venv/
-data/
 .env
 __pycache__/
 *.pyc
-*.xlsx
-salidas/*
-*.pkl
-!salidas/.gitkeep
 .pytest_cache/
+*.xlsx
+*.pkl
+# data/: entradas y salidas locales; se versiona solo la estructura
+data/*
+!data/inputs/
+!data/outputs/
+data/inputs/*
+data/outputs/*
+!data/inputs/.gitkeep
+!data/outputs/.gitkeep

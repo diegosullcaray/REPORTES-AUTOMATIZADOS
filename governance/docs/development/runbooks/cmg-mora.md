@@ -1,6 +1,6 @@
 # Runbook: `cmg-mora` (diario)
 
-**Conexión**: `dw_raw` (escritura en `DW_Raw_v2.dbo.CMGMora_Recaudo`). **Salida**: `salidas/cmg_mora/inserts_<AAAA-MM-DD>.txt` (INSERTs para `[storage].[com_act].[SBTVRIE001]`).
+**Conexión**: `dw_raw` (escritura en `DW_Raw_v2.dbo.CMGMora_Recaudo`). **Salida**: `data/outputs/cmg_mora/inserts_<AAAA-MM-DD>.txt` (INSERTs para `[storage].[com_act].[SBTVRIE001]`).
 
 ## Antes
 ```bash

@@ -6,7 +6,7 @@ Escenario típico: es cierre de mes, ejecutas `python main.py tablas <reporte> -
 ```bash
 python main.py solicitud-actualizacion <reporte> --fecha-corte <corte> --verificar
 ```
-El mensaje lista **solo** las tablas con problema, con su conexión, columna de fecha y última fecha cargada. Se guarda en `salidas/solicitudes/`.
+El mensaje lista **solo** las tablas con problema, con su conexión, columna de fecha y última fecha cargada. Se guarda en `data/outputs/solicitudes/`.
 
 Para varias tablas o reportes a la vez, repite por reporte y junta los mensajes, o consulta el [inventario por tabla](../../data/tables-inventory.md) (sección 2) para ver **qué otros reportes** dependen de la tabla que vas a pedir: así una sola solicitud destraba varios reportes.
 

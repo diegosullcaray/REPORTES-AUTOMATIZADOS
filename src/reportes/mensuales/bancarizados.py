@@ -30,7 +30,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from ..config import DIR_SALIDAS, ConfiguracionError
+from ..config import DIR_OUTPUTS, ConfiguracionError
 from ..db import leer_sql as _leer_sql
 
 # =============================================================================
@@ -41,7 +41,7 @@ EMPRESA = "FINANCIERA CONFIANZA"
 SERVIDOR_RCC = "rcc"  # DBRCC
 SERVIDOR_SLC = "slc"  # slc (+ INTCOM, DWH, csd)
 
-DIR_SALIDA_DEFECTO = DIR_SALIDAS / "bancarizados"
+DIR_SALIDA_DEFECTO = DIR_OUTPUTS / "bancarizados"
 LLAVE = ["TIPO_DOC", "NUM_DOC"]
 REPORTES = ("exclusivos_total", "productos_total", "productos_nuevos", "territorio")
 
@@ -348,7 +348,7 @@ def parsear_argumentos(argv: list[str] | None = None) -> argparse.Namespace:
         description="Clientes exclusivos (bancarizados) por corte mensual.",
     )
     parser.add_argument("--fecha-corte", type=fecha_iso, required=True, help="Fin de mes, AAAA-MM-DD")
-    parser.add_argument("--salida", type=Path, default=DIR_SALIDA_DEFECTO, help="Carpeta de salida (defecto: salidas)")
+    parser.add_argument("--salida", type=Path, default=DIR_SALIDA_DEFECTO, help="Carpeta de salida (defecto: data/outputs/<reporte>)")
     parser.add_argument("--sin-cache", action="store_true", help="Fuerza re-extraer desde los servidores")
     parser.add_argument("--copiar", choices=REPORTES, help="Copia un reporte al portapapeles (sin encabezados)")
     parser.add_argument("-v", "--verbose", action="store_true", help="Log detallado")

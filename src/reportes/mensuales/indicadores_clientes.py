@@ -33,7 +33,7 @@ from pathlib import Path
 import pandas as pd
 from openpyxl.utils import get_column_letter
 
-from ..config import DIR_SALIDAS
+from ..config import DIR_OUTPUTS
 from ..db import leer_sql
 
 # =============================================================================
@@ -44,7 +44,7 @@ from ..db import leer_sql
 SERVIDOR_INTCOM = "slc"  # INTCOM y DWH (3 partes) vía la conexión slc
 SERVIDOR_213 = "slc"  # csd.dbo.Clientes_DS
 
-DIR_SALIDA_DEFECTO = DIR_SALIDAS / "indicadores_clientes"
+DIR_SALIDA_DEFECTO = DIR_OUTPUTS / "indicadores_clientes"
 HILOS_DEFECTO = 4  # Consultas simultáneas contra el servidor
 ORDEN_INDICADORES = ["TOTAL", "GENERO", "RURALIDAD", "EDAD", "BANCARIZACION"]
 COLUMNAS_SQL = ["FECHA", "INDICADOR", "CATEGORIA", "CLIENTES"]
@@ -508,7 +508,7 @@ def parsear_argumentos(argv: list[str] | None = None) -> argparse.Namespace:
                         help="Cambia el desfase de un reporte (defecto: nuevos=1, seguros=1)")
     parser.add_argument("--hilos", type=int, default=HILOS_DEFECTO,
                         help=f"Consultas simultáneas (defecto: {HILOS_DEFECTO})")
-    parser.add_argument("--salida", type=Path, default=DIR_SALIDA_DEFECTO, help="Carpeta de salida (defecto: salidas)")
+    parser.add_argument("--salida", type=Path, default=DIR_SALIDA_DEFECTO, help="Carpeta de salida (defecto: data/outputs/<reporte>)")
     parser.add_argument("--copiar", choices=["resumen", "detalle"],
                         help="Copia una hoja al portapapeles (sin encabezados)")
     parser.add_argument("-v", "--verbose", action="store_true", help="Log detallado")

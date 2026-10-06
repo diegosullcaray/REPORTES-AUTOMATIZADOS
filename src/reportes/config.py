@@ -13,11 +13,11 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 RAIZ = Path(__file__).resolve().parents[2]
+load_dotenv(RAIZ / ".env")  # antes de leer REPORTES_DIR_*
 DIR_SQL = RAIZ / "sql"
-DIR_PLANTILLAS = RAIZ / "plantillas"
-DIR_SALIDAS = Path(os.getenv("REPORTES_DIR_SALIDAS", RAIZ / "salidas"))
-
-load_dotenv(RAIZ / ".env")
+# data/ no se versiona: inputs = archivos que entran (Excel, CSV, plantillas base); outputs = lo que generan los reportes
+DIR_INPUTS = Path(os.getenv("REPORTES_DIR_INPUTS", RAIZ / "data" / "inputs"))
+DIR_OUTPUTS = Path(os.getenv("REPORTES_DIR_OUTPUTS", RAIZ / "data" / "outputs"))
 
 DRIVER_ODBC = os.getenv("DB_ODBC_DRIVER", "ODBC Driver 17 for SQL Server")
 

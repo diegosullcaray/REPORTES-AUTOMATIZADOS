@@ -32,7 +32,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from ..config import DIR_SALIDAS, ConfiguracionError
+from ..config import DIR_OUTPUTS, ConfiguracionError
 from ..db import leer_sql
 
 # =============================================================================
@@ -42,7 +42,7 @@ SERVIDOR_SLC = "slc"  # slc (+ INTCOM, DWH, csd)
 SERVIDOR_RCC = "rcc"  # DBRCC
 LINKED_SERVER_RCC = "rcc_cd"
 
-DIR_SALIDA_DEFECTO = DIR_SALIDAS / "clientes_extranjeros"
+DIR_SALIDA_DEFECTO = DIR_OUTPUTS / "clientes_extranjeros"
 COLUMNAS = ["CIERRE", "TIPO", "COD_PAIS", "NACIONALIDAD", "CLIENTES"]
 HOJAS = ("consolidado", "creditos", "pasivos", "seguros")
 
@@ -286,7 +286,7 @@ def parsear_argumentos(argv: list[str] | None = None) -> argparse.Namespace:
         action="store_true",
         help="Consulta Pasivos directo en el servidor RCC en vez de vía linked server",
     )
-    parser.add_argument("--salida", type=Path, default=DIR_SALIDA_DEFECTO, help="Carpeta de salida (defecto: salidas)")
+    parser.add_argument("--salida", type=Path, default=DIR_SALIDA_DEFECTO, help="Carpeta de salida (defecto: data/outputs/<reporte>)")
     parser.add_argument("--copiar", choices=HOJAS, help="Copia una hoja al portapapeles (sin encabezados)")
     parser.add_argument("-v", "--verbose", action="store_true", help="Log detallado")
     return parser.parse_args(argv)

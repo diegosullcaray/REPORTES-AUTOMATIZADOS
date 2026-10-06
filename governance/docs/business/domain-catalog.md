@@ -17,4 +17,4 @@ Ver [inventario generado](../architecture/module-inventory.md).
 | `reporte_michael_palacios` | Piero 09 | Michael / Riesgos / Manuel / Giovanni | Castigos puede ir vacío |
 | `clientes_jovenes`, `productos_verdes` | Erick | Manuel Siccha | — |
 | `finanzas_*` | Erick | Finanzas | SQL base de reportes ya automatizados |
-| `sql/diarias/cartera_sin_asignar` | Diarias 02 | — | Plantilla en `plantillas/diarias/` |
+| `sql/diarias/cartera_sin_asignar` | Diarias 02 | — | Excel base en `data/inputs/cartera_sin_asignar_base.xlsm` |

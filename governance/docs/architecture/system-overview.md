@@ -13,8 +13,8 @@ src/reportes/
   diarios/<reporte>.py          reportes diarios
   mensuales/<reporte>.py        reportes mensuales
 sql/<frecuencia>/<reporte>/     SQL versionado
-plantillas/                     formatos Excel base
-salidas/                        resultados (no versionado)
+data/inputs/                    archivos que entran (Excel/CSV, formatos base) — no versionado
+data/outputs/                   resultados que generan los reportes — no versionado
 tests/                          pytest
 governance/                     este marco
 docs/LEGADO/                    archivo histórico, solo lectura

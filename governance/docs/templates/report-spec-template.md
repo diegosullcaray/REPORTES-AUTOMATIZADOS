@@ -9,7 +9,7 @@
 - **SQL** (`sql/…`) y parámetros:
 - **Reglas de negocio / validaciones críticas** (cuándo abortar):
 - **Vacío válido**: sí/no — **Error**: cómo se informa
-- **Salida** (`salidas/<reporte>/…`) y formato / plantilla:
+- **Salida** (`data/outputs/<reporte>/…`) y formato / plantilla:
 - **Entrega** (correo, carga a tabla):
 - **Procedimiento manual de origen** (`docs/LEGADO/…`):
 - **Clasificación del dato**:

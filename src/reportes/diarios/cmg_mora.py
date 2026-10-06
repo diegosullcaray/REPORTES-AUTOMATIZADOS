@@ -6,7 +6,7 @@ import datetime
 from datetime import timedelta
 import os
 
-from ..config import DIR_SALIDAS
+from ..config import DIR_OUTPUTS
 from ..db import conexion_pyodbc
 
 def generar_inserts_sql():
@@ -29,7 +29,7 @@ def generar_inserts_sql():
     fec_tabla = fecha_ejec.strftime('%Y%m%d') # Para buscar PROV_PROY_YYYYMMDD_0
     
     # Ruta de salida
-    ruta_salida = DIR_SALIDAS / 'cmg_mora'
+    ruta_salida = DIR_OUTPUTS / 'cmg_mora'
     os.makedirs(ruta_salida, exist_ok=True)
     
     try:

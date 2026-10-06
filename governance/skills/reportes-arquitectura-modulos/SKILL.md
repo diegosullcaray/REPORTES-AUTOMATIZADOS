@@ -14,7 +14,8 @@ src/reportes/
   diarios/<reporte>.py
   mensuales/<reporte>.py
 sql/<diarias|mensuales>/<reporte>/<nombre>.sql
-plantillas/<frecuencia>/<reporte>_base.xlsx|xlsm
+data/inputs/<reporte>/         archivos que entran (Excel/CSV, formatos base); no versionado
+data/outputs/<reporte>/        archivos que generan los reportes; no versionado
 tests/test_<modulo>.py
 ```
 
@@ -22,5 +23,5 @@ tests/test_<modulo>.py
 1. Un reporte = un módulo con `main(argv) -> int` registrado en `registro.py`.
 2. Los reportes no se importan entre sí; lo compartido sube a `comun/`.
 3. Nombres `snake_case`, sin espacios ni tildes.
-4. Salidas en `config.DIR_SALIDAS / "<reporte>"`.
+4. Entradas en `config.DIR_INPUTS / "<reporte>"`; salidas en `config.DIR_OUTPUTS / "<reporte>"`.
 5. Al agregar un reporte: `generar_inventario.py` y `verificar.py`.

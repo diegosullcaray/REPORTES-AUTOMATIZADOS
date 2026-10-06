@@ -12,7 +12,7 @@ def test_reporte_desconocido_devuelve_2():
 
 
 def test_solicitud_sin_verificar_lista_tablas_con_fecha(tmp_path, monkeypatch, capsys):
-    monkeypatch.setattr(cli_tablas, "DIR_SALIDAS", tmp_path)
+    monkeypatch.setattr(cli_tablas, "DIR_OUTPUTS", tmp_path)
     assert cli_tablas.cmd_solicitud(["saldo_medio_vigente", "--fecha-corte", "2026-10-31"]) == 0
     assert "31/10/2026" in capsys.readouterr().out
     assert (tmp_path / "solicitudes" / "solicitud_saldo_medio_vigente_20261031.txt").exists()

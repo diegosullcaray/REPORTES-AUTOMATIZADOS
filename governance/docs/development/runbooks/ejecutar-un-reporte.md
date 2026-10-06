@@ -29,7 +29,7 @@ Estados: `OK` · `DESACTUALIZADA` (la última fecha cargada es anterior al corte
 ```bash
 python main.py solicitud-actualizacion <reporte> --fecha-corte <corte> --verificar
 ```
-Imprime el mensaje listo para enviar a quien actualiza en Producción (también queda en `salidas/solicitudes/`). Detalle: [solicitud de actualización](./solicitud-actualizacion-tablas.md). Cuando confirmen, vuelve al paso 2.
+Imprime el mensaje listo para enviar a quien actualiza en Producción (también queda en `data/outputs/solicitudes/`). Detalle: [solicitud de actualización](./solicitud-actualizacion-tablas.md). Cuando confirmen, vuelve al paso 2.
 
 ## 4. Ejecuta
 ```bash
@@ -38,12 +38,12 @@ python main.py <reporte> <argumentos del reporte>     # ver la guía de cada rep
 
 ## 5. Valida antes de entregar
 - ¿El log mostró errores o avisos? Un aviso de «sin datos» **no** es un resultado válido salvo que el reporte lo permita (Castigos vacío sí; Captaciones vacío no).
-- Conteo de filas y fecha de corte del archivo de `salidas/<reporte>/` coinciden con lo esperado.
+- Conteo de filas y fecha de corte del archivo de `data/outputs/<reporte>/` coinciden con lo esperado.
 - Compara 1–2 cifras con el mes/día anterior (orden de magnitud).
 - Reglas propias del reporte: ver su guía y el [contrato de reportes](../../data/contracts/reporting-contracts.md).
 
 ## 6. Entrega
-Según el [catálogo](../../business/domain-catalog.md): destinatarios, formato y texto del correo. Los archivos de `salidas/` contienen datos de clientes: solo a los destinatarios autorizados.
+Según el [catálogo](../../business/domain-catalog.md): destinatarios, formato y texto del correo. Los archivos de `data/outputs/` contienen datos de clientes: solo a los destinatarios autorizados.
 
 ## 7. Registro
 Anota en la bitácora del equipo: reporte, corte, hora, tablas que estuvieron desactualizadas y a quién se pidió. Si algo falló, usa la [plantilla de bug](../../templates/bug-report.md) y [incidentes](../../evidence/quality/incidents.md).

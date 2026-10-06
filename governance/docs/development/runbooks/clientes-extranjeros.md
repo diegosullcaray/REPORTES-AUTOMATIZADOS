@@ -1,6 +1,6 @@
 # Runbook: `clientes-extranjeros` (mensual)
 
-**Conexiones**: `slc` (créditos, seguros y, por defecto, pasivos vía linked server `rcc_cd`); `rcc` solo con `--pasivos-directo`. **Salida**: `salidas/clientes_extranjeros/ClientesExtranjeros_<AAAAMMDD>.xlsx` (`consolidado`, `creditos`, `pasivos`, `seguros`).
+**Conexiones**: `slc` (créditos, seguros y, por defecto, pasivos vía linked server `rcc_cd`); `rcc` solo con `--pasivos-directo`. **Salida**: `data/outputs/clientes_extranjeros/ClientesExtranjeros_<AAAAMMDD>.xlsx` (`consolidado`, `creditos`, `pasivos`, `seguros`).
 
 ## Antes
 ```bash

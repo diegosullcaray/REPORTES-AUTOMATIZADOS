@@ -1,6 +1,6 @@
 # Runbook: `bancarizados-producto` (mensual)
 
-**Conexión**: `slc`. **Salida**: `salidas/bancarizados_producto/BancarizadosProducto_<sufijo>.xlsx` (`resumen`, `comparativo`, `clientes`, `multiproducto`).
+**Conexión**: `slc`. **Salida**: `data/outputs/bancarizados_producto/BancarizadosProducto_<sufijo>.xlsx` (`resumen`, `comparativo`, `clientes`, `multiproducto`).
 
 ## Antes
 ```bash

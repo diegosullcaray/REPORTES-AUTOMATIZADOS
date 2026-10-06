@@ -32,7 +32,7 @@ from pathlib import Path
 import pandas as pd
 from openpyxl.utils import get_column_letter
 
-from ..config import DIR_SALIDAS
+from ..config import DIR_OUTPUTS
 from ..db import leer_ultimo_resultado as _leer_ultimo
 
 # =============================================================================
@@ -47,7 +47,7 @@ AGRUPACION_PRODUCTOS = {
 }
 SIN_PRODUCTO = "SIN PRODUCTO"
 
-DIR_SALIDA_DEFECTO = DIR_SALIDAS / "bancarizados_producto"
+DIR_SALIDA_DEFECTO = DIR_OUTPUTS / "bancarizados_producto"
 MAX_HILOS = 4
 
 log = logging.getLogger("bancarizados_producto")
@@ -320,7 +320,7 @@ def tipo_mes(valor: str) -> Mes:
 def parsear_argumentos(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Bancarizados por producto (clientes nuevos con desembolso).")
     parser.add_argument("--mes", type=tipo_mes, nargs="+", required=True, help="Uno o más meses, AAAA-MM")
-    parser.add_argument("--salida", type=Path, default=DIR_SALIDA_DEFECTO, help="Carpeta de salida (defecto: salidas)")
+    parser.add_argument("--salida", type=Path, default=DIR_SALIDA_DEFECTO, help="Carpeta de salida (defecto: data/outputs/<reporte>)")
     parser.add_argument("--copiar", action="store_true",
                         help="Copia CATEGORIA y BANCARIZADOS del primer mes al portapapeles, como el SQL original")
     parser.add_argument("-v", "--verbose", action="store_true", help="Log detallado")

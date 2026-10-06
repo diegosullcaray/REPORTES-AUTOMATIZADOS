@@ -132,7 +132,7 @@ def r_env():
 
 def r_gitignore():
     g = (RAIZ / ".gitignore").read_text(encoding="utf-8").splitlines()
-    for req in (".env", "salidas/*", "*.pkl"):
+    for req in (".env", "data/*", "*.pkl"):
         if req not in g:
             yield Hallazgo("gitignore-protege-datos", "error", ".gitignore", f"falta '{req}'")
 
@@ -170,12 +170,12 @@ def r_tablas():
 REGLAS = {
     "secretos-en-codigo": (r_secretos, "Ninguna credencial literal en src/ ni sql/. Solo .env."),
     "conexion-solo-en-db": (r_conexion, "pyodbc/SQLAlchemy se abren únicamente en reportes/db.py."),
-    "rutas-absolutas": (r_rutas, "Sin rutas D:\\... fijas; usar config.DIR_SALIDAS."),
+    "rutas-absolutas": (r_rutas, "Sin rutas D:\\... fijas; usar config.DIR_OUTPUTS."),
     "registro-sincronizado": (r_registro, "Todo reporte registrado existe, expone main() y usa alias de BD válidos."),
     "nombres-canonicos": (r_nombres, "Archivos y carpetas en snake_case, sin espacios ni tildes."),
     "prueba-vecina": (r_prueba, "Cada módulo tiene tests/test_<modulo>.py."),
     "env-example-completo": (r_env, ".env.example declara las variables de las 3 conexiones."),
-    "gitignore-protege-datos": (r_gitignore, ".gitignore excluye .env, salidas y cachés."),
+    "gitignore-protege-datos": (r_gitignore, ".gitignore excluye .env, data/ (inputs y outputs) y cachés."),
     "tabla-sin-registrar": (r_tablas, "Toda tabla que consulta el código está en reportes/tablas.py y todo reporte declara sus tablas."),
     "sql-sin-reporte": (r_sql_huerfano, "SQL huérfano: deuda de automatización visible."),
 }
