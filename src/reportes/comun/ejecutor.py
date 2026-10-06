@@ -17,18 +17,16 @@ from __future__ import annotations
 
 import argparse
 import logging
-import re
 from dataclasses import dataclass, field
-from datetime import date, datetime
 from pathlib import Path
 
 import pandas as pd
 
 from ..config import DIR_OUTPUTS, ConfiguracionError
 from ..db import ejecutar_lote
-from ..tablas import tablas_de
 from ..verificacion import Estado, Resultado, mensaje_solicitud, nombre_resuelto, verificar_reporte
-from .fechas import Cortes, fecha_iso, resolver_corte
+from .excel import Resumen, guardar_libro
+from .fechas import Cortes, fecha_iso, nombre_de_archivo, resolver_corte
 
 log = logging.getLogger("reportes")
 
@@ -53,7 +51,9 @@ class ReporteLote:
     sql: str                          # T-SQL (puede traer GO) con tokens @@F@@, @@F_ISO@@, @@F_ANT@@…
     base: str | None = None           # base de datos de ESTE reporte (catálogo inicial); None = la de su USE / nombres de 3 partes
     hojas: tuple[Hoja, ...] = ()
-    archivo: str = ""                 # prefijo del Excel (defecto: comando en CamelCase)
+    archivo: str = ""                 # nombre del Excel con tokens de fecha ({AAAAMMDD}, {MES}, {mes3}, {AA}…); defecto: Comando_{AAAAMMDD}
+    resumenes: tuple[Resumen, ...] = ()  # hojas de resumen jerárquico calculadas a partir de un resultado (p. ej. RESUMEN_v2)
+    libro_compartido: bool = False    # varios comandos alimentan el mismo archivo (cada uno reemplaza solo sus hojas)
     vacio_valido: bool = False        # True si un resultado totalmente vacío es legítimo (p. ej. Castigos sin castigos en el mes)
     escribe_en_bd: bool = False       # True si el lote crea/borra tablas permanentes: exige --confirmar-escritura
     avisos: tuple[str, ...] = field(default_factory=tuple)  # notas que se muestran antes de ejecutar
@@ -63,18 +63,13 @@ class ErrorDatos(RuntimeError):
     """Resultado inválido (todo vacío, fecha fuera de corte…): nunca se presenta como vacío válido."""
 
 
-def _nombre_archivo(r: ReporteLote) -> str:
-    return r.archivo or "".join(p.capitalize() for p in r.comando.split("-"))
+def nombre_archivo(r: ReporteLote, cortes: Cortes) -> str:
+    patron = r.archivo or ("".join(p.capitalize() for p in r.comando.split("-")) + "_{AAAAMMDD}")
+    return nombre_de_archivo(patron, cortes.corte) + ".xlsx"
 
 
-def _limpiar_nombre_hoja(nombre: str, usados: set[str]) -> str:
-    base = re.sub(r"[\[\]\*\?/\\:]", "_", nombre)[:31] or "Hoja"
-    cand, n = base, 2
-    while cand in usados:
-        cand = f"{base[:28]}_{n}"
-        n += 1
-    usados.add(cand)
-    return cand
+def _nombre_hoja(r: ReporteLote, i: int) -> str:
+    return r.hojas[i].nombre if i < len(r.hojas) else ("Datos" if i == 0 else f"Datos_{i + 1}")
 
 
 def validar_resultados(r: ReporteLote, resultados: list[pd.DataFrame], cortes: Cortes) -> list[str]:
@@ -88,7 +83,7 @@ def validar_resultados(r: ReporteLote, resultados: list[pd.DataFrame], cortes: C
             f"{cortes.corte:%Y-%m-%d}. Ejecuta `python main.py tablas {r.comando} --fecha-corte {cortes.corte:%Y-%m-%d} --verificar`."
         )
     for i, df in enumerate(resultados):
-        hoja = r.hojas[i] if i < len(r.hojas) else Hoja(f"Resultado_{i + 1}")
+        hoja = r.hojas[i] if i < len(r.hojas) else Hoja(_nombre_hoja(r, i))
         if df.empty and not hoja.permite_vacio and not r.vacio_valido:
             avisos.append(f"Hoja «{hoja.nombre}» vacía (revisar si es esperado).")
         if hoja.columna_fecha and not df.empty:
@@ -104,27 +99,11 @@ def validar_resultados(r: ReporteLote, resultados: list[pd.DataFrame], cortes: C
     return avisos
 
 
-def exportar_excel(r: ReporteLote, resultados: list[pd.DataFrame], cortes: Cortes, verificacion: list[Resultado],
-                   avisos: list[str], carpeta: Path) -> Path:
-    carpeta.mkdir(parents=True, exist_ok=True)
-    ruta = carpeta / f"{_nombre_archivo(r)}_{cortes.corte:%Y%m%d}.xlsx"
-    usados: set[str] = set()
-    with pd.ExcelWriter(ruta, engine="openpyxl") as xl:
-        for i, df in enumerate(resultados):
-            hoja = r.hojas[i] if i < len(r.hojas) else Hoja(f"Resultado_{i + 1}")
-            df.to_excel(xl, sheet_name=_limpiar_nombre_hoja(hoja.nombre, usados), index=False)
-        control = [("Reporte", r.comando), ("Corte", f"{cortes.corte:%Y-%m-%d}"),
-                   ("Generado", f"{datetime.now():%Y-%m-%d %H:%M}"), ("Servidor", r.servidor), ("Base de datos", r.base or "(la del USE / 3 partes)")]
-        control += [(f"Filas · {(r.hojas[i].nombre if i < len(r.hojas) else f'Resultado_{i + 1}')}", len(df)) for i, df in enumerate(resultados)]
-        control += [(f"Tabla · {nombre_resuelto(v.tabla, cortes.corte)}", f"{v.estado.value}" + (f" ({v.ultima_fecha:%Y-%m-%d})" if v.ultima_fecha else ""))
-                    for v in verificacion]
-        control += [("Aviso", a) for a in avisos]
-        pd.DataFrame(control, columns=["Concepto", "Valor"]).to_excel(xl, sheet_name=_limpiar_nombre_hoja("Control", usados), index=False)
-        for ws in xl.book.worksheets:
-            for col in ws.columns:
-                ancho = max((len(str(c.value)) for c in col[:200] if c.value is not None), default=8)
-                ws.column_dimensions[col[0].column_letter].width = min(max(10, ancho + 2), 60)
-    return ruta
+def exportar_excel(r: ReporteLote, resultados: list[pd.DataFrame], cortes: Cortes, carpeta: Path) -> Path:
+    """Excel con el formato del legado: una hoja (tabla) por resultado + los resúmenes; sin hoja de control."""
+    hojas = [(_nombre_hoja(r, i), df) for i, df in enumerate(resultados)]
+    resumenes = [(rs, resultados[rs.origen]) for rs in r.resumenes if rs.origen < len(resultados)]
+    return guardar_libro(carpeta / nombre_archivo(r, cortes), hojas, resumenes, compartido=r.libro_compartido)
 
 
 def _parser(r: ReporteLote) -> argparse.ArgumentParser:
@@ -136,7 +115,7 @@ def _parser(r: ReporteLote) -> argparse.ArgumentParser:
     )
     p.add_argument("--salida", type=Path, default=None, help="Carpeta de salida (defecto: data/outputs/<reporte>)")
     p.add_argument("--sin-verificar", action="store_true", help="No validar tablas antes de ejecutar (no recomendado)")
-    p.add_argument("--forzar", action="store_true", help="Ejecutar aunque haya tablas desactualizadas (queda anotado en la hoja Control)")
+    p.add_argument("--forzar", action="store_true", help="Ejecutar aunque haya tablas desactualizadas (se avisa en pantalla)")
     p.add_argument("--confirmar-escritura", action="store_true", help="Requerido si el reporte crea/borra tablas permanentes")
     p.add_argument("--solo-verificar", action="store_true", help="Solo validar tablas y generar la solicitud; no ejecuta el reporte")
     p.add_argument("-v", "--verbose", action="store_true")
@@ -208,12 +187,12 @@ def correr(r: ReporteLote, argv: list[str] | None = None) -> int:
         # ---- 4. validación de datos
         avisos = validar_resultados(r, resultados, cortes)
         if a.forzar and verificacion:
-            avisos.append("Ejecutado con --forzar: había tablas desactualizadas.")
+            avisos.append("Ejecutado con --forzar: había tablas desactualizadas; revisa el resultado antes de entregarlo.")
         for av in avisos:
             print(f"AVISO: {av}")
 
         # ---- 5. exportación
-        ruta = exportar_excel(r, resultados, cortes, verificacion, avisos, a.salida or DIR_OUTPUTS / r.comando.replace("-", "_"))
+        ruta = exportar_excel(r, resultados, cortes, a.salida or DIR_OUTPUTS / r.comando.replace("-", "_"))
         print(f"\n✓ {r.comando}: {sum(len(d) for d in resultados)} filas en {len(resultados)} hoja(s) → {ruta}")
         return SALIDA_OK
     except ConfiguracionError as exc:

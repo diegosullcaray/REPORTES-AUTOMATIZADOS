@@ -46,13 +46,12 @@ def test_fecha_del_resultado_anterior_al_corte_es_error():
         ejecutor.validar_resultados(LOTE, [df], Cortes(date(2026, 7, 31)))
 
 
-def test_exporta_excel_con_hoja_control(tmp_path):
+def test_exporta_excel_solo_con_los_datos_sin_hoja_control(tmp_path):
     df = pd.DataFrame({"f": [date(2026, 7, 31)], "v": [1]})
-    t = Tabla("storage.com_act.hcda001", "historica", "HFECPRO", "confirmada")
-    ruta = ejecutor.exportar_excel(LOTE, [df], Cortes(date(2026, 7, 31)), [Resultado(t, Estado.OK, date(2026, 7, 31))], [], tmp_path)
+    ruta = ejecutor.exportar_excel(LOTE, [df], Cortes(date(2026, 7, 31)), tmp_path)
     hojas = pd.read_excel(ruta, sheet_name=None)
-    assert set(hojas) == {"Datos", "Control"} and ruta.name == "SacaTuGarra_20260731.xlsx"
-    assert "Tabla · storage.com_act.hcda001" in set(hojas["Control"]["Concepto"])
+    assert list(hojas) == ["Datos"] and ruta.name == "SacaTuGarra_20260731.xlsx"
+    assert not any("control" in h.lower() for h in hojas)
 
 
 def _correr(monkeypatch, tmp_path, estados, resultados=None, extra=()):

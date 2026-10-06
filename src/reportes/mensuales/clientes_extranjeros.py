@@ -32,7 +32,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from ..comun.fechas import resolver_corte
+from ..comun.fechas import nombre_de_archivo, resolver_corte
 from ..config import DIR_OUTPUTS, ConfiguracionError
 from ..db import leer_sql
 
@@ -335,7 +335,7 @@ def main(argv: list[str] | None = None) -> int:
                  df.to_string(index=False))
 
     try:
-        ruta = exportar_excel(hojas, args.salida / f"ClientesExtranjeros_{corte.yyyymmdd}.xlsx")
+        ruta = exportar_excel(hojas, args.salida / (nombre_de_archivo("ClientesExtranjeros {MES3} {AAAA}-TIPODOC", corte.fecha_corte) + ".xlsx"))
         log.info("Excel guardado en: %s", ruta.resolve())
         if args.copiar:
             if args.copiar not in hojas:

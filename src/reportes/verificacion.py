@@ -10,7 +10,6 @@ from dataclasses import dataclass
 from datetime import date, datetime
 from enum import Enum
 
-from .config import ConfiguracionError
 from .comun.fechas import resolver_corte
 from .db import leer_sql
 from .tablas import Tabla, tablas_de

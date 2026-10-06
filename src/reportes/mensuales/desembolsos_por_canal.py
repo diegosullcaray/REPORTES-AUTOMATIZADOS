@@ -7,7 +7,7 @@ tablas al corte, ejecuta, valida datos y exporta a data/outputs/desembolsos_por_
 
 from __future__ import annotations
 
-from ..comun.ejecutor import Hoja, ReporteLote, correr
+from ..comun.ejecutor import ReporteLote, correr
 
 SQL = r"""
 use storage;
@@ -133,6 +133,7 @@ REPORTE = ReporteLote(
     servidor="mish",
     base="storage",
     sql=SQL,
+    archivo="Desembolsos_canal_{AAAAMMDD}",
 )
 
 

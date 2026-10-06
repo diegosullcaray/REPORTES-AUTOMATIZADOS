@@ -7,7 +7,7 @@ tablas al corte, ejecuta, valida datos y exporta a data/outputs/clientes_jovenes
 
 from __future__ import annotations
 
-from ..comun.ejecutor import Hoja, ReporteLote, correr
+from ..comun.ejecutor import ReporteLote, correr
 
 SQL = r"""
 IF OBJECT_ID('tempdb..#desem') IS NOT NULL
@@ -117,6 +117,7 @@ REPORTE = ReporteLote(
     servidor="slc",
     base="slc",
     sql=SQL,
+    archivo="Clientes_jóvenes_{mes3}{AA}",
 )
 
 

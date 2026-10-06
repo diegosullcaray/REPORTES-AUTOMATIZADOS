@@ -8,6 +8,7 @@ tablas al corte, ejecuta, valida datos y exporta a data/outputs/cartera_sin_asig
 from __future__ import annotations
 
 from ..comun.ejecutor import Hoja, ReporteLote, correr
+from ..comun.excel import Resumen
 
 SQL = r"""
 USE [storage]
@@ -74,6 +75,10 @@ REPORTE = ReporteLote(
     servidor="mish",
     base="storage",
     sql=SQL,
+    archivo="Cartera-Sin asignar_{AAAAMMDD}",
+    hojas=(Hoja("DATA_MIS_v2"),),
+    resumenes=(Resumen("RESUMEN_v2", ("NIVEL", "Grupo", "Territorio", "Corredor", "Agencia_Cli"), "Saldo_Capital",
+                      "TERRITORIO POR CLIENTE", "SALDO CARTERA - MIS"),),
 )
 
 

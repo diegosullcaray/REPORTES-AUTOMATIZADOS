@@ -3,7 +3,7 @@
 | Aspecto | Regla |
 |---|---|
 | Entrada | Fecha de corte **del `.env`** (`FECHA_CORTE_MENSUAL` fin de mes, `FECHA_CORTE_DIARIA`) o `--fecha-corte AAAA-MM-DD` (manda sobre el `.env`); mensual sin ninguna ⇒ error; diaria sin ninguna ⇒ día anterior (lunes ⇒ sábado). Reportes por mes: `--mes AAAA-MM`. Jamás editando el SQL a mano |
-| Salida | `salidas/<reporte>/…` (Excel/TXT); configurable con `REPORTES_DIR_SALIDAS` |
+| Salida | `data/outputs/<reporte>/…` (Excel/TXT); configurable con `REPORTES_DIR_OUTPUTS`. Excel con el [formato del legado](../formato-excel.md): solo datos, sin hoja de control; nombre = adjunto histórico |
 | Aborto | Variable crítica en 0 / tabla fuente inexistente / sin filas ⇒ se detiene y avisa; no genera archivo parcial |
 | Vacío vs error | Resultado vacío válido se informa como tal; excepción SQL nunca se presenta como vacío |
 | Reglas de fecha | Lunes ⇒ sábado; fin de mes feriado ⇒ día hábil anterior; saldo medio repite saldo en días sin data |

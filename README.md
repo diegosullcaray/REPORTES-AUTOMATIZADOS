@@ -165,7 +165,7 @@ python main.py saca-tu-garra
 2. Verifica las tablas al corte. Si falta alguna: **no ejecuta**, lista cuáles faltan y guarda el mensaje en `data\outputs\solicitudes\` (código de salida 3).
 3. Ejecuta el T-SQL en una sola sesión.
 4. Valida los datos: todo vacío ⇒ error (salvo reportes donde vacío es válido, como Castigos); resultado con fecha anterior al corte ⇒ error.
-5. Exporta el Excel con una hoja por resultado y una hoja **`Control`** (corte, filas, estado de cada tabla, avisos).
+5. Exporta el Excel con el **formato del legado** (una hoja por resultado, solo los datos; sin hoja de control). Nombres de archivo y hojas: [formato Excel](governance/docs/data/formato-excel.md).
 
 **Opciones que tienen todos los reportes de lote**
 
@@ -173,7 +173,7 @@ python main.py saca-tu-garra
 |---|---|
 | `--fecha-corte AAAA-MM-DD` | usa esa fecha solo esta vez (manda sobre el `.env`) |
 | `--solo-verificar` | solo valida tablas y genera el mensaje; no ejecuta |
-| `--forzar` | ejecuta aunque haya tablas desactualizadas (queda anotado en la hoja `Control`; úsalo bajo tu responsabilidad) |
+| `--forzar` | ejecuta aunque haya tablas desactualizadas (se avisa en pantalla; úsalo bajo tu responsabilidad) |
 | `--sin-verificar` | no valida tablas (no recomendado) |
 | `--confirmar-escritura` | obligatorio en reportes que crean/borran tablas permanentes (`tapp-saldo-medio-territorio`) |
 | `--salida CARPETA` | cambia la carpeta de salida |
@@ -213,7 +213,7 @@ Procedimiento completo, con el orden sugerido de reportes y las tablas que suele
 
 | Ruta | Contenido | ¿Se sube a git? |
 |---|---|---|
-| `data\outputs\<reporte>\` | Excel / TXT generados (`<Reporte>_<AAAAMMDD>.xlsx`) | No |
+| `data\outputs\<reporte>\` | Excel / TXT generados, con el nombre del adjunto histórico (p. ej. `Desembolsos_canal_20260630.xlsx`, `Base Saca tu Garra_20260630.xlsx`) | No |
 | `data\outputs\solicitudes\` | mensajes para Producción (`solicitud_<reporte>_<AAAAMMDD>.txt`) | No |
 | `data\inputs\` | archivos de entrada (Excel base, p. ej. `cartera_sin_asignar_base.xlsm`) | No (solo la estructura) |
 

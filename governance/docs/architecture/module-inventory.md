@@ -39,12 +39,13 @@ El `.env` define **servidores**; la **base de datos la elige cada reporte** (`ba
 | `saldo-medio-vigente` | mensual | mish | storage | `reportes.mensuales.saldo_medio_vigente` | Saldo medio vigente (Diana García): saldo medio del mes y saldos diarios |
 | `tapp-saldo-medio-territorio` | mensual | mish | storage | `reportes.mensuales.tapp_saldo_medio_territorio` | TAPP: stock TPP del mes, saldo medio vigente por territorio (Edy) |
 
-## Pruebas (11 archivos)
+## Pruebas (12 archivos)
 
 - `tests/test_cli_tablas.py`
 - `tests/test_config.py`
 - `tests/test_db.py`
 - `tests/test_ejecutor.py`
+- `tests/test_excel.py`
 - `tests/test_fechas_corte.py`
 - `tests/test_registro.py`
 - `tests/test_reportes_lote.py`

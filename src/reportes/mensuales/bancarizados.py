@@ -30,7 +30,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from ..comun.fechas import resolver_corte
+from ..comun.fechas import nombre_de_archivo, resolver_corte
 from ..config import DIR_OUTPUTS, ConfiguracionError
 from ..db import leer_sql as _leer_sql
 
@@ -373,7 +373,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         periodo = Periodo(args.fecha_corte)
         reportes = ejecutar(periodo, args.salida, usar_cache=not args.sin_cache)
-        ruta = exportar_excel(reportes, args.salida / f"Bancarizados_{periodo.yyyymmdd}.xlsx")
+        ruta = exportar_excel(reportes, args.salida / (nombre_de_archivo("clientes_nuevos_bancarizados_exclusivos_{MES3}{AA}", periodo.fecha_corte) + ".xlsx"))
         log.info("Reportes guardados en: %s", ruta.resolve())
 
         if args.copiar:

@@ -33,7 +33,7 @@ from pathlib import Path
 import pandas as pd
 from openpyxl.utils import get_column_letter
 
-from ..comun.fechas import resolver_corte
+from ..comun.fechas import nombre_de_archivo, resolver_corte
 from ..config import DIR_OUTPUTS, ConfiguracionError
 from ..db import leer_sql
 
@@ -550,7 +550,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         ruta = exportar_excel(
             {"resumen": resumen, "detalle": detalle},
-            args.salida / f"IndicadoresClientes_{args.mes.anio:04d}{args.mes.mes:02d}.xlsx",
+            args.salida / (nombre_de_archivo("Info para Finanzas {MES3}{AA}", date(args.mes.anio, args.mes.mes, 1)) + ".xlsx"),
         )
         log.info("Excel guardado en: %s", ruta.resolve())
         if args.copiar:

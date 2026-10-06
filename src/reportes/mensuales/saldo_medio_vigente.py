@@ -23,6 +23,7 @@ REPORTE = ReporteLote(
     base="storage",
     sql=SQL,
     hojas=(Hoja("Saldo medio mes", columna_fecha="HFECPRO"), Hoja("Saldo diario", columna_fecha="sfecpro"),),
+    archivo="Saldo Medio Vigente_{AAAAMMDD}",
 )
 
 

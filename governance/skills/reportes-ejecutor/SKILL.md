@@ -29,7 +29,7 @@ def main(argv=None) -> int:
 2. **Tablas al corte**: compara `MAX(fecha)` de cada tabla del reporte con el corte. Si falta alguna: no ejecuta, lista cuáles, guarda el mensaje para Producción y sale con código 3.
 3. Ejecuta el lote en una sesión (tablas `#temp`, `USE`, `GO`, `EXEC`) y recoge **todos** los resultados.
 4. **Datos**: todo vacío ⇒ error (salvo `vacio_valido=True`); `columna_fecha` del resultado < corte ⇒ error; hoja vacía ⇒ aviso.
-5. **Excel** `data/outputs/<reporte>/<Archivo>_<AAAAMMDD>.xlsx` con una hoja por resultado + hoja `Control` (corte, filas, estado de cada tabla, avisos).
+5. **Excel** con el formato del legado ([formato Excel](../../docs/data/formato-excel.md)): una hoja (Tabla de Excel, estilo `TableStyleMedium2`) por resultado + los resúmenes que declare; **sin hoja de control**. El nombre sigue el de los adjuntos históricos (`archivo="Desembolsos_canal_{AAAAMMDD}"`; tokens `{MES}`, `{mes3}`, `{AA}`…). `hojas=(Hoja("Nombre"),)` nombra cada resultado; `resumenes=(Resumen(…),)` añade un resumen jerárquico; `libro_compartido=True` si varios comandos alimentan el mismo archivo.
 
 ## Tokens de fecha (se resuelven por `--fecha-corte`)
 | Token | Valor |

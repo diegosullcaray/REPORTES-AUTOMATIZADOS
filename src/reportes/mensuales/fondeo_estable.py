@@ -7,7 +7,7 @@ tablas al corte, ejecuta, valida datos y exporta a data/outputs/fondeo_estable/.
 
 from __future__ import annotations
 
-from ..comun.ejecutor import Hoja, ReporteLote, correr
+from ..comun.ejecutor import ReporteLote, correr
 
 SQL = r"""
 --Reportes Mensual Fondeo Estable
@@ -28,6 +28,7 @@ REPORTE = ReporteLote(
     servidor="mish",
     base="storage",
     sql=SQL,
+    archivo="Saldo_FondeoEstable_{AAAAMMDD}",
 )
 
 

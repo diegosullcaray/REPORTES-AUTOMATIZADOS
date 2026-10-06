@@ -123,6 +123,8 @@ REPORTE = ReporteLote(
     servidor="mish",
     base="storage",
     sql=SQL,
+    archivo="Cartera Vigente Agro_{AAAAMMDD}",
+    hojas=(Hoja("Saldo vigente"), Hoja("Saldo vigente (cierre anterior)"), Hoja("Clientes"),),
 )
 
 

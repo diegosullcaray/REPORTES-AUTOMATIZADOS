@@ -27,6 +27,25 @@ def meses_atras(f: date, n: int) -> date:
     return fin_de_mes(total // 12, total % 12 + 1)
 
 
+MESES_LARGO = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
+MESES_CORTO = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"]
+
+
+def nombre_de_archivo(patron: str, corte: date) -> str:
+    """Sustituye en `patron` los tokens de fecha de los archivos del legado.
+
+    {AAAAMMDD} 20260630 · {AAAAMM} 202606 · {AAAA} 2026 · {AA} 26 · {MES} Junio · {mes3} jun · {MES3} JUN
+    Ej.: "Desembolsos_canal_{AAAAMMDD}" -> Desembolsos_canal_20260630 · "Clientes_jóvenes_{mes3}{AA}" -> Clientes_jóvenes_jun26
+    """
+    tokens = {
+        "{AAAAMMDD}": f"{corte:%Y%m%d}", "{AAAAMM}": f"{corte:%Y%m}", "{AAAA}": f"{corte:%Y}", "{AA}": f"{corte:%y}",
+        "{MES}": MESES_LARGO[corte.month - 1], "{mes3}": MESES_CORTO[corte.month - 1], "{MES3}": MESES_CORTO[corte.month - 1].upper(),
+    }
+    for t, v in tokens.items():
+        patron = patron.replace(t, v)
+    return patron
+
+
 VAR_CORTE = {"diaria": "FECHA_CORTE_DIARIA", "mensual": "FECHA_CORTE_MENSUAL"}
 
 

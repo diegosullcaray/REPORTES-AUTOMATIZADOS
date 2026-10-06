@@ -7,7 +7,7 @@ tablas al corte, ejecuta, valida datos y exporta a data/outputs/tapp_saldo_medio
 
 from __future__ import annotations
 
-from ..comun.ejecutor import Hoja, ReporteLote, correr
+from ..comun.ejecutor import ReporteLote, correr
 
 SQL = r"""
 use storage;
@@ -190,6 +190,7 @@ REPORTE = ReporteLote(
     sql=SQL,
     avisos=('Este reporte crea/borra la tabla permanente appj.dbo.salmediovigente1 (como el proceso manual original).',),
     escribe_en_bd=True,
+    archivo="SaldoMedio_TPPSTOCK_TPPMES_{AAAAMM}",
 )
 
 

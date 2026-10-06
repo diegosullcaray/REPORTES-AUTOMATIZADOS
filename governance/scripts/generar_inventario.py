@@ -94,7 +94,10 @@ def generar_comandos() -> str:
         if lote is not None:
             if lote.base:
                 L.append(f"- **Base de datos**: `{lote.base}` (editable en el módulo; el servidor lo define el `.env`)")
-            L.append(f"- **Salida**: `data/outputs/{r.nombre.replace('-', '_')}/{lote.archivo or ''.join(x.capitalize() for x in r.nombre.split('-'))}_<AAAAMMDD>.xlsx` (+ hoja `Control`)")
+            patron = lote.archivo or ("".join(x.capitalize() for x in r.nombre.split("-")) + "_{AAAAMMDD}")
+            hojas = ", ".join(f"`{h.nombre}`" for h in lote.hojas) or "una hoja por resultado (`Datos`, `Datos_2`…)"
+            extra = "".join(f", `{rs.nombre}` (resumen jerárquico)" for rs in lote.resumenes)
+            L.append(f"- **Salida**: `data/outputs/{r.nombre.replace('-', '_')}/{patron}.xlsx` · hojas: {hojas}{extra}" + (" · libro compartido con otro comando" if lote.libro_compartido else ""))
             if lote.vacio_valido:
                 L.append("- **Vacío válido**: sí (puede no haber datos en el mes)")
             if lote.escribe_en_bd:

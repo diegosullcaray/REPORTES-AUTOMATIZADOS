@@ -94,6 +94,9 @@ REPORTE = ReporteLote(
     base="storage",
     sql=SQL,
     vacio_valido=True,
+    archivo="Datos Cierre {MES} {AA}",
+    hojas=(Hoja("Castigos"),),
+    libro_compartido=True,
 )
 
 

@@ -7,7 +7,7 @@ tablas al corte, ejecuta, valida datos y exporta a data/outputs/heredados_pdm/. 
 
 from __future__ import annotations
 
-from ..comun.ejecutor import Hoja, ReporteLote, correr
+from ..comun.ejecutor import ReporteLote, correr
 
 SQL = r"""
 --select * into #MrvGrupoPDM from dma.dbo.MrvGrupoPDM
@@ -74,6 +74,7 @@ REPORTE = ReporteLote(
     base="slc",
     sql=SQL,
     avisos=('Antes de entregar valida que el Cubo y las tablas PDM estén completos a la fecha (si faltan datos el reporte sale mal).',),
+    archivo="PDM Heredado {MES} {AA}",
 )
 
 

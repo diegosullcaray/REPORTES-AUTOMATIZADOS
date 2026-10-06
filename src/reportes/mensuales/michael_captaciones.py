@@ -125,6 +125,9 @@ REPORTE = ReporteLote(
     base="storage",
     sql=SQL,
     avisos=('Si WCAP001 no tiene la fecha, hay que correr antes el SP storage.com_pas.PSLWCAP001 (ver comentario del SQL original en docs/LEGADO).',),
+    archivo="Datos Cierre {MES} {AA}",
+    hojas=(Hoja("Captaciones"),),
+    libro_compartido=True,
 )
 
 
