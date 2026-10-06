@@ -11,9 +11,11 @@ src/reportes/
   db.py            acceso a BD           (único que abre conexiones)
   registro.py      catálogo de reportes
   comun/           utilidades compartidas
-  diarios/<reporte>.py
+  comun/ejecutor.py  flujo común: conexión → tablas al corte → consulta → validación → Excel
+  comun/fechas.py   cortes y tokens @@F@@…
+  tablas.py         tablas de cada reporte (alias, tipo, columna de fecha)
+  diarios/<reporte>.py       el SQL va incrustado en el módulo
   mensuales/<reporte>.py
-sql/<diarias|mensuales>/<reporte>/<nombre>.sql
 data/inputs/<reporte>/         archivos que entran (Excel/CSV, formatos base); no versionado
 data/outputs/<reporte>/        archivos que generan los reportes; no versionado
 tests/test_<modulo>.py

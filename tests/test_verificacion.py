@@ -37,7 +37,7 @@ def test_tabla_desactualizada_genera_solicitud(monkeypatch):
     monkeypatch.setattr(v, "leer_sql", lambda *a, **k: pd.DataFrame({"u": [datetime(2026, 10, 29)]}))
     r = v.verificar_tabla(_tabla(), date(2026, 10, 31))
     assert r.estado is v.Estado.DESACTUALIZADA and r.ultima_fecha == date(2026, 10, 29)
-    texto = v.mensaje_solicitud("saca_tu_garra", date(2026, 10, 31), [r])
+    texto = v.mensaje_solicitud("saca-tu-garra", date(2026, 10, 31), [r])
     assert "storage.com_act.hcda001" in texto and "29/10/2026" in texto
 
 

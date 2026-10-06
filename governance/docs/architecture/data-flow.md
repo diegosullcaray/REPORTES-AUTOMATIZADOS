@@ -1,6 +1,7 @@
 # Flujo de datos
 
-1. `main.py <reporte> --fecha …` resuelve el módulo en `registro.py`.
+1. `main.py <reporte> --fecha-corte …` resuelve el módulo en `registro.py`; `comun/ejecutor.correr()` orquesta:
+   conexión → **tablas al corte** (si faltan: no ejecuta + mensaje a Producción) → consulta → **validación de datos** → Excel.
 2. El módulo calcula el periodo (reglas de fecha) y arma parámetros.
 3. `db.leer_sql(alias, sql, params)` consulta (hilos opcionales entre bloques independientes).
 4. Validación: vacío ≠ error, fuente al corte, variables críticas.

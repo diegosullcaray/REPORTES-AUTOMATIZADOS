@@ -11,17 +11,17 @@ Objetivo: tener todos los reportes mensuales del corte `<corte>` sin sorpresas p
    python main.py tablas clientes-extranjeros    --fecha-corte <corte> --verificar
    python main.py tablas indicadores-clientes    --fecha-corte <corte> --verificar
    ```
-   y, para los aún manuales, el nombre de su carpeta en `sql/mensuales/` (p. ej. `saldo_medio_vigente`, `fondeo_estable`, `heredados_pdm`, `reportes_giovanni`, `reporte_michael_palacios`, `desembolsos_por_canal`).
+   y el resto de reportes mensuales (`saldo-medio-vigente`, `fondeo-estable`, `heredados-pdm`, `giovanni-*`, `michael-*`, `desembolsos-por-canal`, …; lista en [comandos](./comandos.md)). Atajo por reporte: `python main.py <reporte> --fecha-corte <corte> --solo-verificar`.
 3. Junta todas las tablas `DESACTUALIZADA`/`NO EXISTE` y haz **una sola solicitud** a Producción ([guía](./solicitud-actualizacion-tablas.md)). Usa la sección «por tabla» del [inventario](../../data/tables-inventory.md) para ver qué reportes se destraban con cada tabla.
 
 ## Orden sugerido de ejecución
 | Orden | Reporte | Por qué |
 |---|---|---|
-| 1 | `heredados_pdm` | exige validar Cubo y tablas PDM completas antes |
-| 2 | `fondeo_estable`, `desembolsos_por_canal` | solo necesitan el cierre; plazo corto (día ~3) |
-| 3 | `reporte_michael_palacios`, `reportes_giovanni`, `saldo_medio_vigente`, `tapp_saldo_medio_territorio` | cierre mes anterior y actual |
-| 4 | `bancarizados`, `bancarizados-producto`, `clientes-extranjeros`, `indicadores-clientes` | las tablas RCC (`rccdet`, `ccp`) suelen llegar más tarde; verifícalas primero |
-| Aparte | `saca_tu_garra` | 8:00–8:30 AM; no depende de los reportes de cierre pesados |
+| 1 | `heredados-pdm` | exige validar Cubo y tablas PDM completas antes |
+| 2 | `fondeo-estable`, `desembolsos-por-canal` | solo necesitan el cierre; plazo corto (día ~3) |
+| 3 | `michael-captaciones`, `michael-castigos`, `giovanni-captaciones`, `giovanni-seguros`, `giovanni-cartera-agro`, `saldo-medio-vigente`, `tapp-saldo-medio-territorio` | cierre mes anterior y actual |
+| 4 | `bancarizados`, `bancarizados-producto`, `clientes-extranjeros`, `indicadores-clientes`, `clientes-jovenes`, `productos-verdes`, `contratacion-electronica`, `clientes-rurales-migrantes` | las tablas RCC (`rccdet`, `ccp`) suelen llegar más tarde; verifícalas primero |
+| Aparte | `saca-tu-garra` | 8:00–8:30 AM; no depende de los reportes de cierre pesados |
 
 Es una sugerencia basada en las notas heredadas; el orden real lo manda la disponibilidad de tablas.
 
@@ -31,7 +31,7 @@ Es una sugerencia basada en las notas heredadas; el orden real lo manda la dispo
 - Cubo y tablas PDM (`dma.dbo.*`).
 
 ## Cuando todo está al día
-Ejecuta cada reporte con su guía: [`bancarizados`](./bancarizados.md), [`bancarizados-producto`](./bancarizados-producto.md), [`clientes-extranjeros`](./clientes-extranjeros.md), [`indicadores-clientes`](./indicadores-clientes.md); el resto con el [procedimiento heredado](../../business/procedimientos_manuales_legado.md).
+Ejecuta cada reporte con su guía: [`bancarizados`](./bancarizados.md), [`bancarizados-producto`](./bancarizados-producto.md), [`clientes-extranjeros`](./clientes-extranjeros.md), [`indicadores-clientes`](./indicadores-clientes.md); los demás con su comando ([catálogo de comandos](./comandos.md)). El [procedimiento manual heredado](../../business/procedimientos_manuales_legado.md) queda como referencia (destinatarios y formato del correo).
 
 ## Cierre
 Entregas hechas, bitácora al día, incidentes registrados. Si las tablas fallaron, anota a quién se pidió y cuánto tardó: alimenta el [roadmap](../../business/roadmap.md).

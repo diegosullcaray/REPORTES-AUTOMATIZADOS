@@ -24,7 +24,6 @@ sys.path.insert(0, str(RAIZ / "src"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 LINEA_BASE = RAIZ / "governance" / "gobernanza.linea-base.json"
 FUENTES = [p for p in (RAIZ / "src").rglob("*.py") if "__pycache__" not in p.parts] + [RAIZ / "main.py"]
-SQLS = sorted((RAIZ / "sql").rglob("*.sql"))
 
 
 @dataclass(frozen=True)
@@ -49,7 +48,7 @@ def r_secretos():
         (re.compile(r"(?i)\b(PWD|UID)=(?![{;'\"\s])[^;'\"\s]+"), "cadena de conexión con credencial literal"),
         (re.compile(r"(?i)\b(password|passwd|pwd|clave)\s*=\s*r?[\"'][^\"']{3,}[\"']"), "contraseña asignada como literal"),
     ]
-    for p in FUENTES + SQLS:
+    for p in FUENTES:
         for n, linea in enumerate(p.read_text(encoding="utf-8", errors="ignore").splitlines(), 1):
             if linea.lstrip().startswith(("#", "--")):
                 continue
@@ -70,7 +69,7 @@ def r_conexion():
 
 def r_rutas(): 
     rx = re.compile(r"(?<![A-Za-z0-9_])[A-Z]:\\\\?[A-Za-z0-9_ ]")
-    for p in FUENTES + SQLS:
+    for p in FUENTES:
         for n, linea in enumerate(p.read_text(encoding="utf-8", errors="ignore").splitlines(), 1):
             if linea.lstrip().startswith(("#", "--")):
                 continue
@@ -102,13 +101,31 @@ def r_registro():
 
 def r_nombres():
     ok = re.compile(r"^[a-z0-9_]+(\.[a-z]+)?$")
-    for p in SQLS + [x for x in (RAIZ / "src").rglob("*.py")]:
+    for p in (RAIZ / "src").rglob("*.py"):
         if "__pycache__" in p.parts:
             continue
         for parte in p.relative_to(RAIZ).parts:
             if not ok.match(parte):
                 yield Hallazgo("nombres-canonicos", "aviso", rel(p), f"'{parte}' debe ser snake_case sin espacios ni tildes")
                 break
+
+
+def r_fechas_fijas():
+    """El T-SQL incrustado no puede traer fechas literales: usa tokens @@F@@, @@F_ISO@@, @@F_ANT@@… (se resuelven por --fecha-corte)."""
+    rx = re.compile(r"'(20\d{6}|20\d\d-\d\d-\d\d)'")
+    for p in FUENTES:
+        txt = p.read_text(encoding="utf-8")
+        if "ReporteLote(" not in txt:
+            continue
+        dentro_bloque = False
+        for n, linea in enumerate(txt.splitlines(), 1):
+            if "/*" in linea:
+                dentro_bloque = True
+            codigo = re.sub(r"--.*", "", linea)
+            if not dentro_bloque and rx.search(codigo) and "2021-01-30" not in codigo:
+                yield Hallazgo("fechas-fijas-en-sql", "error", rel(p), f"L{n}: fecha literal en el SQL; usa un token @@F@@/@@F_ISO@@…")
+            if "*/" in linea:
+                dentro_bloque = False
 
 
 def r_prueba():
@@ -137,26 +154,22 @@ def r_gitignore():
             yield Hallazgo("gitignore-protege-datos", "error", ".gitignore", f"falta '{req}'")
 
 
-def r_sql_huerfano():
-    codigo = "\n".join(p.read_text(encoding="utf-8") for p in FUENTES)
-    for p in SQLS:
-        if p.stem not in codigo and rel(p).split("/", 1)[1] not in codigo:
-            yield Hallazgo("sql-sin-reporte", "aviso", rel(p), "SQL no consumido por ningún módulo (pendiente de automatizar)")
-
-
 def r_tablas():
     import extraer_tablas as ex
+    from reportes.registro import REPORTES
     from reportes.tablas import TABLAS, USO
 
-    usadas = set().union(*ex.por_reporte().values())
-    for n in sorted(usadas - set(TABLAS)):
-        yield Hallazgo("tabla-sin-registrar", "error", "src/reportes/tablas.py", f"{n}: la usa el código/SQL pero no está registrada")
+    for comando, usadas in ex.por_reporte().items():
+        for n in sorted(usadas - set(TABLAS)):
+            yield Hallazgo("tabla-sin-registrar", "error", "src/reportes/tablas.py", f"{n}: la usa «{comando}» pero no está registrada")
+        for n in sorted(usadas - set(USO.get(comando, ()))):
+            yield Hallazgo("tabla-sin-registrar", "error", "src/reportes/tablas.py", f"USO[{comando}] no declara {n}, que el módulo consulta")
     for reporte, nombres in USO.items():
+        if reporte not in REPORTES:
+            yield Hallazgo("tabla-sin-registrar", "error", "src/reportes/tablas.py", f"USO[{reporte}]: reporte inexistente en registro.py")
         for n in nombres:
             if n not in TABLAS:
                 yield Hallazgo("tabla-sin-registrar", "error", "src/reportes/tablas.py", f"USO[{reporte}] cita '{n}' inexistente en TABLAS")
-    from reportes.registro import REPORTES
-
     for r in REPORTES:
         if r not in USO:
             yield Hallazgo("tabla-sin-registrar", "error", "src/reportes/tablas.py", f"reporte '{r}' sin tablas en USO")
@@ -168,16 +181,16 @@ def r_tablas():
 
 
 REGLAS = {
-    "secretos-en-codigo": (r_secretos, "Ninguna credencial literal en src/ ni sql/. Solo .env."),
+    "secretos-en-codigo": (r_secretos, "Ninguna credencial literal en src/. Solo .env."),
     "conexion-solo-en-db": (r_conexion, "pyodbc/SQLAlchemy se abren únicamente en reportes/db.py."),
     "rutas-absolutas": (r_rutas, "Sin rutas D:\\... fijas; usar config.DIR_OUTPUTS."),
     "registro-sincronizado": (r_registro, "Todo reporte registrado existe, expone main() y usa alias de BD válidos."),
-    "nombres-canonicos": (r_nombres, "Archivos y carpetas en snake_case, sin espacios ni tildes."),
+    "nombres-canonicos": (r_nombres, "Módulos en snake_case, sin espacios ni tildes."),
     "prueba-vecina": (r_prueba, "Cada módulo tiene tests/test_<modulo>.py."),
     "env-example-completo": (r_env, ".env.example declara las variables de las 3 conexiones."),
     "gitignore-protege-datos": (r_gitignore, ".gitignore excluye .env, data/ (inputs y outputs) y cachés."),
     "tabla-sin-registrar": (r_tablas, "Toda tabla que consulta el código está en reportes/tablas.py y todo reporte declara sus tablas."),
-    "sql-sin-reporte": (r_sql_huerfano, "SQL huérfano: deuda de automatización visible."),
+    "fechas-fijas-en-sql": (r_fechas_fijas, "Sin fechas literales en el T-SQL incrustado: todo por tokens de fecha de corte."),
 }
 
 

@@ -1,20 +1,21 @@
 # Catálogo de reportes
 
-## Automatizados
-Ver [inventario generado](../architecture/module-inventory.md).
+Todos son ejecutables con `python main.py <comando> --fecha-corte AAAA-MM-DD`. Qué hace cada comando, sus tablas críticas y su salida: [catálogo de comandos](../development/runbooks/comandos.md) (generado). Quién pide cada reporte y a quién se entrega (según las notas heredadas):
 
-## Pendientes (SQL en `sql/mensuales/<carpeta>/`)
-| Carpeta | Origen | Solicitante / destinatarios | Nota clave |
-|---|---|---|---|
-| `desembolsos_por_canal` | Piero 01 | Sergio, Sebastián; cc Abigail, Michel | Canales CT/BT; si no hay acceso a producción, pedir a Abigail que ejecute |
-| `fondeo_estable` | Piero 02 | Eddy Martínez; cc Michael, Abigail | Inicio de mes (día 3); tabla tipo WAS |
-| `heredados_pdm` | Piero 03 | Carla Campo, Ricardo Lazo, Álvaro Calderón | Validar Cubo/PDM completos |
-| `ratio_ce_nuevos_migrantes` | Piero 04 | Manuel Siccha, Michel | CE + rurales/migrantes; correo con n.º de operaciones y monto |
-| `reportes_giovanni` | Piero 05 | Giovanni | Captaciones, Seguros (0 → "sin asignar"), Cartera Agro (2 cortes) |
-| `saca_tu_garra` | Piero 06 | Giancarlos | Entregar 8:00–8:30 AM |
-| `saldo_medio_vigente` | Piero 07 | Diana García | 2 queries; vale la 2.ª |
-| `tapp_saldo_medio_territorio` | Piero 08 | Edy | Parte 1 histórico + parte 2 mes |
-| `reporte_michael_palacios` | Piero 09 | Michael / Riesgos / Manuel / Giovanni | Castigos puede ir vacío |
-| `clientes_jovenes`, `productos_verdes` | Erick | Manuel Siccha | — |
-| `finanzas_*` | Erick | Finanzas | SQL base de reportes ya automatizados |
-| `sql/diarias/cartera_sin_asignar` | Diarias 02 | — | Excel base en `data/inputs/cartera_sin_asignar_base.xlsm` |
+| Comando | Solicitante / destinatarios | Nota clave |
+|---|---|---|
+| `cmg-mora`, `cmg-castigos` | MIS / Riesgos | diario; lunes toma el sábado; aborta si provisiones = 0 |
+| `cartera-sin-asignar` | MIS | diario; Excel base en `data/inputs/cartera_sin_asignar_base.xlsm` |
+| `desembolsos-por-canal` | Sergio, Sebastián; cc Abigail, Michel | canales CT/BT; si no hay acceso a producción, pedir que lo ejecuten |
+| `fondeo-estable` | Eddy Martínez; cc Michael, Abigail | inicio de mes (día ~3); tabla tipo WAS |
+| `heredados-pdm` | Carla Campo, Ricardo Lazo, Álvaro Calderón; cc Michael | validar Cubo y tablas PDM completos |
+| `contratacion-electronica`, `clientes-rurales-migrantes` | Manuel Siccha, Michel | correo con n.º de operaciones y monto; rurales: 3 últimos cierres |
+| `giovanni-captaciones`, `giovanni-seguros`, `giovanni-cartera-agro` | Giovanni | seguros: ceros ⇒ «sin asignar»; cartera agro con dos cortes |
+| `saca-tu-garra` | Giancarlos | entregar 8:00–8:30 AM |
+| `saldo-medio-vigente` | Diana García | saldo medio = suma de saldos diarios ÷ días del mes |
+| `tapp-saldo-medio-territorio` | Edy | **escribe** `appj.dbo.salmediovigente1`; exige `--confirmar-escritura` |
+| `michael-captaciones`, `michael-castigos` | Michael / Riesgos / Manuel / Giovanni | castigos puede salir vacío; captaciones no |
+| `clientes-jovenes`, `productos-verdes` | Manuel Siccha | directorio |
+| `bancarizados`, `bancarizados-producto`, `clientes-extranjeros`, `indicadores-clientes` | Finanzas / Directorio | lógica Python propia |
+
+Los destinatarios y el formato del correo siguen el [procedimiento heredado](./procedimientos_manuales_legado.md). El envío por correo **no** está automatizado (ver [roadmap](./roadmap.md)).

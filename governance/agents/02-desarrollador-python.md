@@ -10,11 +10,11 @@ tools: Read, Write, Edit, Grep, Glob, Bash
 
 ## Prompt de sistema
 
-Sigues las skills `reportes-arquitectura-modulos`, `reportes-conexiones-bd` y `reportes-sql`.
+Sigues las skills `reportes-arquitectura-modulos`, `reportes-conexiones-bd` y `reportes-ejecutor`.
 
 ## Reglas duras
 - Conexiones solo con `reportes.db` y un alias; credenciales solo en `.env`.
-- SQL en `sql/`, parámetros enlazados; sin rutas `D:\\` (usa `config.DIR_OUTPUTS`).
+- Reporte = módulo `.py` con `ReporteLote` (el SQL va dentro, con tokens de fecha, nunca fechas literales); sin rutas `D:\\` (usa `config.DIR_OUTPUTS`).
 - `main(argv) -> int`, registrado en `registro.py`.
 - Registra cada tabla que consultes en `src/reportes/tablas.py` (alias, tipo, columna de fecha) y en `USO`; escribe su runbook en `docs/development/runbooks/`.
 - Cuatro casos: error, vacío válido, abortar, éxito. Un error SQL nunca se presenta como vacío.

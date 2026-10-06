@@ -9,6 +9,6 @@
 | Pruebas | falla pytest | arreglar la causa raíz |
 
 ## Reglas (`validar_gobernanza.py --listar`)
-Errores: `secretos-en-codigo`, `conexion-solo-en-db`, `rutas-absolutas`, `registro-sincronizado` (módulos inexistentes/sin `main`/base inválida), `env-example-completo`, `gitignore-protege-datos`.
+Errores: `fechas-fijas-en-sql` (fecha literal en el T-SQL), `secretos-en-codigo`, `conexion-solo-en-db`, `rutas-absolutas`, `registro-sincronizado` (módulos inexistentes/sin `main`/base inválida), `env-example-completo`, `gitignore-protege-datos`.
 Errores adicionales: `tabla-sin-registrar` (tabla usada por el código/SQL sin registrar en `tablas.py`, o reporte sin tablas).
-Avisos: `tabla-fecha-por-validar` (columna de fecha inferida por prefijo; validar con el DBA), `nombres-canonicos`, `prueba-vecina`, `sql-sin-reporte` (deuda visible, congelada en la línea base).
+Avisos: `tabla-fecha-por-validar` (columna de fecha inferida por prefijo; validar con el DBA), `nombres-canonicos`, `prueba-vecina` (deuda visible, congelada en la línea base).

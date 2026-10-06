@@ -16,5 +16,5 @@ def test_alias_validos_y_columna_si_es_verificable():
 
 
 def test_consulta_inversa_tabla_a_reportes():
-    assert "saca_tu_garra" in reportes_que_usan("storage.com_act.hcda001")
+    assert "saca-tu-garra" in reportes_que_usan("storage.com_act.hcda001")
     assert len(tablas_de("cmg-mora")) >= 5

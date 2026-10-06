@@ -14,7 +14,6 @@ from dotenv import load_dotenv
 
 RAIZ = Path(__file__).resolve().parents[2]
 load_dotenv(RAIZ / ".env")  # antes de leer REPORTES_DIR_*
-DIR_SQL = RAIZ / "sql"
 # data/ no se versiona: inputs = archivos que entran (Excel, CSV, plantillas base); outputs = lo que generan los reportes
 DIR_INPUTS = Path(os.getenv("REPORTES_DIR_INPUTS", RAIZ / "data" / "inputs"))
 DIR_OUTPUTS = Path(os.getenv("REPORTES_DIR_OUTPUTS", RAIZ / "data" / "outputs"))

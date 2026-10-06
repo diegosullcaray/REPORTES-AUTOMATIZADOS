@@ -94,22 +94,22 @@ _FILAS = [
     ('storage.com_act.retp003', 'slc', 'referencia', None, 'por_confirmar'),
     ('storage.com_act.rfoc001', 'slc', 'referencia', None, 'por_confirmar'),
     ('storage.com_act.sbtvrie001', 'slc', 'destino', None, 'por_confirmar'),
-    ('storage.com_act.sdae002', 'slc', 'stock', 'SFECPRO', 'convencion'),
+    ('storage.com_act.sdae002', 'slc', 'stock', 'sfecpro', 'confirmada'),
     ('storage.com_act.sdae003', 'slc', 'stock', 'SFECPRO', 'convencion'),
     ('storage.com_act.sdaf002', 'slc', 'stock', 'SFECPRO', 'convencion'),
-    ('storage.com_act.sdas001', 'slc', 'stock', 'SFECPRO', 'convencion'),
+    ('storage.com_act.sdas001', 'slc', 'stock', 'sfecpro', 'confirmada'),
     ('storage.com_act.sdas005', 'slc', 'stock', 'SFECPRO', 'convencion'),
-    ('storage.com_act.wcdce001', 'slc', 'otro', None, 'por_confirmar'),
-    ('storage.com_act.wcdce002', 'slc', 'otro', None, 'por_confirmar'),
-    ('storage.com_act.wjas001', 'slc', 'otro', None, 'por_confirmar'),
-    ('storage.com_pas.hcdp001', 'slc', 'historica', 'HFECPRO', 'convencion'),
+    ('storage.com_act.wcdce001', 'slc', 'historica', 'hfecpro', 'confirmada'),
+    ('storage.com_act.wcdce002', 'slc', 'historica', 'hfecpro', 'confirmada'),
+    ('storage.com_act.wjas001', 'slc', 'historica', 'HFECPRO', 'confirmada'),
+    ('storage.com_pas.hcdp001', 'slc', 'historica', 'HFECPRO', 'confirmada'),
     ('storage.com_pas.pslwcap001', 'slc', 'otro', None, 'por_confirmar'),
     ('storage.com_pas.retp001', 'slc', 'referencia', None, 'por_confirmar'),
     ('storage.com_pas.sdps010', 'slc', 'stock', 'SFECPRO', 'convencion'),
-    ('storage.com_pas.sdps013', 'slc', 'stock', 'SFECPRO', 'convencion'),
-    ('storage.com_pas.wcap001', 'slc', 'otro', None, 'por_confirmar'),
-    ('storage.com_pas.wjas004', 'slc', 'otro', None, 'por_confirmar'),
-    ('storage.com_pas.wjas008', 'slc', 'otro', None, 'por_confirmar'),
+    ('storage.com_pas.sdps013', 'slc', 'stock', 'SFECPRO', 'confirmada'),
+    ('storage.com_pas.wcap001', 'slc', 'historica', 'HFECPRO', 'confirmada'),
+    ('storage.com_pas.wjas004', 'slc', 'historica', 'HFECPRO', 'confirmada'),
+    ('storage.com_pas.wjas008', 'slc', 'historica', 'hfecpro', 'confirmada'),
     ('storage.com_seg.sdsf001', 'slc', 'stock', 'SFECPRO', 'convencion'),
     ('storage.gpr.vpph001', 'slc', 'otro', None, 'por_confirmar'),
     ('storage.ref.fjercor01', 'slc', 'otro', None, 'por_confirmar'),
@@ -125,7 +125,7 @@ _FILAS = [
 
 TABLAS: dict[str, Tabla] = {f[0]: Tabla(*f) for f in _FILAS}
 
-# reporte -> tablas que consume. Reportes automatizados = nombre del comando; pendientes = carpeta en sql/mensuales|diarias.
+# comando del reporte (main.py) -> tablas que consume
 USO: dict[str, tuple[str, ...]] = {
     'bancarizados': (
         'dbrcc.dbo.rcccab{yyyymmdd}',
@@ -144,7 +144,7 @@ USO: dict[str, tuple[str, ...]] = {
         'dwh.dbo.rtipcre002',
         'dwh.dbo.rtipcre003',
     ),
-    'cartera_sin_asignar': (
+    'cartera-sin-asignar': (
         'storage.com_act.hcda001',
         'storage.com_act.retp001',
         'storage.com_act.retp002',
@@ -157,12 +157,25 @@ USO: dict[str, tuple[str, ...]] = {
         'intcom.dbo.ccd',
         'intcom.dbo.ccs_fund_f',
     ),
-    'clientes_jovenes': (
+    'clientes-jovenes': (
         'csd.dbo.clientes_ds',
         'dwh.dbo.bregper001',
         'dwh.dbo.gdesemcre001',
         'dwh.dbo.hcarcre001',
         'dwh.dbo.scarcre006',
+    ),
+    'clientes-rurales-migrantes': (
+        'storage.com_act.hbcn001',
+        'storage.com_act.hcda001',
+        'storage.com_act.hcdr001',
+        'storage.com_act.hcdr002',
+        'storage.com_act.rfoc001',
+        'storage.ref.rcalen001',
+        'storage.ref.vurbrur01',
+    ),
+    'cmg-castigos': (
+        'storage.com_act.sdas005',
+        'storage.ref.rcalen001',
     ),
     'cmg-mora': (
         'dbriesgos.dbo.gasto_prov_ope_diaria',
@@ -171,10 +184,12 @@ USO: dict[str, tuple[str, ...]] = {
         'dw_raw_v2.dbo.cmgmora_recaudo',
         'dw_raw_v2.dbo.cmgmora_strjercor',
         'storage.com_act.sbtvrie001',
-        'storage.com_act.sdas005',
-        'storage.ref.rcalen001',
     ),
-    'desembolsos_por_canal': (
+    'contratacion-electronica': (
+        'storage.com_act.wcdce001',
+        'storage.com_act.wcdce002',
+    ),
+    'desembolsos-por-canal': (
         'storage.com_act.hcda001',
         'storage.com_act.hcdr001',
         'storage.com_act.hcdr002',
@@ -185,11 +200,35 @@ USO: dict[str, tuple[str, ...]] = {
         'storage.ref.fjercor02',
         'storage.ref.rtcm001',
     ),
-    'fondeo_estable': (
+    'fondeo-estable': (
         'storage.com_pas.wjas008',
         'storage.ref.vjercor04',
     ),
-    'heredados_pdm': (
+    'giovanni-captaciones': (
+        'storage.com_pas.retp001',
+        'storage.com_pas.sdps010',
+        'storage.com_pas.sdps013',
+        'storage.com_pas.wjas004',
+        'storage.ref.vjercor04',
+    ),
+    'giovanni-cartera-agro': (
+        'storage.com_act.hcda001',
+        'storage.com_act.retp001',
+        'storage.com_act.retp002',
+        'storage.com_act.retp003',
+        'storage.ref.fjercor02',
+        'storage.ref.wjercor03',
+    ),
+    'giovanni-seguros': (
+        'storage.com.vdmcom01',
+        'storage.com_act.retp001',
+        'storage.com_act.retp002',
+        'storage.com_act.retp003',
+        'storage.com_act.sdaf002',
+        'storage.com_seg.sdsf001',
+        'storage.ref.wjercor03',
+    ),
+    'heredados-pdm': (
         'dma.dbo.fecciebt',
         'dma.dbo.hiscreditos',
         'dma.dbo.hisgrupospdm',
@@ -213,7 +252,25 @@ USO: dict[str, tuple[str, ...]] = {
         'intcom.dbo.ccs_fund_f',
         'intcom.dbo.distritos_rural_alv',
     ),
-    'productos_verdes': (
+    'michael-captaciones': (
+        'storage.com_pas.hcdp001',
+        'storage.com_pas.pslwcap001',
+        'storage.com_pas.retp001',
+        'storage.com_pas.wcap001',
+        'storage.ref.vjercor04',
+    ),
+    'michael-castigos': (
+        'storage.com_act.hcca001',
+        'storage.com_act.hcda001',
+        'storage.com_act.retp001',
+        'storage.com_act.retp002',
+        'storage.com_act.retp003',
+        'storage.com_act.rfoc001',
+        'storage.gpr.vpph001',
+        'storage.ref.fjercor01',
+        'storage.ref.rtcm001',
+    ),
+    'productos-verdes': (
         'dwh.dbo.bregmod001',
         'dwh.dbo.bregper001',
         'dwh.dbo.bregubt001',
@@ -228,50 +285,7 @@ USO: dict[str, tuple[str, ...]] = {
         'dwh.dbo.vplaper001',
         'slc.dbo.retp006',
     ),
-    'ratio_ce_nuevos_migrantes': (
-        'storage.com_act.hbcn001',
-        'storage.com_act.hcda001',
-        'storage.com_act.hcdr001',
-        'storage.com_act.hcdr002',
-        'storage.com_act.rfoc001',
-        'storage.com_act.wcdce001',
-        'storage.com_act.wcdce002',
-        'storage.ref.rcalen001',
-        'storage.ref.vurbrur01',
-    ),
-    'reporte_michael_palacios': (
-        'storage.com_act.hcca001',
-        'storage.com_act.hcda001',
-        'storage.com_act.retp001',
-        'storage.com_act.retp002',
-        'storage.com_act.retp003',
-        'storage.com_act.rfoc001',
-        'storage.com_pas.hcdp001',
-        'storage.com_pas.pslwcap001',
-        'storage.com_pas.retp001',
-        'storage.com_pas.wcap001',
-        'storage.gpr.vpph001',
-        'storage.ref.fjercor01',
-        'storage.ref.rtcm001',
-        'storage.ref.vjercor04',
-    ),
-    'reportes_giovanni': (
-        'storage.com.vdmcom01',
-        'storage.com_act.hcda001',
-        'storage.com_act.retp001',
-        'storage.com_act.retp002',
-        'storage.com_act.retp003',
-        'storage.com_act.sdaf002',
-        'storage.com_pas.retp001',
-        'storage.com_pas.sdps010',
-        'storage.com_pas.sdps013',
-        'storage.com_pas.wjas004',
-        'storage.com_seg.sdsf001',
-        'storage.ref.fjercor02',
-        'storage.ref.vjercor04',
-        'storage.ref.wjercor03',
-    ),
-    'saca_tu_garra': (
+    'saca-tu-garra': (
         'storage.com_act.hcda001',
         'storage.com_act.hcma001',
         'storage.com_act.hctc001',
@@ -279,11 +293,11 @@ USO: dict[str, tuple[str, ...]] = {
         'storage.com_act.sdae003',
         'storage.ref.rcalen001',
     ),
-    'saldo_medio_vigente': (
+    'saldo-medio-vigente': (
         'storage.com_act.sdas001',
         'storage.com_act.wjas001',
     ),
-    'tapp_saldo_medio_territorio': (
+    'tapp-saldo-medio-territorio': (
         'appj.dbo.salmediovigente1',
         'storage.com_act.retp001',
         'storage.com_act.sdaf002',

@@ -9,6 +9,6 @@ Qué origen consume cada reporte. **El detalle tabla por tabla (con columna de f
 | Bancarizados por producto | `slc` | `csd.dbo.Clientes_DS`, SP de desembolsos en `dwh` | mes |
 | Clientes extranjeros | `slc` (+ `rcc` con `--pasivos-directo`) | créditos, pasivos, seguros por nacionalidad | fin de mes |
 | Indicadores de clientes | `slc` | `INTCOM.dbo.ccd`, `csd.dbo.Clientes_DS`, `DWH.dbo.HCARCAP001`, `INTCOM.dbo.CCS_FUND_F` | mes (seguros con desfase configurable) |
-| Pendientes (SQL en `sql/mensuales/`) | `slc` (mayoría) | ver [catálogo de reportes](../business/domain-catalog.md) | fin de mes |
+| Resto de reportes (17 comandos de lote) | `slc` | ver [inventario de tablas](./tables-inventory.md) | fin de mes (diarios: día anterior) |
 
-> Los reportes pendientes consultan sobre todo `DWH`, `INTCOM`, `DMA`, `storage` y `csd` desde `slc`. Verificar con el responsable antes de automatizar.
+> Los reportes de lote consultan sobre todo `DWH`, `INTCOM`, `DMA`, `storage` y `csd` desde `slc`. Verificar con el responsable antes de automatizar.

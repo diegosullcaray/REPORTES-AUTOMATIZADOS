@@ -14,6 +14,5 @@ def test_regla_de_secretos_detecta_literales(tmp_path, monkeypatch):
     malo = tmp_path / "x.py"
     malo.write_text("conn = 'UID=sa;PWD=abc123;'\n", encoding="utf-8")
     monkeypatch.setattr(vg, "FUENTES", [malo])
-    monkeypatch.setattr(vg, "SQLS", [])
     monkeypatch.setattr(vg, "RAIZ", tmp_path)
     assert [h.regla for h in vg.r_secretos()] == ["secretos-en-codigo"]

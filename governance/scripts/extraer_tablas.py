@@ -1,4 +1,4 @@
-"""Extrae del SQL versionado y de los módulos las tablas que consulta cada reporte.
+"""Extrae de cada módulo de reporte (el SQL va incrustado) las tablas que consulta.
 
 Es la fuente de la regla `tabla-sin-registrar`: lo que el código usa debe estar en `reportes/tablas.py`.
 
@@ -14,16 +14,6 @@ RAIZ = Path(__file__).resolve().parents[2]
 BASES_CONOCIDAS = {"dwh", "intcom", "csd", "storage", "dma", "appj", "slc", "dbriesgos", "dw_raw_v2", "dw_raw",
                    "dbrcc", "dw_metadata", "rcc_cd"}
 RX = re.compile(r"\b(?:FROM|JOIN|INTO|UPDATE|TRUNCATE\s+TABLE|EXEC(?:UTE)?)\s+(\[?[A-Za-z_{][\w$#.{}\[\]]*)", re.I)
-
-# módulo Python -> id de reporte (los SQL se identifican por su carpeta)
-MODULOS = {
-    "diarios/cmg_mora.py": "cmg-mora",
-    "mensuales/bancarizados.py": "bancarizados",
-    "mensuales/bancarizados_producto.py": "bancarizados-producto",
-    "mensuales/clientes_extranjeros.py": "clientes-extranjeros",
-    "mensuales/indicadores_clientes.py": "indicadores-clientes",
-}
-
 
 def normalizar(nombre: str) -> str | None:
     n = nombre.replace("[", "").replace("]", "").rstrip(".").lower()
@@ -54,12 +44,16 @@ def extraer_texto(texto: str) -> set[str]:
 
 
 def por_reporte() -> dict[str, set[str]]:
+    """comando -> tablas que aparecen en el módulo del reporte (el SQL va incrustado en cada módulo)."""
+    import sys
+
+    sys.path.insert(0, str(RAIZ / "src"))
+    from reportes.registro import REPORTES
+
     res: dict[str, set[str]] = {}
-    for rel, rid in MODULOS.items():
-        res[rid] = extraer_texto((RAIZ / "src" / "reportes" / rel).read_text(encoding="utf-8"))
-    for p in sorted((RAIZ / "sql").rglob("*.sql")):
-        rid = p.parent.name
-        res.setdefault(rid, set()).update(extraer_texto(p.read_text(encoding="utf-8", errors="ignore")))
+    for r in REPORTES.values():
+        ruta = RAIZ / "src" / (r.modulo.replace(".", "/") + ".py")
+        res[r.comando if hasattr(r, "comando") else r.nombre] = extraer_texto(ruta.read_text(encoding="utf-8"))
     return res
 
 

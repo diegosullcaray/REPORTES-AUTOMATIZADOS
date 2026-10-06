@@ -14,8 +14,9 @@ description: Las 3 bases de datos del proyecto (dw_raw, rcc, slc), cómo se conf
 Contrato completo: [conexiones-bd](../../docs/data/contracts/conexiones-bd.md).
 
 ```python
-from reportes.db import leer_sql, cargar_sql
-df = leer_sql("slc", cargar_sql("mensuales/saca_tu_garra/saca_tu_garra.sql"), {"fec": "2026-06-30"})
+from reportes.db import leer_sql, ejecutar_lote
+df = leer_sql("slc", "select top 5 * from csd.dbo.Clientes_DS where HFECPRO = :f", {"f": "2026-06-30"})
+resultados = ejecutar_lote("slc", sql_tsql)   # lote completo (#temp, USE, GO): lista de DataFrames
 ```
 
 ## Prohibido

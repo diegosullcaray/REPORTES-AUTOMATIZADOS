@@ -14,27 +14,22 @@ RAIZ = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(RAIZ / "src"))
 SALIDA = RAIZ / "governance" / "docs" / "architecture" / "module-inventory.md"
 SALIDA_TABLAS = RAIZ / "governance" / "docs" / "data" / "tables-inventory.md"
+SALIDA_COMANDOS = RAIZ / "governance" / "docs" / "development" / "runbooks" / "comandos.md"
 
 
 def generar() -> str:
     from reportes.config import BASES
     from reportes.registro import REPORTES
 
-    sqls = sorted((RAIZ / "sql").rglob("*.sql"))
-    codigo = "\n".join(p.read_text(encoding="utf-8") for p in (RAIZ / "src").rglob("*.py"))
     tests = sorted(p.name for p in (RAIZ / "tests").glob("test_*.py"))
     L = ["# Inventario de módulos", "",
          "> **Generado** por `governance/scripts/generar_inventario.py`. No editar a mano: `python governance/scripts/generar_inventario.py`.", "",
          "## Bases de datos", "", "| Alias | Servidor (defecto) | Base (defecto) | Variables |", "|---|---|---|---|"]
     for b in BASES.values():
         L.append(f"| `{b.nombre}` | {b.servidor_defecto} | {b.base_defecto} | `{b.prefijo}_SERVER/DATABASE/USER/PASSWORD` |")
-    L += ["", f"## Reportes automatizados ({len(REPORTES)})", "", "| Comando | Frecuencia | Bases | Módulo |", "|---|---|---|---|"]
+    L += ["", f"## Reportes ejecutables ({len(REPORTES)})", "", "| Comando | Frecuencia | Conexión | Módulo | Qué hace |", "|---|---|---|---|---|"]
     for r in REPORTES.values():
-        L.append(f"| `{r.nombre}` | {r.frecuencia} | {', '.join(r.bases)} | `{r.modulo}` |")
-    L += ["", f"## SQL versionado ({len(sqls)})", "", "| Archivo | Estado |", "|---|---|"]
-    for p in sqls:
-        usado = p.stem in codigo or p.relative_to(RAIZ / "sql").as_posix() in codigo
-        L.append(f"| `{p.relative_to(RAIZ).as_posix()}` | {'consumido por código' if usado else 'pendiente de automatizar'} |")
+        L.append(f"| `{r.nombre}` | {r.frecuencia} | {', '.join(r.bases)} | `{r.modulo}` | {r.descripcion} |")
     L += ["", f"## Pruebas ({len(tests)} archivos)", ""] + [f"- `tests/{t}`" for t in tests]
     return "\n".join(L) + "\n"
 
@@ -66,11 +61,47 @@ def generar_tablas() -> str:
     return "\n".join(L) + "\n"
 
 
+def generar_comandos() -> str:
+    from importlib import import_module
+
+    from reportes.registro import REPORTES
+    from reportes.tablas import TABLAS, USO
+
+    L = ["# Catálogo de comandos", "",
+         "> **Generado** por `governance/scripts/generar_inventario.py` desde `registro.py`, `tablas.py` y los módulos. No editar a mano.", "",
+         "Todos los reportes se ejecutan igual: `python main.py <comando> --fecha-corte AAAA-MM-DD`. El ejecutor común valida las tablas al corte "
+         "(si falta alguna, **no ejecuta** y deja el mensaje para Producción), consulta, valida los datos y exporta el Excel a `data/outputs/<comando>/`. "
+         "Proceso completo: [ejecutar un reporte](./ejecutar-un-reporte.md).", "",
+         "Opciones comunes de los reportes de lote: `--solo-verificar` · `--forzar` · `--sin-verificar` · `--confirmar-escritura` (solo si escribe en BD) · `--salida DIR` · `-v`.", ""]
+    for r in REPORTES.values():
+        mod = import_module(r.modulo)
+        lote = getattr(mod, "REPORTE", None)
+        L += [f"## `{r.nombre}` — {r.frecuencia}", "", r.descripcion, ""]
+        arg = "--fecha-corte AAAA-MM-DD" if r.frecuencia == "mensual" else "[--fecha-corte AAAA-MM-DD]"
+        L += ["```bash", f"python main.py tablas {r.nombre} --fecha-corte AAAA-MM-DD --verificar   # ¿tablas al día?", f"python main.py {r.nombre} {arg}", "```", ""]
+        criticas = [TABLAS[n] for n in USO[r.nombre] if TABLAS[n].verificable]
+        L.append(f"- **Conexión**: `{'`, `'.join(r.bases)}` · **Tablas**: {len(USO[r.nombre])} ({len(criticas)} verificables por fecha) → [inventario](../../data/tables-inventory.md)")
+        if criticas:
+            L.append("- **Críticas** (se validan al corte): " + ", ".join(f"`{t.nombre}`" for t in criticas))
+        if lote is not None:
+            L.append(f"- **Salida**: `data/outputs/{r.nombre.replace('-', '_')}/{lote.archivo or ''.join(x.capitalize() for x in r.nombre.split('-'))}_<AAAAMMDD>.xlsx` (+ hoja `Control`)")
+            if lote.vacio_valido:
+                L.append("- **Vacío válido**: sí (puede no haber datos en el mes)")
+            if lote.escribe_en_bd:
+                L.append("- ⚠ **Escribe en BD** (crea/borra tablas permanentes): exige `--confirmar-escritura`")
+            for a in lote.avisos:
+                L.append(f"- ⚠ {a}")
+        else:
+            L.append(f"- Guía propia: [runbook](./{r.nombre}.md)")
+        L.append("")
+    return "\n".join(L) + "\n"
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--check", action="store_true")
     a = ap.parse_args(argv)
-    pares = [(SALIDA, generar()), (SALIDA_TABLAS, generar_tablas())]
+    pares = [(SALIDA, generar()), (SALIDA_TABLAS, generar_tablas()), (SALIDA_COMANDOS, generar_comandos())]
     if a.check:
         viejos = [d.name for d, nuevo in pares if not d.exists() or d.read_text(encoding="utf-8") != nuevo]
         if viejos:

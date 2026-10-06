@@ -9,10 +9,10 @@ src/reportes/
   tablas.py                     registro de TABLAS por reporte (alias, tipo, columna de fecha)
   verificacion.py               ¿tablas al día? + mensaje de solicitud a Producción
   cli_tablas.py                 subcomandos `tablas` y `solicitud-actualizacion`
-  comun/                        utilidades compartidas (fechas, excel) — por poblar
+  comun/ejecutor.py             flujo común de todo reporte de lote
+  comun/fechas.py               cortes y tokens @@F@@…
   diarios/<reporte>.py          reportes diarios
   mensuales/<reporte>.py        reportes mensuales
-sql/<frecuencia>/<reporte>/     SQL versionado
 data/inputs/                    archivos que entran (Excel/CSV, formatos base) — no versionado
 data/outputs/                   resultados que generan los reportes — no versionado
 tests/                          pytest
@@ -24,8 +24,8 @@ docs/LEGADO/                    archivo histórico, solo lectura
 1. `reportes.<frecuencia>.*` pueden importar `config`, `db`, `comun`; **nunca** entre sí.
 2. Solo `db.py` conoce pyodbc/SQLAlchemy.
 3. Solo `config.py` lee variables de entorno.
-4. El SQL vive en `sql/`; el módulo lo carga (`cargar_sql`) y le pasa parámetros enlazados.
+4. El T-SQL va incrustado en el módulo (`ReporteLote.sql`) con tokens de fecha; el ejecutor los resuelve desde `--fecha-corte`.
 5. Cada módulo expone `main(argv) -> int` y se registra en `registro.py`.
 
 ## Estado de la migración
-Los 5 módulos migrados aún contienen SQL embebido y utilidades repetidas (`Periodo`, `cronometro`, `exportar_excel`). Ver [roadmap](../business/roadmap.md).
+17 reportes usan el ejecutor común (`ReporteLote`). Los 5 primeros migrados (CMG Mora, Bancarizados ×2, Extranjeros, Indicadores) tienen lógica Python propia y utilidades repetidas (`Periodo`, `cronometro`, `exportar_excel`): candidatos a converger al ejecutor. Ver [roadmap](../business/roadmap.md).

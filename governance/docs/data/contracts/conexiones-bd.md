@@ -11,12 +11,14 @@ Las **3 conexiones** del proyecto se definen en `src/reportes/config.py` y se co
 ## Uso desde código
 
 ```python
-from reportes.db import leer_sql, leer_ultimo_resultado, conexion_pyodbc, cargar_sql
+from reportes.db import leer_sql, ejecutar_lote, leer_ultimo_resultado, conexion_pyodbc
 
-df = leer_sql("slc", cargar_sql("mensuales/saca_tu_garra/saca_tu_garra.sql"), {"fec": "2026-06-30"})
+df = leer_sql("slc", "select top 5 * from csd.dbo.Clientes_DS where HFECPRO = :f", {"f": "2026-06-30"})
+resultados = ejecutar_lote("slc", sql_tsql)   # script completo con #temp/USE/GO -> lista de DataFrames
 ```
 
 - `leer_sql(alias, sql, params)`: SELECT parametrizado → DataFrame.
+- `ejecutar_lote(alias, tsql)`: script T-SQL completo (GO, `USE`, `#temp`, `EXEC`) en una sesión → todos los resultados.
 - `leer_ultimo_resultado(alias, sql, params)`: lotes con tabla temporal / SP en una sola sesión.
 - `conexion_pyodbc(alias)`: escrituras y control transaccional (CMG Mora).
 

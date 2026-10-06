@@ -7,11 +7,12 @@ Guías operativas paso a paso. Úsalas **dentro del entorno** (`.venv` activado,
 | [Proceso de cierre de mes](./proceso-cierre-de-mes.md) | inicio de mes: qué reporte primero, qué tablas deben estar cargadas |
 | [Ejecutar un reporte (proceso estándar)](./ejecutar-un-reporte.md) | **cualquier** reporte: pre-vuelo → tablas → ejecución → validación → entrega |
 | [Pedir actualización de tablas a Producción](./solicitud-actualizacion-tablas.md) | una tabla no llegó al corte |
+| [**Catálogo de comandos**](./comandos.md) | los 22 comandos: tablas críticas, salida, avisos (generado) |
 | [`cmg-mora`](./cmg-mora.md) | diario |
 | [`bancarizados`](./bancarizados.md) | mensual |
 | [`bancarizados-producto`](./bancarizados-producto.md) | mensual |
 | [`clientes-extranjeros`](./clientes-extranjeros.md) | mensual |
 | [`indicadores-clientes`](./indicadores-clientes.md) | mensual |
 
-Reportes aún manuales (solo SQL): usan el mismo proceso estándar, pero el paso «ejecutar» sigue el [procedimiento heredado](../../business/procedimientos_manuales_legado.md).
+Todos los reportes comparten el mismo flujo (conexión → tablas al corte → datos → Excel); el [procedimiento manual heredado](../../business/procedimientos_manuales_legado.md) queda como referencia de destinatarios y formato de entrega.
 Qué tabla usa cada reporte: [inventario de tablas](../../data/tables-inventory.md).

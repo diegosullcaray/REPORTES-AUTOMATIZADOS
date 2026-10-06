@@ -2,7 +2,7 @@
 
 ```text
 Bases origen (dw_raw / rcc / slc)
-      │  SQL versionado en sql/<frecuencia>/<reporte>/
+      │  T-SQL incrustado en el módulo del reporte (tokens de fecha)
       ▼
 reportes.db (único acceso, parámetros enlazados)
       ▼
@@ -18,7 +18,7 @@ Un reporte solo es confiable si **todas** sus tablas llegaron al corte. `python 
 
 ## Cómo rastrear una cifra
 1. Reporte y fecha de corte (nombre del archivo en `salidas/`).
-2. SQL exacto: `sql/…` en el commit de esa ejecución.
+2. SQL exacto: la constante `SQL` del módulo, en el commit de esa ejecución.
 3. Alias de BD y tabla (ver [catálogo](./catalog.md)).
 4. Transformaciones: funciones del módulo (agrupaciones de producto, normalización de llaves).
 

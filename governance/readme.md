@@ -44,7 +44,7 @@ Manual: [`scripts/README.md`](./scripts/README.md).
 |---|---|
 | [`reportes-arquitectura-modulos`](./skills/reportes-arquitectura-modulos/SKILL.md) | dónde va cada archivo y cómo se registra un reporte |
 | [`reportes-conexiones-bd`](./skills/reportes-conexiones-bd/SKILL.md) | las 3 bases: alias, `.env`, `db.py`; nunca conexiones propias |
-| [`reportes-sql`](./skills/reportes-sql/SKILL.md) | cómo se escribe, parametriza y versiona el SQL |
+| [`reportes-ejecutor`](./skills/reportes-ejecutor/SKILL.md) | cómo se construye un reporte `.py`: `ReporteLote`, tokens de fecha, validaciones, Excel |
 | [`reportes-secretos-y-salidas`](./skills/reportes-secretos-y-salidas/SKILL.md) | credenciales, datos de clientes y carpeta `data/outputs/` |
 | [`reportes-ejecucion-y-cierre`](./skills/reportes-ejecucion-y-cierre/SKILL.md) | cómo ejecutar un reporte: verificar tablas, pedir actualización, ejecutar, validar |
 | [`reportes-testing`](./skills/reportes-testing/SKILL.md) | pytest sin tocar las bases reales |
