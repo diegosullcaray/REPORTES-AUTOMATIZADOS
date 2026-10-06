@@ -67,9 +67,7 @@ def verificar_tabla(tabla: Tabla, fecha: date) -> Resultado:
         if ultima is None:
             return Resultado(tabla, Estado.DESACTUALIZADA, detalle="tabla sin datos")
         return Resultado(tabla, Estado.OK if ultima >= fecha else Estado.DESACTUALIZADA, ultima)
-    except ConfiguracionError:
-        raise
-    except Exception as exc:  # noqa: BLE001 - se informa por tabla, no se aborta todo
+    except Exception as exc:  # incluye ConfiguracionError (p. ej. falta RCC_USER): esa tabla queda en ERROR, las demás se verifican  # noqa: BLE001 - se informa por tabla, no se aborta todo
         texto = str(exc)
         faltante = "Invalid object name" in texto or "no es válido" in texto or "42S02" in texto
         return Resultado(tabla, Estado.NO_EXISTE if faltante else Estado.ERROR, detalle=texto[:100])

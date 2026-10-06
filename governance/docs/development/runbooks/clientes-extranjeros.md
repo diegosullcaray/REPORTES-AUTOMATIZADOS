@@ -6,7 +6,7 @@
 ```bash
 python main.py tablas clientes-extranjeros --verificar
 ```
-Críticas: `intcom.dbo.ccd` (Fecha_Cierre), `intcom.dbo.ccs_fund_f` (fecha_reporte) y `rcc_cd.db{yyyymm}.dbo.ccp{yyyymmdd}` (debe existir).
+Críticas: `intcom.dbo.ccd` (Fecha_Cierre), `intcom.dbo.ccs_fund_f` (fecha_reporte) y la tabla de pasivos del cierre: `rcc_cd.db<AAAAMM>.dbo.ccp<AAAAMMDD>` desde `slc` (por defecto, vía linked server) o `db<AAAAMM>.dbo.ccp<AAAAMMDD>` en `rcc` (con `--pasivos-directo`; necesita `RCC_USER`/`RCC_PASSWORD`). Si no tienes credenciales de `rcc`, la verificación de la ruta directa sale `ERROR` y las demás se validan igual.
 
 ## Ejecutar
 ```bash

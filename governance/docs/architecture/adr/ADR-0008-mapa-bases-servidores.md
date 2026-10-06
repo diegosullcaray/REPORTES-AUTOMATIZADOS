@@ -19,8 +19,14 @@ Una consulta T-SQL con nombres de 3 partes (`base.esquema.tabla`) solo resuelve 
 
 ## Puntos por confirmar
 - **`DW_Raw_v2`**: se pidió conectarlo a `172.24.2.213`, pero aparece en la lista de `172.20.0.70` (junto a `DBRCC` y `dbriesgos`) y el script heredado de CMG Mora lo consultaba allí; **se mantiene en `rcc`**. Si de verdad vive en `213`, es un cambio de una línea en `BASES_DE`.
-- **`appj`** no aparece en ninguna captura; se asume en MISH porque `tapp-saldo-medio-territorio` lo escribe en la misma sesión que lee `storage`.
+- **`appj`** no aparece en ninguna captura (la de `172.20.0.70` no muestra su parte inicial); se asume en MISH porque `tapp-saldo-medio-territorio` lo escribe en la misma sesión que lee `storage`.
 - **`DBEstudios`** existe en `213` y en `70`: no se usa y no se mapea.
+
+## Tablas corregidas al aplicar el mapa
+- `clientes-extranjeros` no tenía registrada su tabla de pasivos del cierre (`ccp<AAAAMMDD>`, armada por una variable): ahora se registran `rcc_cd.db<AAAAMM>.dbo.ccp<AAAAMMDD>` (servidor `slc`, por el linked server; es la ruta por defecto) y `db<AAAAMM>.dbo.ccp<AAAAMMDD>` (servidor `rcc`, con `--pasivos-directo`).
+- Se retiraron 5 tablas registradas que ningún reporte usa (`dwh.dbo.bregcap001`, `dwh.dbo.bregmod002`, `dwh.dbo.scarcap002`, `dwh.dbo.scarcap004`, `intcom.dbo.clientes_netos_ds`; solo estaban en SQL heredado de Finanzas ya reemplazado). Un test exige que toda tabla registrada la use algún reporte.
+- El extractor de tablas (`extraer_tablas.py`) ahora detecta nombres armados con f-string, para que la regla `tabla-sin-registrar` no vuelva a dejar pasar casos así.
+- Si falta una credencial de un servidor (p. ej. `RCC_USER`), solo esa tabla queda en `ERROR`; las demás se verifican.
 
 ## Consecuencias
 - Un reporte no puede mezclar servidores en una sola consulta; si lo necesita, se divide (como `bancarizados`).

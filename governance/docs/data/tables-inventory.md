@@ -4,7 +4,7 @@
 
 Sirve para el cierre de mes: saber **qué tablas necesita cada reporte** y **a qué reportes afecta una tabla** antes de pedir a Producción que la actualice. Proceso: [cierre de mes](../development/runbooks/proceso-cierre-de-mes.md).
 
-- Tablas registradas: **89** · Reportes con tablas: **22**
+- Tablas registradas: **84** · Reportes con tablas: **22**
 - **Confianza** de la columna de fecha: `confirmada` (aparece en el SQL/código) · `convencion` (inferida por el prefijo H*/S* del core; **validar con el DBA**) · `por_confirmar`.
 
 ## 1. Por reporte (¿qué debo tener actualizado?)
@@ -50,6 +50,8 @@ Sirve para el cierre de mes: saber **qué tablas necesita cada reporte** y **a q
 |---|---|---|---|---|
 | `intcom.dbo.ccd` | `slc` | stock | `Fecha_Cierre` | confirmada |
 | `intcom.dbo.ccs_fund_f` | `slc` | stock | `fecha_reporte` | confirmada |
+| `rcc_cd.db{yyyymm}.dbo.ccp{yyyymmdd}` | `slc` | dinamica | — | por_confirmar |
+| `db{yyyymm}.dbo.ccp{yyyymmdd}` | `rcc` | dinamica | — | por_confirmar |
 
 ### `clientes-jovenes` (mensual)
 
@@ -266,7 +268,7 @@ Sirve para el cierre de mes: saber **qué tablas necesita cada reporte** y **a q
 | `dbriesgos.dbo.prov_proy_{yyyymmdd}_0` | `rcc` | dinamica | `cmg-mora` |
 | `dbriesgos.dbo.recaudo_diario_finanzas` | `rcc` | stock | `cmg-mora` |
 | `db{yyyymm}.dbo.ccd{yyyymmdd}` | `rcc` | dinamica | `bancarizados` |
-| `db{yyyymm}.dbo.ccp{yyyymmdd}` | `rcc` | dinamica | — (solo SQL legado) |
+| `db{yyyymm}.dbo.ccp{yyyymmdd}` | `rcc` | dinamica | `clientes-extranjeros` |
 | `dma.dbo.fecciebt` | `slc` | otro | `heredados-pdm` |
 | `dma.dbo.hiscreditos` | `slc` | historica | `heredados-pdm` |
 | `dma.dbo.hisgrupospdm` | `slc` | historica | `heredados-pdm` |
@@ -275,9 +277,7 @@ Sirve para el cierre de mes: saber **qué tablas necesita cada reporte** y **a q
 | `dw_raw.dbo.clientes` | `rcc` | otro | `bancarizados` |
 | `dw_raw_v2.dbo.cmgmora_recaudo` | `rcc` | staging | `cmg-mora` |
 | `dw_raw_v2.dbo.cmgmora_strjercor` | `rcc` | otro | `cmg-mora` |
-| `dwh.dbo.bregcap001` | `slc` | referencia | — (solo SQL legado) |
 | `dwh.dbo.bregmod001` | `slc` | referencia | `bancarizados-producto`, `heredados-pdm`, `productos-verdes` |
-| `dwh.dbo.bregmod002` | `slc` | referencia | — (solo SQL legado) |
 | `dwh.dbo.bregper001` | `slc` | referencia | `clientes-jovenes`, `indicadores-clientes`, `productos-verdes` |
 | `dwh.dbo.bregubt001` | `slc` | referencia | `heredados-pdm`, `productos-verdes` |
 | `dwh.dbo.gdesemcre001` | `slc` | procedimiento | `bancarizados-producto`, `clientes-jovenes`, `productos-verdes` |
@@ -290,9 +290,7 @@ Sirve para el cierre de mes: saber **qué tablas necesita cada reporte** y **a q
 | `dwh.dbo.rtipcre002` | `slc` | referencia | `bancarizados-producto`, `heredados-pdm`, `productos-verdes` |
 | `dwh.dbo.rtipcre003` | `slc` | referencia | `bancarizados-producto`, `heredados-pdm`, `productos-verdes` |
 | `dwh.dbo.scarcap001` | `slc` | stock | `indicadores-clientes` |
-| `dwh.dbo.scarcap002` | `slc` | stock | — (solo SQL legado) |
 | `dwh.dbo.scarcap003` | `slc` | stock | `indicadores-clientes` |
-| `dwh.dbo.scarcap004` | `slc` | stock | — (solo SQL legado) |
 | `dwh.dbo.scarcre002` | `slc` | stock | `productos-verdes` |
 | `dwh.dbo.scarcre006` | `slc` | stock | `clientes-jovenes` |
 | `dwh.dbo.vplaper001` | `slc` | otro | `productos-verdes` |
@@ -301,9 +299,8 @@ Sirve para el cierre de mes: saber **qué tablas necesita cada reporte** y **a q
 | `intcom.dbo.an_productos` | `slc` | otro | `bancarizados` |
 | `intcom.dbo.ccd` | `slc` | stock | `bancarizados`, `clientes-extranjeros`, `indicadores-clientes` |
 | `intcom.dbo.ccs_fund_f` | `slc` | stock | `clientes-extranjeros`, `indicadores-clientes` |
-| `intcom.dbo.clientes_netos_ds` | `slc` | otro | — (solo SQL legado) |
 | `intcom.dbo.distritos_rural_alv` | `slc` | otro | `indicadores-clientes` |
-| `rcc_cd.db{yyyymm}.dbo.ccp{yyyymmdd}` | `slc` | dinamica | — (solo SQL legado) |
+| `rcc_cd.db{yyyymm}.dbo.ccp{yyyymmdd}` | `slc` | dinamica | `clientes-extranjeros` |
 | `slc.dbo.retp006` | `slc` | referencia | `productos-verdes` |
 | `storage.com.vdmcom01` | `mish` | otro | `giovanni-seguros` |
 | `storage.com_act.hbcn001` | `mish` | historica | `clientes-rurales-migrantes` |

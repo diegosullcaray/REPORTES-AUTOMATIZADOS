@@ -54,8 +54,8 @@ python main.py tablas clientes-extranjeros --verificar   # ¿tablas al día? (fe
 python main.py clientes-extranjeros [--fecha-corte AAAA-MM-DD]   # sin la opción usa FECHA_CORTE_MENSUAL del .env
 ```
 
-- **Servidor**: `slc`, `rcc` · **Tablas**: 2 (2 verificables por fecha) → [inventario](../../data/tables-inventory.md)
-- **Críticas** (se validan al corte): `intcom.dbo.ccd`, `intcom.dbo.ccs_fund_f`
+- **Servidor**: `slc`, `rcc` · **Tablas**: 4 (4 verificables por fecha) → [inventario](../../data/tables-inventory.md)
+- **Críticas** (se validan al corte): `intcom.dbo.ccd`, `intcom.dbo.ccs_fund_f`, `rcc_cd.db{yyyymm}.dbo.ccp{yyyymmdd}`, `db{yyyymm}.dbo.ccp{yyyymmdd}`
 - Guía propia: [runbook](./clientes-extranjeros.md)
 
 ## `indicadores-clientes` — mensual

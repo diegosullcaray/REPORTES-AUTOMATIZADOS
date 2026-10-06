@@ -33,9 +33,18 @@ def normalizar(nombre: str) -> str | None:
     return None
 
 
+RX_DINAMICA = re.compile(r"\bdb\{p\.yyyymm\}\.dbo\.([a-z]+)\{p\.yyyymmdd\}", re.I)
+
+
 def extraer_texto(texto: str) -> set[str]:
     texto = re.sub(r"--[^\n]*", "", texto)
     salida = set()
+    # Tablas cuyo nombre se arma en un f-string (p. ej. pasivos de clientes_extranjeros): directa en rcc y, si el
+    # módulo usa el linked server rcc_cd, también por ese linked server desde slc.
+    for m in RX_DINAMICA.finditer(texto):
+        salida.add(f"db{{yyyymm}}.dbo.{m.group(1).lower()}{{yyyymmdd}}")
+        if "LINKED_SERVER_RCC" in texto or "rcc_cd" in texto:
+            salida.add(f"rcc_cd.db{{yyyymm}}.dbo.{m.group(1).lower()}{{yyyymmdd}}")
     for m in RX.finditer(texto):
         n = normalizar(m.group(1))
         if n:

@@ -61,3 +61,14 @@ def test_nombre_malicioso_no_se_ejecuta(monkeypatch):
     monkeypatch.setattr(v, "leer_sql", lambda *a, **k: llamado.append(1))
     t = Tabla("x; DROP TABLE y", "historica", "HFECPRO", "confirmada")
     assert v.verificar_tabla(t, date(2026, 9, 30)).estado is v.Estado.ERROR and not llamado
+
+
+def test_credencial_faltante_en_un_servidor_no_aborta_la_verificacion(monkeypatch):
+    from reportes.config import ConfiguracionError
+
+    def falla(*a, **k):
+        raise ConfiguracionError("La conexión rcc requiere RCC_USER y RCC_PASSWORD en el .env")
+
+    monkeypatch.setattr(v, "leer_sql", falla)
+    r = v.verificar_tabla(Tabla("db{yyyymm}.dbo.ccp{yyyymmdd}", "dinamica", None, "por_confirmar"), date(2026, 9, 30))
+    assert r.estado is v.Estado.ERROR and "RCC_USER" in r.detalle

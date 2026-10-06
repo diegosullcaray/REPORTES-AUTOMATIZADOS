@@ -10,7 +10,7 @@ Qué base vive en qué servidor. Fuente: explorador de objetos de SSMS de cada s
 | `slc` | `172.24.2.213` (SQL Server 14.0.3520) | Windows | `dwh`, `dma`, `csd`, `intcom`, `slc` | abp, aud, crs, DBEstudios, DBS70, dga, dsa, etl, mds, mla, sla, slb, sld, sle, slf, slg, tdj, test_temp, tmp, wks |
 | `rcc` | `172.20.0.70` | SQL (`master`) | `dbriesgos`, `DBRCC`, `DW_Raw_v2`, `DW_Metadata`, `DW_Raw`, `DB<AAAAMM>` | DBEstudios, DBFinanzas, DBFSH, DW_Application, DW_Recycle, DW_Staging(_v2), DW_Summary(_v2), gerencia_riesgos_bd, ReportServer(TempDB) |
 
-\* `appj` no aparece en las capturas: se asume en MISH (por confirmar). `DBEstudios` está en 213 y en 70: ambigua, ningún reporte la usa.
+\* `appj` no aparece en las capturas de MISH ni de 213, y la captura de `172.20.0.70` empieza en `DB202511` (no se ve su parte alfabética inicial, donde estaría `appj`): **podría vivir en `rcc`**. Se asume en MISH (por confirmar). `DBEstudios` está en 213 y en 70: ambigua, ningún reporte la usa.
 Las bases mensuales `DB202511 … DB202610` son del servidor `rcc` (una por mes).
 `rcc_cd` es un *linked server* definido en `slc` (172.24.2.213) que apunta a `rcc`; se consulta con 4 partes (`rcc_cd.db202607.dbo.ccp20260731`) desde `slc`.
 
@@ -25,5 +25,5 @@ Generado: [inventario de módulos](../architecture/module-inventory.md) (columna
 
 ## Puntos por confirmar
 1. **`DW_Raw_v2`**: se pidió ubicarlo en `172.24.2.213`; la captura de `172.20.0.70` lo lista y el script heredado de CMG Mora lo usa allí. Se mantiene en `rcc`. Cambiarlo = una línea en `BASES_DE`.
-2. `appj` (dónde vive realmente).
+2. `appj` (dónde vive realmente): solo afecta a `tapp-saldo-medio-territorio`, que lee `storage` (MISH) y escribe `appj.dbo.salmediovigente1` en la misma sesión; si `appj` está en otro servidor, ese reporte hay que partirlo en dos.
 3. El TXT de INSERTs de `cmg-mora` apunta a `[storage].[com_act].[SBTVRIE001]` (MISH): lo carga quien corresponda fuera de este proyecto.
