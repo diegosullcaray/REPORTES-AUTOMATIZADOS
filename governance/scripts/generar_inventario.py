@@ -14,6 +14,7 @@ RAIZ = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(RAIZ / "src"))
 SALIDA = RAIZ / "governance" / "docs" / "architecture" / "module-inventory.md"
 SALIDA_TABLAS = RAIZ / "governance" / "docs" / "data" / "tables-inventory.md"
+SALIDA_COLUMNAS = RAIZ / "governance" / "docs" / "data" / "columnas-fecha-de-corte.md"
 SALIDA_COMANDOS = RAIZ / "governance" / "docs" / "development" / "runbooks" / "comandos.md"
 
 
@@ -68,6 +69,36 @@ def generar_tablas() -> str:
     return "\n".join(L) + "\n"
 
 
+def generar_columnas_fecha() -> str:
+    from reportes.cli_tablas import filas_columnas_fecha
+    from reportes.registro import REPORTES, ordenados
+    from reportes.tablas import TABLAS
+
+    filas = filas_columnas_fecha()
+    L = ["# Columnas que controlan la fecha de corte", "",
+         "> **Generado** desde `src/reportes/tablas.py` y `src/reportes/reglas_fecha.py` (leyendo el SQL de cada reporte). No editar a mano; "
+         "CSV para Producción: `python main.py columnas-fecha --csv columnas.csv`.", "",
+         "Para **Producción**: al cargar el cierre, la columna de la tabla indicada debe quedar con la **fecha de corte**; los reportes validan y filtran por ella. "
+         "Notación: D = corte diario · F = corte mensual (fin de mes) · «cierre hábil» = `RCIEBT = 1` en `storage.ref.rcalen001`.", "",
+         "## 1. Por tabla (qué columna debe llevar la fecha del cierre)", "", "| Tabla | Conexión | Columna de fecha | Reportes que la usan |", "|---|---|---|---|"]
+    por_tabla: dict[str, list[str]] = {}
+    for f in filas:
+        por_tabla.setdefault(f["tabla"], []).append(f["reporte"])
+    for n in sorted(TABLAS):
+        t = TABLAS[n]
+        if t.col_fecha and n in por_tabla:
+            L.append(f"| `{n}` | `{t.servidor}` | `{t.col_fecha}` | {', '.join(f'`{r}`' for r in por_tabla[n])} |")
+    sin = sorted(n for n in por_tabla if not TABLAS[n].col_fecha)
+    L += ["", f"Sin columna de fecha de corte ({len(sin)}: catálogos, funciones o tablas que genera el reporte): " + ", ".join(f"`{n}`" for n in sin), "",
+          "## 2. Por reporte (condición exacta)", ""]
+    for r in ordenados():
+        L += [f"### {REPORTES[r.nombre].etiqueta} · `{r.nombre}`", "", "| Tabla | Columna | Condición que aplica el reporte |", "|---|---|---|"]
+        for f in (x for x in filas if x["reporte"] == r.nombre):
+            L.append(f"| `{f['tabla']}` | {('`' + f['columna_fecha'] + '`') if f['columna_fecha'] else '—'} | {f['condicion']} |")
+        L.append("")
+    return "\n".join(L) + "\n"
+
+
 def generar_comandos() -> str:
     from importlib import import_module
 
@@ -118,7 +149,7 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--check", action="store_true")
     a = ap.parse_args(argv)
-    pares = [(SALIDA, generar()), (SALIDA_TABLAS, generar_tablas()), (SALIDA_COMANDOS, generar_comandos())]
+    pares = [(SALIDA, generar()), (SALIDA_TABLAS, generar_tablas()), (SALIDA_COLUMNAS, generar_columnas_fecha()), (SALIDA_COMANDOS, generar_comandos())]
     if a.check:
         viejos = [d.name for d, nuevo in pares if not d.exists() or d.read_text(encoding="utf-8") != nuevo]
         if viejos:

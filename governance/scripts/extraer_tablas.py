@@ -37,6 +37,7 @@ RX_DINAMICA = re.compile(r"\bdb\{p\.yyyymm\}\.dbo\.([a-z]+)\{p\.yyyymmdd\}", re.
 
 
 def extraer_texto(texto: str) -> set[str]:
+    texto = re.sub(r"/\*.*?\*/", "", texto, flags=re.S)   # comentarios de bloque: una tabla citada solo en un comentario no cuenta
     texto = re.sub(r"--[^\n]*", "", texto)
     salida = set()
     # Tablas cuyo nombre se arma en un f-string (p. ej. pasivos de clientes_extranjeros): directa en rcc y, si el

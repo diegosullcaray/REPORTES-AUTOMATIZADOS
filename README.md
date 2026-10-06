@@ -352,3 +352,7 @@ Todo está en [`governance/`](governance/readme.md). Lo que más vas a usar:
 python governance\scripts\verificar.py     :: gobernanza + inventarios + pruebas
 ```
   Si cambias reportes, tablas o conexiones, regenera los inventarios: `python governance\scripts\generar_inventario.py`. **No regeneres la línea base para destrabar** una compuerta ([ADR-0003](governance/docs/architecture/adr/ADR-0003-linea-base-de-gobernanza.md)).
+
+## Columnas que controlan la fecha de corte
+
+`python main.py columnas-fecha [reporte] [--csv archivo.csv]` lista, por tabla, la columna de fecha que valida el cierre y la condición que aplica cada reporte (para indicar a Producción qué columna cargar). Doc: `governance/docs/data/columnas-fecha-de-corte.md`.

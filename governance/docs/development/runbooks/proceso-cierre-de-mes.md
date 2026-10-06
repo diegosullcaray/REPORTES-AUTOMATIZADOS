@@ -37,3 +37,15 @@ Ejecuta cada reporte con su guía: [`bancarizados`](./bancarizados.md), [`bancar
 
 ## Cierre
 Entregas hechas, bitácora al día, incidentes registrados. Si las tablas fallaron, anota a quién se pidió y cuánto tardó: alimenta el [roadmap](../../business/roadmap.md).
+
+## Columna que controla la fecha de corte (para Producción)
+
+Cada tabla se valida por una columna de fecha (p. ej. `HFECPRO`, `SFECPRO`, `RFECPRO`, `FECHA_CIERRE`). Para pasar la lista a Producción:
+
+```bash
+python main.py columnas-fecha                      # todas las tablas y la condición de cada reporte
+python main.py columnas-fecha saca-tu-garra        # un reporte
+python main.py columnas-fecha --csv columnas.csv   # CSV (separador ;) para enviar
+```
+
+Detalle completo: [columnas-fecha-de-corte](../../../data/columnas-fecha-de-corte.md) (generado). Las condiciones viven en `src/reportes/reglas_fecha.py`.

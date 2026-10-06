@@ -8,7 +8,8 @@ from pathlib import Path
 
 from .config import DIR_OUTPUTS, ConfiguracionError
 from .registro import DIA_ANTERIOR_SIMPLE, frecuencia_de
-from .tablas import USO, tablas_de
+from .reglas_fecha import regla_de
+from .tablas import TABLAS, USO, tablas_de
 from .verificacion import Estado, fecha_esperada, mensaje_solicitud, nombre_resuelto, verificar_reporte
 
 
@@ -79,4 +80,40 @@ def cmd_solicitud(argv: list[str]) -> int:
     archivo.write_text(texto + "\n", encoding="utf-8")
     print(texto)
     print(f"\n(Guardado en {archivo})")
+    return 0
+
+
+def filas_columnas_fecha(reporte: str | None = None) -> list[dict[str, str]]:
+    """Una fila por (reporte, tabla): la columna que controla el corte y la condición exacta que aplica el reporte."""
+    filas = []
+    for rep in sorted(USO) if reporte is None else [reporte]:
+        for n in USO[rep]:
+            t = TABLAS[n]
+            filas.append({"reporte": rep, "frecuencia": frecuencia_de(rep), "tabla": n, "conexion": t.servidor, "tipo": t.tipo,
+                          "columna_fecha": t.col_fecha or "", "condicion": regla_de(rep, n) or ""})
+    return filas
+
+
+def cmd_columnas_fecha(argv: list[str]) -> int:
+    import csv
+    import sys
+    p = argparse.ArgumentParser(prog="main.py columnas-fecha", description="Columna que controla la fecha de corte en cada tabla de cada reporte (para Producción).")
+    p.add_argument("reporte", nargs="?", help="sin argumento: todos los reportes")
+    p.add_argument("--csv", metavar="ARCHIVO", nargs="?", const="-", help="exporta CSV (sin ARCHIVO: a pantalla; defecto de carpeta: data/outputs/solicitudes)")
+    a = p.parse_args(argv)
+    if a.reporte and a.reporte not in USO:
+        print(f"Reporte '{a.reporte}' desconocido. Disponibles: {', '.join(sorted(USO))}")
+        return 2
+    filas = filas_columnas_fecha(a.reporte)
+    if a.csv:
+        salida = sys.stdout if a.csv == "-" else open(a.csv, "w", newline="", encoding="utf-8-sig")
+        w = csv.DictWriter(salida, fieldnames=list(filas[0]), delimiter=";")
+        w.writeheader()
+        w.writerows(filas)
+        if salida is not sys.stdout:
+            salida.close()
+            print(f"Escrito {a.csv}")
+        return 0
+    for f in filas:
+        print(f"{f['reporte']:<28} {f['tabla']:<42} {f['columna_fecha'] or '-':<12} {f['condicion']}")
     return 0

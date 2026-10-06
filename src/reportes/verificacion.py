@@ -12,6 +12,7 @@ from enum import Enum
 
 from .comun.fechas import resolver_corte
 from .db import leer_sql
+from .reglas_fecha import regla_de
 from .tablas import Tabla, tablas_de
 
 
@@ -92,6 +93,9 @@ def mensaje_solicitud(reporte: str, fecha: date, resultados: list[Resultado] | N
             extra = f" — última fecha cargada: {r.ultima_fecha:%d/%m/%Y}" if r.ultima_fecha else f" — {r.estado.value.lower()}"
         col = f" (columna de fecha: {t.col_fecha})" if t.col_fecha else ""
         L.append(f"  • {nombre_resuelto(t, fecha)}  [conexión {t.servidor}]{col}{extra}")
+        regla = regla_de(reporte, t.nombre)
+        if regla:
+            L.append(f"      el reporte filtra: {regla}")
     otras = [nombre_resuelto(t, fecha) for t in tablas_de(reporte) if not t.verificable and t.tipo in {"otro", "referencia"}]
     if otras:
         L += ["", "Si alguna de estas vistas/catálogos que también usa el reporte depende de esas cargas, valida que se refresque: "

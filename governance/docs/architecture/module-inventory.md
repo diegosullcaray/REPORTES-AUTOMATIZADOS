@@ -39,7 +39,7 @@ El `.env` define **servidores**; la **base de datos la elige cada reporte** (`ba
 | Erick 03.3 | `clientes-extranjeros` | mensual | slc, rcc | propia (ver módulo) | `reportes.mensuales.erick.r03_3_clientes_extranjeros` | Clientes por nacionalidad: créditos, pasivos y seguros |
 | Erick 03.4 | `indicadores-clientes` | mensual | slc | propia (ver módulo) | `reportes.mensuales.erick.r03_4_indicadores_clientes` | Indicadores de clientes para el Directorio |
 
-## Pruebas (16 archivos)
+## Pruebas (17 archivos)
 
 - `tests/test_cli_tablas.py`
 - `tests/test_config.py`
@@ -52,6 +52,7 @@ El `.env` define **servidores**; la **base de datos la elige cada reporte** (`ba
 - `tests/test_formatos_reportes.py`
 - `tests/test_imagen.py`
 - `tests/test_registro.py`
+- `tests/test_reglas_fecha.py`
 - `tests/test_reportes_lote.py`
 - `tests/test_servidores_bases.py`
 - `tests/test_tablas.py`

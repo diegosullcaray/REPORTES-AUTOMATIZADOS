@@ -29,6 +29,7 @@ def main(argv: list[str]) -> int:
             print()
         print("\n  probar-conexiones        verifica los 3 servidores (mish, slc, rcc)")
         print("  tablas <reporte>         tablas que usa; con --fecha-corte X --verificar: ¿están al día?")
+        print("  columnas-fecha [reporte] [--csv [ARCHIVO]]   columna que controla la fecha de corte por tabla (para Producción)")
         print("  solicitud-actualizacion <reporte> --fecha-corte X [--verificar]   mensaje para Producción")
         return 0
     if argv[0] == "probar-conexiones":
@@ -42,6 +43,10 @@ def main(argv: list[str]) -> int:
         from reportes.cli_tablas import cmd_tablas
 
         return cmd_tablas(argv[1:])
+    if argv[0] == "columnas-fecha":
+        from reportes.cli_tablas import cmd_columnas_fecha
+
+        return cmd_columnas_fecha(argv[1:])
     if argv[0] == "solicitud-actualizacion":
         from reportes.cli_tablas import cmd_solicitud
 
