@@ -129,6 +129,16 @@ export interface PruebaConexion {
   milisegundos: number;
 }
 
+export interface Perfil {
+  usuario: string;
+  equipo: string;
+  correo_prueba: string;
+  cuenta_envio: string | null;
+  clave_envio_configurada: boolean;
+  webhook_configurado: boolean;
+  destinatarios: number | null;
+}
+
 export interface ConfiguracionGeneral {
   corte_mensual: Corte;
   corte_diario: Corte;

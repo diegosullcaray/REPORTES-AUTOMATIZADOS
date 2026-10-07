@@ -38,6 +38,17 @@ def test_configuracion_informa_cortes_y_carpetas(monkeypatch):
     assert c["dir_outputs"]
 
 
+def test_perfil_no_expone_secretos(monkeypatch):
+    monkeypatch.setenv("SMTP_USER", "mis@confianza.pe")
+    monkeypatch.setenv("SMTP_PASSWORD", "clave-secreta")
+    monkeypatch.setenv("GOOGLE_CHAT_WEBHOOK_URL", "https://chat.example/webhook-secreto")
+    r = cliente.get("/api/perfil")
+    assert r.status_code == 200
+    p = r.json()
+    assert (p["cuenta_envio"], p["clave_envio_configurada"], p["webhook_configurado"]) == ("mis@confianza.pe", True, True)
+    assert "clave-secreta" not in r.text and "webhook-secreto" not in r.text
+
+
 def test_historial_respeta_el_limite():
     assert cliente.get("/api/ejecuciones?limite=0").status_code == 422
 

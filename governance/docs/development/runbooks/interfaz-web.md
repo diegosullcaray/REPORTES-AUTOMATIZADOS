@@ -24,29 +24,28 @@ Si cambias el `.env`, reinicia la API (lo lee al arrancar).
 | Sección | Qué muestra |
 |---|---|
 | **Inicio** | Cortes vigentes del `.env`, métricas de los últimos 7 días (ejecuciones, % de éxito, estados), **avance del cierre de mes** (mensuales con una ejecución correcta para `FECHA_CORTE_MENSUAL` y cuáles faltan) y ejecuciones recientes con acceso al log |
-| **Reportes** | Tabla del catálogo (Nº del legado, tipo, responsable, servidor, última ejecución) con buscador, filtro y orden; la lista lateral para entrar a cada reporte |
+| **Reportes** | Tabla del catálogo (Nº del legado, tipo, responsable, servidor, última ejecución) con buscador, filtro y orden |
 | **Ejecuciones** | Historial completo: filtros por estado y tipo, orden por columna, columnas a elección, paginación; por fila: **Log** en panel lateral, detalle, ir al reporte, copiar el comando. Se refresca cada 5 s |
-| **Configuración** | *General*: cortes, carpetas de entrada/salida y driver que leyó la API. *Bases de datos*: los 3 servidores con **Test de conexión** (uno o todos) |
+| **Perfil** (menú de usuario, al pie del sidebar) | *Perfil*: usuario y equipo que ejecutan la API, cuenta y correo de prueba, estado del envío (contraseña, webhook, nº de destinatarios) y tema. *Configuración*: cortes, carpetas y driver que leyó la API. *Bases de datos*: los 3 servidores con **Test de conexión** (uno o todos). Nada de esto muestra contraseñas |
 
-El pie del sidebar indica si la API responde y cuántas ejecuciones hay en curso; el encabezado muestra la hora de Lima.
+Navegación (como Dokploy): el sidebar principal (Inicio · Reportes · Ejecuciones) se pliega a íconos con el botón del
+encabezado o **Ctrl+B**. **Reportes** es un menú plegable con el árbol del legado: Diarios · Heredados de Piero · Heredados de
+Erick, y dentro las carpetas con sub-reportes (04 → 04.1, 04.2; 09 → 09.1, 09.2…). Al pie va el menú de usuario (iniciales,
+estado de la API y ejecuciones en curso) con Perfil, Configuración, Bases de datos y el tema. Las migas muestran dónde estás
+(`Reportes > Diarios > Cartera sin asignar`) y el encabezado la hora de Lima.
 
 ## Procedimiento por reporte
 
-Navegación: el sidebar principal (Inicio · Reportes · Ejecuciones · Configuración) se pliega a íconos con el botón del encabezado
-o **Ctrl+B**. La pestaña abierta queda en la URL (`?tab=historial`), así se puede compartir o recargar. Dentro de Reportes, la lista (Diarios · Mensuales › Heredados de Piero / Erick, con buscador) se pliega con su
-propio botón y recuerda la preferencia. En el celular el sidebar principal se abre desde el encabezado y la lista de reportes
-es la pantalla inicial. Las migas muestran dónde estás (`Reportes > Diarios > Cartera sin asignar`).
+El encabezado del reporte muestra el ícono con el estado de la última ejecución, la descripción, el comando equivalente y las
+insignias (tipo, servidor, responsable · Nº). La pestaña abierta queda en la URL (`?tab=ejecuciones`).
 
 | Pestaña | Qué hace | Equivale a |
 |---|---|---|
-| Ejecución | Parámetros (fecha de corte, correo, confirmaciones) → **Ejecutar reporte** → confirmación → **log en vivo** tipo consola | `python main.py <r> --fecha-corte …` |
-| Validación de tablas | **Verificar tablas** (solo SELECT). Si falta alguna: mensaje para Producción, **Copiar** o **Guardar** en `data/outputs/solicitudes/` | `tablas <r> --verificar` · `solicitud-actualizacion` |
+| General | Tarjeta **Ejecución** con las acciones (Ejecutar, Verificar tablas, Archivos, Ejecuciones, Copiar comando) y el **log en vivo**; tarjeta **Parámetros** (fecha de corte, correo, confirmaciones) y tarjeta **Información** (Nº, responsable, servidor, tablas, carpeta de salida) | `python main.py <r> --fecha-corte …` |
+| Validación (reportes de lote) | **Verificar tablas** (solo SELECT). Si falta alguna: mensaje para Producción, **Copiar** o **Guardar** en `data/outputs/solicitudes/` | `tablas <r> --verificar` · `solicitud-actualizacion` |
+| Ejecuciones | Las últimas 20, numeradas, con estado, corte, duración, **Ver log** y detalle | — |
 | Archivos | Excel, imagen y textos de la carpeta del reporte, con **vista previa** (200 filas por hoja) y descarga | `data/outputs/<…>/` |
 | Correo (solo `cartera-sin-asignar`) | Estado de la prueba; **Enviar a toda la lista** exige marcar «Revisé el correo de prueba» | `--correo todos --conforme` |
-| Historial | Ejecuciones del reporte con su log | — |
-
-**Configuración › Bases de datos**: los 3 servidores (host, autenticación, si hay credenciales en el `.env`, bases) y un
-**Test de conexión** por servidor que responde con un aviso de éxito o error. Las credenciales nunca se muestran.
 
 Reglas que la API exige (aunque la web ya las avise):
 
@@ -71,11 +70,11 @@ Si la API se reinicia con una ejecución en curso, queda en **Error** con la not
 
 ```text
 src/api/            app.py (rutas) · esquemas.py (contratos) · servicios.py (casos de uso) · ejecuciones.py (cola)
-web/src/app/        rutas: /reportes (layout con el sidebar secundario) · /reportes/[nombre] · /ejecuciones · /ejecuciones/[id] · /configuracion; tokens.css (copia de MIS)
+web/src/app/        rutas: / · /reportes · /reportes/[nombre] · /ejecuciones · /ejecuciones/[id] · /perfil; tokens.css (copia de MIS)
 web/src/lib/        api.ts (transporte) · tipos.ts (espejo de esquemas.py) · formato.ts (funciones puras)
-web/src/features/   orquestación por pantalla (reportes, ejecuciones, configuracion)
+web/src/features/   orquestación por pantalla (inicio, reportes, ejecuciones, perfil)
 web/src/components/ presentación compartida: app-sidebar, encabezado (migas), pagina, terminal, estados, confirmar; ui/ = shadcn
 ```
 
-API usada por Configuración: `GET /api/configuracion`, `GET /api/servidores` (sin secretos) y `POST /api/servidores/{nombre}/prueba` (`SELECT 1`).
+API usada por Perfil: `GET /api/perfil` (sin contraseñas ni webhook), `GET /api/configuracion`, `GET /api/servidores` (sin secretos) y `POST /api/servidores/{nombre}/prueba` (`SELECT 1`).
 El historial admite `GET /api/ejecuciones?reporte=…&limite=…` (1–2000, por defecto 200), de la más reciente a la más antigua.

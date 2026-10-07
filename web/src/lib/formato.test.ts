@@ -1,7 +1,7 @@
 // node --test src/lib  (Node 22+ ejecuta TypeScript directamente)
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { agruparPorCarpeta, corteDe, haceTiempo } from "./formato.ts";
+import { agruparPorCarpeta, corteDe, haceTiempo, iniciales } from "./formato.ts";
 
 test("tiempo relativo y corte de los argumentos", () => {
   const ahora = Date.parse("2026-10-07T12:00:00");
@@ -10,6 +10,8 @@ test("tiempo relativo y corte de los argumentos", () => {
   assert.equal(corteDe(["saca-tu-garra", "--fecha-corte", "2026-09-30", "--forzar"]), "2026-09-30");
   assert.equal(corteDe(["indicadores-clientes", "--mes", "2026-09"]), "2026-09");
   assert.equal(corteDe(["listar"]), null);
+  assert.equal(iniciales("diego.sullcaray"), "DS");
+  assert.equal(iniciales("24681"), "24");
 });
 
 test("los sub-reportes de una carpeta del legado quedan bajo un nodo", () => {

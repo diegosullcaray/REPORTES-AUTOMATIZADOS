@@ -22,7 +22,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <TooltipProvider>
-            <SidebarProvider>
+            <SidebarProvider style={{ "--sidebar-width": "19.5rem" } as React.CSSProperties}>
               <AppSidebar />
               <SidebarInset className="min-w-0">
                 <Encabezado />

@@ -30,6 +30,13 @@ export const ESTADO_TABLA: Record<EstadoTabla, Tono> = {
 export const CATEGORIA: Record<Frecuencia, string> = { diaria: "Diarios", mensual: "Mensuales" };
 export const TIPO: Record<Frecuencia, string> = { diaria: "Diario", mensual: "Mensual" };
 
+/** "diego.sullcaray" → "DS", "24681" → "24" (avatar del menú de usuario). */
+export function iniciales(usuario: string): string {
+  const partes = usuario.split(/[.\s_-]+/).filter(Boolean);
+  if (partes.length >= 2) return (partes[0][0] + partes[1][0]).toUpperCase();
+  return (partes[0] ?? "?").slice(0, 2).toUpperCase();
+}
+
 /** "cartera-sin-asignar" → "Cartera sin asignar". */
 export const titulo = (nombre: string) => nombre.charAt(0).toUpperCase() + nombre.slice(1).replaceAll("-", " ");
 

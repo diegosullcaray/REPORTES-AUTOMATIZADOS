@@ -19,7 +19,8 @@ tablas, ejecución, vista previa de las salidas y envío de correo) con el estil
    prueba previa + conforme para enviar a todos). La web solo anticipa los mensajes; la API decide.
 4. **Web Next.js + shadcn/ui en `web/`**, que consume la API por proxy (`/api`, mismo origen, sin CORS).
 5. **Estética Dokploy con la paleta de MIS** (tarea `governance/tasks/tareasdiarias.md`, 2026-10-07): interfaz plana con el
-   `Sidebar` de shadcn (primario global retráctil a íconos + secundario retráctil con el catálogo de reportes), encabezado con
+   `Sidebar` de shadcn (retráctil a íconos, con «Reportes» como menú plegable del árbol del legado y, al pie, el menú de
+   usuario que lleva a Perfil, donde vive la configuración; el sidebar secundario se retiró el 2026-10-07), encabezado con
    `SidebarTrigger` y migas, vista de reporte limpia (título, tipo, parámetros, botón y log tipo terminal) y Configuración ›
    Bases de datos con test de conexión por servidor. Sin wallpaper ni vidrio. Los colores siguen saliendo de
    `web/src/app/tokens.css` (copia de `MIS-angular-front/src/app/theme/tokens.css`): las variables de shadcn solo reexportan

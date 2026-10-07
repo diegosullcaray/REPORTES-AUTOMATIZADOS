@@ -17,7 +17,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 3. **Estados en orden**: error → cargando (esqueleto de la propia tabla) → vacío → contenido (`components/estados.tsx`).
 4. **La API decide**: toda regla del reporte se valida en `src/api/servicios.py`; la web solo la anticipa.
 5. **Estética Dokploy** (`governance/tasks/tareasdiarias.md`): plana, sin vidrio ni wallpaper; navegación con el `Sidebar` de
-   shadcn (primario `AppSidebar` + secundario del catálogo, ambos retráctiles), migas en `components/encabezado.tsx`,
+   shadcn (`AppSidebar`: retráctil, con el árbol de reportes plegable y el menú de usuario al pie, que lleva a `/perfil`
+   con la configuración), migas en `components/encabezado.tsx`; dentro de una vista, tarjetas con `components/tarjeta.tsx`,
    vistas con `components/pagina.tsx`, logs con `components/terminal.tsx`, avisos con `toast` de sonner. Móvil primero.
 6. **Patrones copiados de Dokploy** (referencia: `apps/dokploy/components` de github.com/Dokploy/dokploy):
    - Toda sección va en `components/marco.tsx` (marco `bg-sidebar` + panel con sombra, encabezado con ícono, título, descripción y acciones).

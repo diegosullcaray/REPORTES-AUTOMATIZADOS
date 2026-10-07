@@ -130,6 +130,18 @@ class PruebaConexion(BaseModel):
     milisegundos: int
 
 
+class Perfil(BaseModel):
+    """Quién ejecuta la API y cómo está configurado el envío de correo (sin contraseñas ni webhook)."""
+
+    usuario: str
+    equipo: str
+    correo_prueba: str
+    cuenta_envio: str | None
+    clave_envio_configurada: bool
+    webhook_configurado: bool
+    destinatarios: int | None     # None si no se pudo leer la lista
+
+
 class ConfiguracionGeneral(BaseModel):
     """Lo que la API leyó del .env al arrancar (sin secretos)."""
 

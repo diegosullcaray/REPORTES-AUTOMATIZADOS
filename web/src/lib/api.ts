@@ -1,6 +1,6 @@
 // Transporte: única puerta hacia la API de Python (proxy /api en next.config.ts). Sin estado ni presentación.
 import type {
-  Archivo, ConfiguracionGeneral, Ejecucion, EjecucionDetalle, EstadoEnvio, PedidoEjecucion, PruebaConexion, ReporteDetalle, ReporteResumen,
+  Archivo, ConfiguracionGeneral, Ejecucion, EjecucionDetalle, EstadoEnvio, PedidoEjecucion, Perfil, PruebaConexion, ReporteDetalle, ReporteResumen,
   Servidor, Solicitud, Verificacion, VistaPrevia,
 } from "./tipos";
 
@@ -55,6 +55,7 @@ export const api = {
   ejecuciones: (reporte?: string, limite = 200) =>
     pedir<Ejecucion[]>(`/ejecuciones?limite=${limite}${reporte ? `&reporte=${encodeURIComponent(reporte)}` : ""}`),
   ejecucion: (id: string) => pedir<EjecucionDetalle>(`/ejecuciones/${encodeURIComponent(id)}`),
+  perfil: () => pedir<Perfil>("/perfil"),
   configuracion: () => pedir<ConfiguracionGeneral>("/configuracion"),
   servidores: () => pedir<Servidor[]>("/servidores"),
   probarServidor: (nombre: string) => pedir<PruebaConexion>(`/servidores/${encodeURIComponent(nombre)}/prueba`, { method: "POST" }),

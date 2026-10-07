@@ -1,13 +1,14 @@
 "use client";
 
-import { Copy, Database, KeyRound, PlugZap, Settings, SlidersHorizontal } from "lucide-react";
+import { Copy, Database, KeyRound, Monitor, Moon, PlugZap, SlidersHorizontal, Sun, UserRound } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useTheme } from "next-themes";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Chip, EsqueletoFilas, ErrorEnLinea } from "@/components/estados";
 import { Marco } from "@/components/marco";
 import { Pagina } from "@/components/pagina";
-import { fecha } from "@/lib/formato";
+import { fecha, iniciales } from "@/lib/formato";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useConsulta } from "@/hooks/use-consulta";
@@ -127,24 +128,71 @@ function General() {
   );
 }
 
-const SECCIONES = { general: { texto: "General", icono: SlidersHorizontal }, bases: { texto: "Bases de datos", icono: Database } } as const;
+function Cuenta() {
+  const { datos: p, error, cargando, recargar } = useConsulta("perfil", api.perfil);
+  const { resolvedTheme, setTheme } = useTheme();
+  if (error) return <ErrorEnLinea titulo="No se pudo leer el perfil" detalle={error} onReintentar={recargar} />;
+  if (cargando && !p) return <EsqueletoFilas filas={5} />;
+  if (!p) return null;
+  const si = (ok: boolean, texto: string) => <Chip tono={ok ? "exito" : "aviso"}>{texto}</Chip>;
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="flex items-center gap-4">
+        <span className="flex size-14 items-center justify-center rounded-xl bg-primary text-lg font-semibold text-primary-foreground">{iniciales(p.usuario)}</span>
+        <div className="flex flex-col">
+          <span className="text-lg font-semibold">{p.usuario}</span>
+          <span className="text-sm text-muted-foreground">Ejecuta la API en {p.equipo}</span>
+        </div>
+      </div>
+      <div className="flex flex-col gap-4">
+        <Encabezado titulo="Correo" descripcion="Cuenta con que se envía el resumen diario y a quién llega la prueba. Se configura en el .env." />
+        <div className="divide-y rounded-lg border px-4">
+          <Fila etiqueta="Correo de prueba" valor={p.correo_prueba} ayuda="Recibe la prueba antes de enviar a toda la lista" copiable />
+          <Fila etiqueta="Cuenta de envío" valor={p.cuenta_envio ?? "Sin definir (SMTP_USER)"} />
+          <div className="flex flex-wrap items-center gap-2 py-3 text-sm">
+            <span className="w-56 shrink-0 text-muted-foreground">Estado</span>
+            {si(p.clave_envio_configurada, p.clave_envio_configurada ? "contraseña configurada" : "falta SMTP_PASSWORD")}
+            {si(p.webhook_configurado, p.webhook_configurado ? "aviso a Google Chat" : "sin webhook de Google Chat")}
+            {si(p.destinatarios !== null, p.destinatarios !== null ? `${p.destinatarios} destinatarios` : "no se pudo leer la lista")}
+          </div>
+        </div>
+      </div>
+      <div className="flex flex-col gap-4">
+        <Encabezado titulo="Apariencia" descripcion="Se guarda en este navegador." />
+        <div className="flex gap-2">
+          <Button variant={resolvedTheme === "dark" ? "outline" : "default"} size="sm" onClick={() => setTheme("light")}><Sun /> Claro</Button>
+          <Button variant={resolvedTheme === "dark" ? "default" : "outline"} size="sm" onClick={() => setTheme("dark")}><Moon /> Oscuro</Button>
+          <Button variant="ghost" size="sm" onClick={() => setTheme("system")}><Monitor /> Como el sistema</Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const SECCIONES = {
+  cuenta: { texto: "Perfil", icono: UserRound },
+  general: { texto: "Configuración", icono: SlidersHorizontal },
+  bases: { texto: "Bases de datos", icono: Database },
+} as const;
 type Seccion = keyof typeof SECCIONES;
 
-/** Panel de control (como los ajustes de Dokploy): menú vertical de secciones y contenido; la sección va en la URL. */
-export function PanelConfiguracion() {
+/** Perfil (como el de Dokploy): cuenta y, en secciones, la configuración; la sección va en la URL. */
+export function PanelPerfil() {
   const params = useSearchParams();
   const router = useRouter();
-  const seccion: Seccion = params.get("seccion") === "bases" ? "bases" : "general";
+  const pedida = params.get("seccion") as Seccion | null;
+  const seccion: Seccion = pedida && pedida in SECCIONES ? pedida : "cuenta";
   return (
     <Pagina>
-      <Marco icono={<Settings />} titulo="Configuración" descripcion="Parámetros de la API y conexiones a las bases de datos.">
-        <Tabs value={seccion} onValueChange={(v) => router.replace(`/configuracion?seccion=${v}`, { scroll: false })} orientation="vertical" className="gap-6 md:flex-row">
+      <Marco icono={<UserRound />} titulo="Perfil" descripcion="Tu cuenta, la configuración de la API y las conexiones a las bases de datos.">
+        <Tabs value={seccion} onValueChange={(v) => router.replace(v === "cuenta" ? "/perfil" : `/perfil?seccion=${v}`, { scroll: false })} orientation="vertical" className="gap-6 md:flex-row">
           <TabsList variant="line" className="h-fit w-full flex-row items-stretch md:w-48 md:flex-col">
             {(Object.keys(SECCIONES) as Seccion[]).map((s) => {
               const { texto, icono: Icono } = SECCIONES[s];
               return <TabsTrigger key={s} value={s} className="justify-start"><Icono /> {texto}</TabsTrigger>;
             })}
           </TabsList>
+          <TabsContent value="cuenta" className="min-w-0"><Cuenta /></TabsContent>
           <TabsContent value="general" className="min-w-0"><General /></TabsContent>
           <TabsContent value="bases" className="min-w-0"><BasesDeDatos /></TabsContent>
         </Tabs>

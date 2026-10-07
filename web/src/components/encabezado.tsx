@@ -1,15 +1,12 @@
 "use client";
 
-import { Moon, Sun } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useTheme } from "next-themes";
 import { Fragment } from "react";
 import {
   Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Hora } from "@/components/hace";
-import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useConsulta } from "@/hooks/use-consulta";
 import { api } from "@/lib/api";
@@ -17,7 +14,7 @@ import { CATEGORIA, titulo } from "@/lib/formato";
 
 type Miga = { texto: string; href?: string };
 
-const SECCION: Record<string, string> = { reportes: "Reportes", ejecuciones: "Ejecuciones", configuracion: "Configuración" };
+const SECCION: Record<string, string> = { reportes: "Reportes", ejecuciones: "Ejecuciones", perfil: "Perfil" };
 
 /** Migas según la ruta: Reportes > Diarios > Cartera sin asignar · Ejecuciones > a1b2c3… */
 function useMigas(): Miga[] {
@@ -36,7 +33,6 @@ function useMigas(): Miga[] {
 
 export function Encabezado() {
   const migas = useMigas();
-  const { resolvedTheme, setTheme } = useTheme();
   return (
     <header className="sticky top-0 z-20 flex h-14 shrink-0 items-center gap-2 bg-background/80 px-4 backdrop-blur transition-[height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
       <SidebarTrigger className="-ml-1 mr-1" />
@@ -44,7 +40,7 @@ export function Encabezado() {
         <BreadcrumbList>
           {migas.map((m, i) => (
             <Fragment key={i}>
-              {i > 0 && <BreadcrumbSeparator />}
+              {i > 0 && <BreadcrumbSeparator className="hidden sm:inline-flex" />}
               <BreadcrumbItem className={i < migas.length - 1 ? "hidden sm:inline-flex" : "min-w-0"}>
                 {i === migas.length - 1 ? (
                   <BreadcrumbPage className="truncate">{m.texto}</BreadcrumbPage>
@@ -59,10 +55,6 @@ export function Encabezado() {
         </BreadcrumbList>
       </Breadcrumb>
       <Hora />
-      <Button variant="ghost" size="icon" aria-label="Cambiar tema claro/oscuro" onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}>
-        <Moon className="dark:hidden" />
-        <Sun className="hidden dark:block" />
-      </Button>
     </header>
   );
 }

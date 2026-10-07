@@ -6,7 +6,10 @@ Las validaciones lanzan `PeticionInvalida` (422) o `NoEncontrado` (404); la capa
 
 from __future__ import annotations
 
+import getpass
 import json
+import os
+import platform
 import time
 from datetime import date, datetime
 from decimal import Decimal
@@ -14,6 +17,7 @@ from functools import lru_cache
 from importlib import import_module
 from pathlib import Path
 
+from reportes.comun import correo
 from reportes.comun.ejecutor import ReporteLote
 from reportes.comun.fechas import Cortes, resolver_corte
 from reportes.config import BASES_DE, DIR_INPUTS, DIR_OUTPUTS, DRIVER_ODBC, SERVIDORES, ConfiguracionError
@@ -133,6 +137,21 @@ def guardar_solicitud(nombre: str, fecha: date | None) -> e.Solicitud:
     ruta = destino / f"solicitud_{nombre}_{corte:%Y%m%d}.txt"
     ruta.write_text(texto + "\n", encoding="utf-8")
     return e.Solicitud(archivo=ruta.name, texto=texto)
+
+
+def perfil() -> e.Perfil:
+    try:
+        destinatarios: int | None = len(correo.leer_destinatarios())
+    except (OSError, ConfiguracionError, correo.CorreoError):
+        destinatarios = None
+    return e.Perfil(
+        usuario=getpass.getuser(), equipo=platform.node(),
+        correo_prueba=os.getenv("CORREO_PRUEBA", "diego.sullcaray@confianza.pe").strip(),  # mismo defecto que correo.config_desde_env
+        cuenta_envio=os.getenv("SMTP_USER", "").strip() or None,
+        clave_envio_configurada=bool(os.getenv("SMTP_PASSWORD", "").strip()),
+        webhook_configurado=bool(os.getenv("GOOGLE_CHAT_WEBHOOK_URL", "").strip()),
+        destinatarios=destinatarios,
+    )
 
 
 def _corte(frecuencia: str) -> e.Corte:

@@ -107,6 +107,11 @@ def ejecucion(id_: str):
 
 
 # ---- configuración: general, servidores (sin secretos) y prueba de conexión
+@app.get("/api/perfil", response_model=e.Perfil)
+def perfil():
+    return servicios.perfil()
+
+
 @app.get("/api/configuracion", response_model=e.ConfiguracionGeneral)
 def configuracion():
     return servicios.configuracion()
