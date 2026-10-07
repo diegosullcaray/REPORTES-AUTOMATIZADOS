@@ -63,6 +63,17 @@ export function Chip({ tono = "neutro", children }: { tono?: Tono; children: Rea
   );
 }
 
+/** Punto de estado (como el StatusTooltip de Dokploy); `latido` para lo que está en curso. */
+export function Punto({ tono = "neutro", etiqueta, latido }: { tono?: Tono; etiqueta: string; latido?: boolean }) {
+  return (
+    <span title={etiqueta} className="relative inline-flex size-2.5 shrink-0">
+      {latido && <span className="absolute inline-flex size-full animate-ping rounded-full opacity-60" style={{ background: TONOS[tono][1] }} />}
+      <span className="relative inline-flex size-2.5 rounded-full" style={{ background: TONOS[tono][1] }} />
+      <span className="sr-only">{etiqueta}</span>
+    </span>
+  );
+}
+
 /** Aviso destacado (no es error): reglas del reporte, escritura en BD, forzar… */
 export function Aviso({ tono = "aviso", children }: { tono?: Tono; children: ReactNode }) {
   const [fondo, texto] = TONOS[tono];

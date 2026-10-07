@@ -72,8 +72,8 @@ function Resultados({ v, reporte }: { v: Verificacion; reporte: string }) {
           {dudosas > 0 && <>{dudosas} tabla(s) no se pudieron verificar (conexión o columna de fecha por confirmar).</>}
         </Aviso>
       )}
-      <div className="mis-superficie overflow-x-auto">
-        <table className="mis-tabla w-full text-[13px]">
+      <div className="rounded-lg border bg-card overflow-x-auto">
+        <table className="w-full [&_tbody_tr:hover]:bg-muted/50 text-[13px]">
           <thead className="text-left text-[12px] text-[var(--mis-text-secondary)]">
             <tr><th className="p-2">Estado</th><th className="p-2">Tabla</th><th className="p-2">Servidor</th><th className="p-2">Última fecha</th><th className="p-2">Detalle</th></tr>
           </thead>
@@ -115,7 +115,7 @@ function SolicitudProduccion({ reporte, corte, texto }: { reporte: string; corte
   }
 
   return (
-    <div className="mis-superficie flex flex-col gap-3 p-3">
+    <div className="rounded-lg border bg-card flex flex-col gap-3 p-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 className="text-[15px] font-semibold">Solicitud para Producción</h3>
         <div className="flex gap-2">
@@ -137,8 +137,8 @@ function TablasRegistradas({ reporte }: { reporte: ReporteDetalle }) {
       <p className="text-[13px] text-[var(--mis-text-secondary)]">
         Tablas que usa el reporte. Pulsa <b>Verificar tablas</b> para comprobar que lleguen al corte (solo lectura).
       </p>
-      <div className="mis-superficie overflow-x-auto">
-        <table className="mis-tabla w-full text-[13px]">
+      <div className="rounded-lg border bg-card overflow-x-auto">
+        <table className="w-full [&_tbody_tr:hover]:bg-muted/50 text-[13px]">
           <thead className="text-left text-[12px] text-[var(--mis-text-secondary)]">
             <tr><th className="p-2">Tabla</th><th className="p-2">Servidor</th><th className="p-2">Tipo</th><th className="p-2">Columna de fecha</th><th className="p-2">Condición del reporte</th></tr>
           </thead>

@@ -71,7 +71,8 @@ def obtener(id_: str) -> e.EjecucionDetalle:
 def historial(reporte: str | None = None, limite: int = 100) -> list[e.Ejecucion]:
     if not DIR.is_dir():
         return []
-    todas = [_leer(p.stem) for p in sorted(DIR.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True)]
+    # ponytail: lee todos los .json en cada consulta; pasar a SQLite si el historial crece a miles
+    todas = sorted((_leer(p.stem) for p in DIR.glob("*.json")), key=lambda x: x.inicio, reverse=True)
     return [x for x in todas if reporte in (None, x.reporte)][:limite]
 
 

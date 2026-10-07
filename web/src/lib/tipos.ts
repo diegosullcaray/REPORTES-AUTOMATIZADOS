@@ -113,6 +113,30 @@ export interface VistaPrevia {
   texto: string | null;
 }
 
+export interface Servidor {
+  nombre: string;
+  servidor: string;
+  autenticacion: "Windows" | "SQL";
+  credenciales_en_env: boolean;
+  descripcion: string;
+  bases: string[];
+}
+
+export interface PruebaConexion {
+  nombre: string;
+  ok: boolean;
+  detalle: string;
+  milisegundos: number;
+}
+
+export interface ConfiguracionGeneral {
+  corte_mensual: Corte;
+  corte_diario: Corte;
+  dir_inputs: string;
+  dir_outputs: string;
+  driver_odbc: string;
+}
+
 export interface EstadoEnvio {
   corte: string;
   prueba: string | null;

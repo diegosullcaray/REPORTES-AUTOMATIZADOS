@@ -23,5 +23,28 @@ def test_regla_incumplida_es_422_con_mensaje():
     assert r.status_code == 422 and "fin de mes" in r.json()["detail"]
 
 
+def test_servidores_sin_secretos(monkeypatch):
+    monkeypatch.setenv("RCC_PASSWORD", "no-debe-salir")
+    r = cliente.get("/api/servidores")
+    assert r.status_code == 200
+    assert {s["nombre"] for s in r.json()} == {"mish", "slc", "rcc"}
+    assert "no-debe-salir" not in r.text
+
+
+def test_configuracion_informa_cortes_y_carpetas(monkeypatch):
+    monkeypatch.setenv("FECHA_CORTE_MENSUAL", "2026-09-30")
+    c = cliente.get("/api/configuracion").json()
+    assert c["corte_mensual"] == {"fecha": "2026-09-30", "origen": ".env (FECHA_CORTE_MENSUAL)"}
+    assert c["dir_outputs"]
+
+
+def test_historial_respeta_el_limite():
+    assert cliente.get("/api/ejecuciones?limite=0").status_code == 422
+
+
+def test_prueba_de_servidor_desconocido_es_404():
+    assert cliente.post("/api/servidores/otro/prueba").status_code == 404
+
+
 def test_archivo_fuera_de_la_carpeta_es_404():
     assert cliente.get("/api/reportes/saca-tu-garra/archivos/..%2F..%2F.env/vista-previa").status_code == 404

@@ -1,7 +1,7 @@
 // Transporte: única puerta hacia la API de Python (proxy /api en next.config.ts). Sin estado ni presentación.
 import type {
-  Archivo, Ejecucion, EjecucionDetalle, EstadoEnvio, PedidoEjecucion, ReporteDetalle, ReporteResumen, Solicitud,
-  Verificacion, VistaPrevia,
+  Archivo, ConfiguracionGeneral, Ejecucion, EjecucionDetalle, EstadoEnvio, PedidoEjecucion, PruebaConexion, ReporteDetalle, ReporteResumen,
+  Servidor, Solicitud, Verificacion, VistaPrevia,
 } from "./tipos";
 
 export class ErrorApi extends Error {
@@ -39,8 +39,11 @@ const enviar = (cuerpo: unknown): RequestInit => ({ method: "POST", body: JSON.s
 const r = (nombre: string) => `/reportes/${encodeURIComponent(nombre)}`;
 const a = (nombre: string, archivo: string) => `${r(nombre)}/archivos/${encodeURIComponent(archivo)}`;
 
+// El catálogo no cambia mientras la API corre: una sola petición la comparten sidebar y migas.
+let catalogo: Promise<ReporteResumen[]> | null = null;
+
 export const api = {
-  reportes: () => pedir<ReporteResumen[]>("/reportes"),
+  reportes: () => (catalogo ??= pedir<ReporteResumen[]>("/reportes").catch((e) => { catalogo = null; throw e; })),
   reporte: (nombre: string) => pedir<ReporteDetalle>(r(nombre)),
   verificar: (nombre: string, fecha_corte: string | null) => pedir<Verificacion>(`${r(nombre)}/verificacion`, enviar({ fecha_corte })),
   guardarSolicitud: (nombre: string, fecha_corte: string | null) => pedir<Solicitud>(`${r(nombre)}/solicitud`, enviar({ fecha_corte })),
@@ -49,9 +52,12 @@ export const api = {
   estadoEnvio: (nombre: string, fecha_corte: string | null) =>
     pedir<EstadoEnvio>(`${r(nombre)}/envio${fecha_corte ? `?fecha_corte=${fecha_corte}` : ""}`),
   ejecutar: (pedido: PedidoEjecucion) => pedir<Ejecucion>("/ejecuciones", enviar(pedido)),
-  ejecuciones: (reporte?: string) => pedir<Ejecucion[]>(`/ejecuciones${reporte ? `?reporte=${encodeURIComponent(reporte)}` : ""}`),
+  ejecuciones: (reporte?: string, limite = 200) =>
+    pedir<Ejecucion[]>(`/ejecuciones?limite=${limite}${reporte ? `&reporte=${encodeURIComponent(reporte)}` : ""}`),
   ejecucion: (id: string) => pedir<EjecucionDetalle>(`/ejecuciones/${encodeURIComponent(id)}`),
-  conexiones: () => pedir<Record<string, string>>("/conexiones"),
+  configuracion: () => pedir<ConfiguracionGeneral>("/configuracion"),
+  servidores: () => pedir<Servidor[]>("/servidores"),
+  probarServidor: (nombre: string) => pedir<PruebaConexion>(`/servidores/${encodeURIComponent(nombre)}/prueba`, { method: "POST" }),
 };
 
 /** URL directa de un archivo generado (descarga, o en línea para imágenes). */

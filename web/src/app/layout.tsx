@@ -1,6 +1,15 @@
 import type { Metadata } from "next";
-import { BotonTema, Rail, SCRIPT_TEMA } from "@/components/shell";
+import { Geist, Geist_Mono } from "next/font/google";
+import { ThemeProvider } from "next-themes";
+import { AppSidebar } from "@/components/app-sidebar";
+import { Encabezado } from "@/components/encabezado";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
+
+const geist = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
+const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Reportes automatizados · MIS",
@@ -9,19 +18,20 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="es" suppressHydrationWarning className="h-full antialiased">
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: SCRIPT_TEMA }} />
-      </head>
-      <body className="min-h-full">
-        <Rail />
-        <div className="flex min-h-screen flex-col pb-16 md:pb-0 md:pl-[var(--mis-sidebar-col1-w)]">
-          <header className="mis-header sticky top-0 z-30 flex h-[var(--mis-header-h)] items-center justify-between px-4">
-            <span className="text-[15px] font-semibold text-[var(--mis-primary-text)]">Reportes automatizados</span>
-            <BotonTema />
-          </header>
-          <main className="flex w-full flex-1 flex-col p-2 sm:p-4">{children}</main>
-        </div>
+    <html lang="es" suppressHydrationWarning className={`${geist.variable} ${geistMono.variable}`}>
+      <body>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <TooltipProvider>
+            <SidebarProvider>
+              <AppSidebar />
+              <SidebarInset className="min-w-0">
+                <Encabezado />
+                <main className="flex min-h-0 flex-1">{children}</main>
+              </SidebarInset>
+            </SidebarProvider>
+            <Toaster position="bottom-right" richColors />
+          </TooltipProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

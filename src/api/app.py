@@ -16,7 +16,7 @@ from __future__ import annotations
 from contextlib import asynccontextmanager
 from datetime import date
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import FileResponse, JSONResponse
 
 from . import ejecuciones, servicios
@@ -94,8 +94,8 @@ def ejecutar(pedido: e.PedidoEjecucion):
 
 
 @app.get("/api/ejecuciones", response_model=list[e.Ejecucion])
-def historial(reporte: str | None = None):
-    return ejecuciones.historial(reporte)
+def historial(reporte: str | None = None, limite: int = Query(200, ge=1, le=2000)):
+    return ejecuciones.historial(reporte, limite)
 
 
 @app.get("/api/ejecuciones/{id_}", response_model=e.EjecucionDetalle)
@@ -106,7 +106,18 @@ def ejecucion(id_: str):
         raise HTTPException(404, "No existe esa ejecución") from None
 
 
-# ---- conexiones
-@app.get("/api/conexiones")
-def conexiones() -> dict[str, str]:
-    return servicios.conexiones()
+# ---- configuración: general, servidores (sin secretos) y prueba de conexión
+@app.get("/api/configuracion", response_model=e.ConfiguracionGeneral)
+def configuracion():
+    return servicios.configuracion()
+
+
+
+@app.get("/api/servidores", response_model=list[e.Servidor])
+def servidores():
+    return servicios.servidores()
+
+
+@app.post("/api/servidores/{nombre}/prueba", response_model=e.PruebaConexion)
+def probar_servidor(nombre: str):
+    return servicios.probar_servidor(nombre)

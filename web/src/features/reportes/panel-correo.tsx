@@ -49,7 +49,7 @@ export function PanelCorreo({ reporte, corte, onCorte }: { reporte: ReporteDetal
         <EsqueletoFilas filas={2} />
       ) : datos && (
         <>
-          <dl className="mis-superficie grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 p-3 text-[13px]">
+          <dl className="rounded-lg border bg-card grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 p-3 text-[13px]">
             <dt className="text-[var(--mis-text-secondary)]">Prueba enviada</dt><dd>{fecha(datos.prueba)}</dd>
             <dt className="text-[var(--mis-text-secondary)]">Enviado a todos</dt><dd>{fecha(datos.todos)}</dd>
             <dt className="text-[var(--mis-text-secondary)]">Excel</dt><dd className="truncate">{datos.excel ?? "—"}</dd>

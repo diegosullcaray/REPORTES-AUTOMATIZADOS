@@ -15,6 +15,15 @@ def test_ejecucion_completa_guarda_estado_y_log(tmp_path, monkeypatch):
     assert [h.id for h in ejecuciones.historial("saca-tu-garra")] == [x.id]
 
 
+def test_historial_va_de_la_mas_reciente_a_la_mas_antigua(tmp_path, monkeypatch):
+    monkeypatch.setattr(ejecuciones, "DIR", tmp_path)
+    from api.esquemas import Ejecucion
+
+    for i, inicio in enumerate(["2026-10-01T10:00:00", "2026-10-03T10:00:00", "2026-10-02T10:00:00"]):
+        ejecuciones._guardar(Ejecucion(id=f"e{i}", reporte="saca-tu-garra", argumentos=[], estado="ok", codigo=0, inicio=inicio, fin=None))
+    assert [x.inicio[:10] for x in ejecuciones.historial(limite=3)] == ["2026-10-03", "2026-10-02", "2026-10-01"]
+
+
 def test_codigo_3_es_tablas_desactualizadas():
     assert ejecuciones.ESTADO_POR_CODIGO[3] == "tablas_desactualizadas"
 

@@ -7,6 +7,7 @@ Las validaciones lanzan `PeticionInvalida` (422) o `NoEncontrado` (404); la capa
 from __future__ import annotations
 
 import json
+import time
 from datetime import date, datetime
 from decimal import Decimal
 from functools import lru_cache
@@ -15,8 +16,8 @@ from pathlib import Path
 
 from reportes.comun.ejecutor import ReporteLote
 from reportes.comun.fechas import Cortes, resolver_corte
-from reportes.config import DIR_OUTPUTS, ConfiguracionError
-from reportes.db import probar_conexiones
+from reportes.config import BASES_DE, DIR_INPUTS, DIR_OUTPUTS, DRIVER_ODBC, SERVIDORES, ConfiguracionError
+from reportes.db import leer_sql
 from reportes.registro import DIA_ANTERIOR_SIMPLE, REPORTES, Reporte, carpeta_salida, ordenados
 from reportes.reglas_fecha import regla_de
 from reportes.tablas import tablas_de
@@ -134,8 +135,38 @@ def guardar_solicitud(nombre: str, fecha: date | None) -> e.Solicitud:
     return e.Solicitud(archivo=ruta.name, texto=texto)
 
 
-def conexiones() -> dict[str, str]:
-    return probar_conexiones()
+def _corte(frecuencia: str) -> e.Corte:
+    try:
+        fecha, origen = resolver_corte(frecuencia, None)
+        return e.Corte(fecha=fecha, origen=origen)
+    except ConfiguracionError as exc:
+        return e.Corte(fecha=None, origen=str(exc))
+
+
+def configuracion() -> e.ConfiguracionGeneral:
+    return e.ConfiguracionGeneral(corte_mensual=_corte("mensual"), corte_diario=_corte("diaria"),
+                                  dir_inputs=str(DIR_INPUTS), dir_outputs=str(DIR_OUTPUTS), driver_odbc=DRIVER_ODBC)
+
+
+def servidores() -> list[e.Servidor]:
+    return [
+        e.Servidor(nombre=s.nombre, servidor=s.servidor, autenticacion="SQL" if (s.usuario or not s.windows_auth_defecto) else "Windows",
+                   credenciales_en_env=bool(s.usuario and s.clave), descripcion=s.descripcion, bases=list(BASES_DE[s.nombre]))
+        for s in SERVIDORES.values()
+    ]
+
+
+def probar_servidor(nombre: str) -> e.PruebaConexion:
+    """SELECT 1 contra un servidor (mismo camino que usan los reportes: db.leer_sql)."""
+    if nombre not in SERVIDORES:
+        raise NoEncontrado(f"Servidor desconocido: {nombre}")
+    inicio = time.perf_counter()
+    try:
+        leer_sql(nombre, "SELECT 1 AS ok")
+        ok, detalle = True, "Conexión correcta"
+    except Exception as exc:  # noqa: BLE001 - diagnóstico para la pantalla, igual que probar_conexiones
+        ok, detalle = False, f"{type(exc).__name__}: {str(exc)[:200]}"
+    return e.PruebaConexion(nombre=nombre, ok=ok, detalle=detalle, milisegundos=round((time.perf_counter() - inicio) * 1000))
 
 
 # ---------------------------------------------------------------- argumentos de ejecución

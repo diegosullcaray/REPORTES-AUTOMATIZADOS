@@ -48,6 +48,15 @@ def test_archivo_fuera_de_la_carpeta_no_se_sirve():
         servicios.ruta_descarga("saca-tu-garra", "../../../.env")
 
 
+def test_prueba_de_servidor_informa_el_error(monkeypatch):
+    def falla(*_):
+        raise RuntimeError("sin red")
+
+    monkeypatch.setattr(servicios, "leer_sql", falla)
+    p = servicios.probar_servidor("mish")
+    assert (p.ok, p.detalle) == (False, "RuntimeError: sin red")
+
+
 def test_vista_previa_de_excel(tmp_path, monkeypatch):
     import pandas as pd
 

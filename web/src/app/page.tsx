@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import { PanelInicio } from "@/features/inicio/panel-inicio";
 
 export default function Inicio() {
-  redirect("/reportes");
+  return <PanelInicio />;
 }

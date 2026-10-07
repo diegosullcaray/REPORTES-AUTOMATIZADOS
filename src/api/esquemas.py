@@ -112,6 +112,34 @@ class VistaPrevia(BaseModel):
     texto: str | None = None
 
 
+class Servidor(BaseModel):
+    """Una de las 3 conexiones, sin secretos: solo si hay credenciales configuradas."""
+
+    nombre: str
+    servidor: str
+    autenticacion: Literal["Windows", "SQL"]
+    credenciales_en_env: bool
+    descripcion: str
+    bases: list[str]
+
+
+class PruebaConexion(BaseModel):
+    nombre: str
+    ok: bool
+    detalle: str
+    milisegundos: int
+
+
+class ConfiguracionGeneral(BaseModel):
+    """Lo que la API leyó del .env al arrancar (sin secretos)."""
+
+    corte_mensual: Corte
+    corte_diario: Corte
+    dir_inputs: str
+    dir_outputs: str
+    driver_odbc: str
+
+
 class EstadoEnvio(BaseModel):
     corte: date
     prueba: str | None            # fecha-hora de la prueba enviada

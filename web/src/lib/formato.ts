@@ -26,7 +26,61 @@ export const ESTADO_TABLA: Record<EstadoTabla, Tono> = {
   "SIN CONTROL": "neutro",
 };
 
+/** Categoría del sidebar y de las migas: Diarios / Mensuales. */
+export const CATEGORIA: Record<Frecuencia, string> = { diaria: "Diarios", mensual: "Mensuales" };
+export const TIPO: Record<Frecuencia, string> = { diaria: "Diario", mensual: "Mensual" };
+
+/** "cartera-sin-asignar" → "Cartera sin asignar". */
+export const titulo = (nombre: string) => nombre.charAt(0).toUpperCase() + nombre.slice(1).replaceAll("-", " ");
+
+export type Entrada<T> = { tipo: "reporte"; r: T } | { tipo: "nodo"; orden: string; titulo: string; reportes: T[] };
+
+/**
+ * Sub-reportes de una misma carpeta del legado (09.1, 09.2…) bajo un nodo con el nombre de esa carpeta;
+ * los reportes solos quedan sueltos. Conserva el orden de entrada.
+ */
+export function agruparPorCarpeta<T extends { carpeta: string }>(reportes: T[]): Entrada<T>[] {
+  const porCarpeta = Map.groupBy(reportes, (r) => r.carpeta);
+  const vistos = new Set<string>();
+  return reportes.flatMap((r): Entrada<T>[] => {
+    const grupo = porCarpeta.get(r.carpeta)!;
+    if (grupo.length === 1) return [{ tipo: "reporte", r }];
+    if (vistos.has(r.carpeta)) return [];
+    vistos.add(r.carpeta);
+    const [orden, ...palabras] = r.carpeta.split("/").pop()!.split("_"); // "09_reporte_mensual_michael_palacios"
+    return [{ tipo: "nodo", orden, titulo: titulo(palabras.join("-")), reportes: grupo }];
+  });
+}
+
+export type TipoLinea = "ok" | "error" | "aviso" | "paso" | "normal";
+
+/** Color de cada línea del log según los prefijos que imprime el ejecutor (✓ ✗ AVISO ▶). */
+export function tipoLinea(linea: string): TipoLinea {
+  const l = linea.trimStart();
+  if (l.startsWith("✓")) return "ok";
+  if (l.startsWith("✗") || l.startsWith("ERROR") || l.startsWith("NO EXISTE")) return "error";
+  if (l.startsWith("AVISO") || l.startsWith("DESACTUALIZADA")) return "aviso";
+  if (l.startsWith("▶") || l.startsWith("Fecha de corte")) return "paso";
+  return "normal";
+}
+
 export const enCurso = (e: EstadoEjecucion) => e === "en_cola" || e === "ejecutando";
+
+const relativo = new Intl.RelativeTimeFormat("es", { numeric: "auto" });
+const UNIDADES: [Intl.RelativeTimeFormatUnit, number][] = [["day", 86400], ["hour", 3600], ["minute", 60], ["second", 1]];
+
+/** "hace 5 minutos", "ayer"… (`ahora` inyectable para pruebas). */
+export function haceTiempo(iso: string, ahora = Date.now()): string {
+  const s = Math.round((Date.parse(iso) - ahora) / 1000);
+  const [unidad, tam] = UNIDADES.find(([, t]) => Math.abs(s) >= t) ?? UNIDADES[3];
+  return relativo.format(Math.round(s / tam), unidad);
+}
+
+/** Corte con que se lanzó una ejecución, leído de sus argumentos (--fecha-corte AAAA-MM-DD o --mes AAAA-MM). */
+export function corteDe(argumentos: string[]): string | null {
+  const i = argumentos.findIndex((a) => a === "--fecha-corte" || a === "--mes");
+  return i >= 0 ? argumentos[i + 1] ?? null : null;
+}
 
 /** "2026-09-30" → "30/09/2026"; con hora si viene ISO completo. */
 export function fecha(iso: string | null | undefined): string {
