@@ -1,0 +1,461 @@
+/* COPIA de MIS-angular-front/src/app/theme/tokens.css (fuente de verdad). No editar aqui:
+   se actualiza copiando el archivo de MIS. Los fondos viven en public/assets/images/fc/fondos. */
+:root {
+  /* Layout Dimensions */
+  --mis-header-h: 56px;
+  --mis-sidebar-col1-w: 64px;
+
+  /* Barra de título de los paneles de módulo (ventana estilo macOS). */
+  --mis-window-bar-h: 40px;
+
+  /* Manual de marca, p. 8: Segoe UI principal; Montserrat para uso interno. */
+  --mis-font-family: 'Segoe UI', 'Montserrat', sans-serif;
+
+  /* Colores oficiales invariables: no dependen del tema ni del acento personal. */
+  --mis-brand-navy: #0a4681;
+  --mis-brand-sky: #009fe3;
+  --mis-brand-orange: #f28f16;
+  --mis-brand-green: #8dbf3a;
+  --mis-brand-gold: #fabf35;
+  --mis-brand-magenta: #b91b5e;
+  --mis-brand-gray: #4d525a;
+
+  /* Paleta del Ranking (extraída de la imagen de referencia STG/legado) */
+  --mis-ranking-header-bg: #0b4f8c;
+  --mis-ranking-subheader-bg: #4a88d0;
+  --mis-ranking-row1-bg: #a9effd;
+
+  /* Colores de marca y de reportes que conservan su paleta propia. */
+  --mis-google-blue: #4285f4;
+  --mis-google-green: #34a853;
+  --mis-google-yellow: #fbbc05;
+  --mis-google-red: #ea4335;
+  --mis-corresponsal-header: #9c3b47;
+  --mis-esg-header: #5b9bd5;
+  --mis-esg-historico: #4472c4;
+  --mis-esg-nodo-bg: #f2f2f2;
+  --mis-esg-nodo-text: #008080;
+  --mis-agro-primary: #15803d;
+  --mis-agro-primary-hover: #166534;
+  --mis-agro-primary-dark-hover: #14532d;
+  --mis-agro-primary-dark-text: #4ade80;
+
+  /* Escala tipográfica */
+  --mis-text-xs: 11px; /* Labels de íconos en Col 1 del sidebar */
+  --mis-text-sm: 13px; /* Texto secundario, metadatos */
+  --mis-text-base: 15px; /* Texto base del body */
+  --mis-text-lg: 17px; /* Títulos de sección en Col 2 */
+  --mis-text-xl: 22px; /* Títulos de vista */
+  --mis-text-2xl: 28px; /* Títulos principales */
+
+  /* Peso */
+  --mis-font-normal: 400;
+  --mis-font-medium: 500;
+  --mis-font-semibold: 600;
+
+  /* Line height */
+  --mis-leading-tight: 1.2;
+  --mis-leading-normal: 1.5;
+
+  /* ------------------------------------- */
+  /* Paleta de Colores (macOS Minimalist) */
+  /* ------------------------------------- */
+  --mis-bg: #f4f6f9;
+  --mis-surface: #ffffff;
+  /* Rail de sistemas (Col 1): navy translúcido sobre el wallpaper. El alfa alto
+     + `--mis-sidebar-blur` mantienen la tonalidad navy aunque deje pasar la
+     foto de fondo — ver `.sidebar-rail` en sidebar.component.css. */
+  --mis-sidebar-bg: rgba(10, 70, 129, 0.84);
+  --mis-sidebar-blur: saturate(180%) blur(28px);
+  --mis-sidebar-solid: #0a4681;
+  --mis-sidebar-edge: rgba(10, 70, 129, 0.8);
+  --mis-sidebar-mobile-border: rgba(255, 255, 255, 0.15);
+  --mis-sidebar-mobile-shadow: 0 -2px 10px rgba(0, 0, 0, 0.25);
+  --mis-sidebar-active-bg: rgba(255, 255, 255, 0.15);
+  --mis-sidebar-mask: rgba(8, 14, 26, 0.35);
+  --mis-nav-panel-bg: rgba(235, 241, 248, 0.78);
+  --mis-panel-bg: #f8fafc;
+  --mis-border: rgba(10, 70, 129, 0.12);
+  --mis-border-strong: rgba(10, 70, 129, 0.2);
+  /* Borde de un CONTROL (input, select): es lo único que lo delimita, así que
+     WCAG 1.4.11 le pide 3:1 contra la superficie. Los dos de arriba son
+     divisores decorativos y no llegan —ni tienen por qué—: subirlos encuadraría
+     toda la interfaz. */
+  --mis-border-control: #808fad;
+  /* Campos de datos: vidrio teñido, con un borde que se lee sobre cualquier fondo. */
+  --mis-field-bg: rgba(255, 255, 255, 0.72);
+  --mis-field-bg-hover: rgba(255, 255, 255, 0.88);
+  --mis-field-bg-focus: rgba(255, 255, 255, 0.94);
+  --mis-field-border-hover: rgba(10, 70, 129, 0.42);
+  --mis-field-overlay-bg: rgba(255, 255, 255, 0.92);
+
+  /* Cromo de ventana macOS de los paneles de módulo (`.mis-window`). */
+  --mis-window-bar-bg: linear-gradient(
+    180deg,
+    rgba(252, 253, 255, 0.92) 0%,
+    rgba(238, 242, 248, 0.88) 100%
+  );
+  --mis-window-bar-border: rgba(10, 70, 129, 0.12);
+  --mis-window-btn-hover: rgba(10, 70, 129, 0.08);
+  --mis-window-btn-active: rgba(10, 70, 129, 0.16);
+  /* Luz del semáforo que la ventana no ofrece (minimizar/zoom en un diálogo). */
+  --mis-window-light-apagada: rgba(10, 70, 129, 0.16);
+
+  /* Superficies translúcidas sobre el wallpaper (header, tarjetas del shell). */
+  --mis-surface-translucido: rgba(255, 255, 255, 0.85);
+  --mis-surface-elevado: rgba(255, 255, 255, 0.95);
+  /* Panel de página (`.mis-page`) — vidrio sobre el wallpaper. */
+  --mis-glass-bg: rgba(255, 255, 255, 0.7);
+  --mis-glass-border: rgba(255, 255, 255, 0.6);
+  /* Tarjetas y secciones de contenido (`.mis-card`, `.mis-superficie`) y sus
+     baldosas internas (`.mis-baldosa`). En claro el vidrio blanco sobre fondo
+     claro no se distinguía: llevan borde de marca y tinte `--mis-primary-light`. */
+  --mis-card-bg: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--mis-surface) 82%, transparent) 0%,
+    color-mix(in srgb, var(--mis-primary-light) 78%, transparent) 100%
+  );
+  --mis-card-border: var(--mis-border-strong);
+  --mis-tile-bg: color-mix(in srgb, var(--mis-primary-light) 55%, var(--mis-surface));
+  --mis-tile-border: var(--mis-border-strong);
+  /* Acciones del header: en claro requieren un tinte navy para no perderse sobre el vidrio blanco. */
+  --mis-header-control-bg: rgba(255, 255, 255, 0.58);
+  --mis-header-control-hover: rgba(255, 255, 255, 0.82);
+  --mis-header-control-border: rgba(10, 70, 129, 0.18);
+  --mis-header-control-active: rgba(10, 70, 129, 0.28);
+  /* El rail solo marca la opción activa; las demás quedan integradas al vidrio. */
+  --mis-sidebar-item-hover: rgba(255, 255, 255, 0.12);
+  --mis-sidebar-item-active: rgba(255, 255, 255, 0.24);
+  --mis-sidebar-item-border: rgba(255, 255, 255, 0.38);
+  /* Fondos ya compuestos (logos y personajes incluidos): móvil por defecto, escritorio ≥ md. */
+  --mis-wallpaper: url('/assets/images/fc/fondos/wallpaper_cell.png');
+  --mis-wallpaper-size: cover;
+  --mis-wallpaper-position: center;
+  --mis-login-wallpaper: url('/assets/images/fc/fondos/wallpaper_login_cell.png');
+  /* Foto del banner de acceso en escritorio (≥ md); el móvil usa `--mis-login-wallpaper`. */
+  --mis-login-banner-foto: url('/assets/images/fc/fondos/login-banner.webp');
+  /* AparienciaDomAdaptador lo cambia cuando el usuario elige un color. */
+  --mis-wallpaper-color: var(--mis-bg);
+  /* Ambos temas usan su propio fondo; el velo queda transparente por defecto. */
+  --mis-wallpaper-velo: transparent;
+  /* Fondo de overlays a pantalla completa (spinner, redirect). */
+  --mis-overlay-bg: rgba(255, 255, 255, 0.72);
+  /* Fondos de páginas sin shell: acceso, carga y errores. */
+  --mis-full-page-bg: linear-gradient(145deg, #0a4681, #081b30);
+  --mis-login-banner-overlay: linear-gradient(
+    to top,
+    rgba(5, 11, 24, 0.9),
+    rgba(5, 11, 24, 0.15),
+    transparent
+  );
+  /* Diálogos: el velo conserva el shell visible y el panel usa el mismo
+     vidrio con mayor opacidad para mantener la lectura. */
+  --mis-dialog-mask: rgba(229, 239, 252, 0.3);
+  --mis-dialog-bg: rgba(255, 255, 255, 0.84);
+  --mis-dialog-border: rgba(255, 255, 255, 0.76);
+  /* Realce de fila/hover en tablas y listas. */
+  --mis-hover-bg: rgba(10, 70, 129, 0.04);
+  /* Hover de fila en `app-tabla-reporte`: más marcado que `--mis-hover-bg`
+     porque ahí compite con celdas de datos (números, semáforos) en vez de con
+     el fondo liso de un ítem de menú, y a 0.04 no se notaba. */
+  --mis-table-row-hover-bg: rgba(10, 70, 129, 0.09);
+  --mis-scrollbar-thumb: rgba(10, 70, 129, 0.2);
+  --mis-scrollbar-thumb-hover: rgba(10, 70, 129, 0.35);
+
+  /* Azul oficial: acción principal y texto sobre superficies claras. */
+  --mis-primary: #0a4681;
+  --mis-primary-hover: #083867;
+  --mis-primary-light: #e8edf5;
+  /**
+   * Marca cuando se usa como COLOR DE TEXTO/ícono sobre el fondo de la página.
+   * Separado de `--mis-primary` porque ese sigue siendo un fondo sólido que se
+   * combina con `--mis-text-on-primary`: en oscuro tiene que seguir siendo
+   * navy, mientras que el texto necesita aclararse para ser legible.
+   */
+  --mis-primary-text: #0a4681;
+
+  /* Dorado de Kaypacha: color de marca del reconocimiento, igual en los dos
+     temas. El texto va navy en ambos (6.19:1); con el texto primario del tema
+     oscuro daría 1.56:1 sobre el mismo fondo. */
+  --mis-kaypacha-oro: #efb810;
+  --mis-kaypacha-oro-texto: #0a4681;
+
+  /* Celeste oficial: fondos y detalles; texto oscuro encima para contraste. */
+  --mis-secondary: #009fe3;
+  --mis-secondary-hover: #0088c2;
+  --mis-secondary-light: #e5f6ff;
+
+  /* Acento */
+  --mis-accent: #0a4681;
+
+  /* Semánticos (estados) */
+  --mis-success: #11803a;
+  --mis-success-light: #e7f6ec;
+  --mis-warning: #b45309;
+  --mis-warning-light: #fef3c7;
+  --mis-danger: #d32424;
+  --mis-danger-light: #fdecec;
+
+  /* Escala de distribución del legado STG (`desembolsos.component.ts`,
+     `chronologicalColors`): del menor valor (1, verde) al mayor (5, rojo), con
+     su borde (`darkenColor`) y su texto. Igual en los dos temas, como en el
+     legado: la celda es un fondo sólido con su propio texto. */
+  --mis-escala-1: #22c55e;
+  --mis-escala-1-borde: #16a34a;
+  --mis-escala-1-texto: #ffffff;
+  --mis-escala-2: #84cc16;
+  --mis-escala-2-borde: #65a30d;
+  --mis-escala-2-texto: #ffffff;
+  --mis-escala-3: #eab308;
+  --mis-escala-3-borde: #ca8a04;
+  --mis-escala-3-texto: #000000;
+  --mis-escala-4: #f97316;
+  --mis-escala-4-borde: #ea580c;
+  --mis-escala-4-texto: #ffffff;
+  --mis-escala-5: #ef4444;
+  --mis-escala-5-borde: #dc2626;
+  --mis-escala-5-texto: #ffffff;
+
+  /* Incentivos, tema claro: paleta del sistema (éxito / advertencia / peligro /
+     primario) en vez de los tonos saturados del legado STG, que sobre fondo
+     blanco encandilaban. El tema oscuro conserva la paleta legada (ver `.dark`). */
+  /* Semáforo del perfil. */
+  --mis-inc-semaforo-mal: #d32424;
+  --mis-inc-semaforo-bien: #11803a;
+  --mis-inc-semaforo-neutro: #cbd5e1;
+  /* Anillo de avance. */
+  --mis-inc-avance-meta: #11803a;
+  --mis-inc-avance-medio: #d97706;
+  --mis-inc-avance-bajo: #d32424;
+  --mis-inc-avance-resto: #e2e8f0;
+  /* Texto del avance en el detalle. */
+  --mis-inc-avance-meta-texto: #11803a;
+  --mis-inc-avance-medio-texto: #b45309;
+  --mis-inc-avance-bajo-texto: #d32424;
+  /* Montos y estados del monetizado. */
+  --mis-inc-monto: #0a4681;
+  --mis-inc-positivo: #11803a;
+  --mis-inc-negativo: #d32424;
+  --mis-inc-modelo: #b45309;
+  /* Cajas Super Plus. */
+  --mis-inc-sp-activo: #0a4681;
+  --mis-inc-sp-negativo: #b91c1c;
+  --mis-inc-sp-inactivo: #64748b;
+  --mis-inc-sp-texto: #ffffff;
+  /* Chips de la tabla de variables: fondos suaves con texto de cuerpo. */
+  --mis-inc-chip-neutro: #e2e8f0;
+  --mis-inc-chip-real: #e5f6ff;
+  --mis-inc-chip-mon: #0a4681;
+  --mis-inc-chip-mon-texto: #ffffff;
+  --mis-inc-chip-meta-baja: #fdecec;
+  --mis-inc-chip-meta-ok: #e7f6ec;
+  --mis-inc-chip-texto: #304156;
+  --mis-inc-chip-borde: #0a4681;
+  /* Aro del avatar del perfil. */
+  --mis-inc-avatar: #0a4681;
+
+  /* Textos (color de cuerpo real del sistema: #304156, no el navy de marca) */
+  --mis-text-primary: #304156;
+  --mis-text-secondary: #5a6a85;
+  --mis-text-tertiary: #8390a2;
+  /* Blanco sobre el primario sólido en ambos temas. */
+  --mis-text-on-primary: #ffffff;
+  /* Navy oscuro, no blanco: el secundario es un celeste brillante (#00A2FF en
+     claro, #4DC3FF en oscuro) y el texto blanco encima daba 2.8:1. El mismo
+     valor sirve para los dos temas, por eso no se redefine en `.dark`. */
+  --mis-text-on-secondary: #0f1e2e;
+
+  /* ------------------------------------- */
+  /* Espaciado base y bordes             */
+  /* ------------------------------------- */
+  --mis-space-1: 4px;
+  --mis-space-2: 8px;
+  --mis-space-3: 12px;
+  --mis-space-4: 16px;
+  --mis-space-5: 20px;
+  --mis-space-6: 24px;
+  --mis-space-8: 32px;
+  --mis-space-12: 48px;
+
+  /* Escala de radios subida un grado (dirección Liquid Glass de
+     design-system.md: esquinas más amplias, coherentes en todo el sistema —
+     controles compactos suben poco, ventanas/tarjetas/diálogos suben más). */
+  --mis-radius-sm: 8px;
+  --mis-radius-md: 12px;
+  --mis-radius-lg: 20px;
+  --mis-radius-xl: 28px;
+  --mis-radius-full: 9999px;
+
+  /* Reflejo especular del vidrio: el borde superior más claro que el resto,
+     como si la luz entrara por arriba. Sustituye a `--mis-glass-border` en el
+     inset-shadow superior de tarjetas, ventana y diálogo — un grado más de
+     relieve que el borde parejo anterior. */
+  --mis-glass-specular-top: rgba(255, 255, 255, 0.85);
+
+  /* Sombras estilo macOS, un grado más profundas para que el panel flote
+     sobre el wallpaper en vez de quedar pegado a él. */
+  --mis-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --mis-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.1), 0 2px 6px rgba(0, 0, 0, 0.05);
+  --mis-shadow-lg: 0 14px 40px rgba(0, 0, 0, 0.13), 0 4px 10px rgba(0, 0, 0, 0.07);
+  --mis-shadow-focus: 0 0 0 3px rgba(10, 70, 129, 0.35);
+
+  --mis-transition-fast: 0.15s ease-in-out;
+  --mis-transition-base: 0.2s ease-in-out;
+
+  --mis-radius-xs: 4px;
+  --mis-font-bold: 700;
+
+  /* Sobre contenido y sidebar (z-40/z-50), debajo de los overlays de bloqueo
+     total (redirect/spinner, z-[999]+). El dropdown del header y su overlay de
+     click-afuera necesitan un z-index explícito o el overlay lo tapa. */
+  --mis-z-dropdown: 1000;
+
+  color-scheme: light;
+}
+
+/* ── Modo oscuro ──────────────────────────────────────────────
+   `.dark` en <html> lo pone ThemeService; es el mismo selector que
+   declara providePrimeNG({ theme: { options: { darkModeSelector } } }). */
+.dark {
+  --mis-esg-nodo-bg: var(--mis-panel-bg);
+  --mis-esg-nodo-text: #5eead4;
+  --mis-bg: #0e1626;
+  --mis-surface: #162034;
+  /* Mismo criterio que en claro: translúcido pero sin perder el navy profundo
+     del rail — acá el velo del wallpaper ya oscurece lo que se transparenta. */
+  --mis-sidebar-bg: rgba(9, 16, 29, 0.72);
+  --mis-sidebar-solid: #09101d;
+  --mis-sidebar-edge: rgba(9, 16, 29, 0.8);
+  --mis-sidebar-mobile-border: rgba(255, 255, 255, 0.08);
+  --mis-sidebar-mobile-shadow: 0 -2px 10px rgba(0, 0, 0, 0.45);
+  --mis-sidebar-active-bg: rgba(255, 255, 255, 0.15);
+  --mis-sidebar-mask: rgba(3, 8, 18, 0.55);
+  --mis-nav-panel-bg: rgba(22, 34, 56, 0.7);
+  --mis-panel-bg: #1a2740;
+  /* Divisores de tabla en oscuro. Sobre `--mis-surface` (#162034) los valores
+     anteriores (0.14 / 0.28) daban 1.24:1 y 1.61:1: la retícula existía pero
+     no se leía. Estos dan 1.55:1 y 2.12:1 — visibles sin volverse un marco
+     duro, que es lo que se pedía evitar. */
+  --mis-border: rgba(0, 162, 255, 0.26);
+  --mis-border-strong: rgba(0, 162, 255, 0.42);
+  --mis-border-control: #0075b8;
+  --mis-field-bg: rgba(22, 32, 52, 0.72);
+  --mis-field-bg-hover: rgba(26, 40, 66, 0.88);
+  --mis-field-bg-focus: rgba(26, 40, 66, 0.96);
+  --mis-field-border-hover: rgba(77, 195, 255, 0.68);
+  --mis-field-overlay-bg: rgba(22, 32, 52, 0.96);
+
+  --mis-window-bar-bg: linear-gradient(
+    180deg,
+    rgba(38, 52, 79, 0.92) 0%,
+    rgba(26, 37, 58, 0.88) 100%
+  );
+  --mis-window-bar-border: rgba(255, 255, 255, 0.1);
+  --mis-window-btn-hover: rgba(255, 255, 255, 0.1);
+  --mis-window-btn-active: rgba(255, 255, 255, 0.18);
+  --mis-window-light-apagada: rgba(255, 255, 255, 0.18);
+
+  --mis-surface-translucido: rgba(22, 34, 56, 0.85);
+  --mis-surface-elevado: rgba(26, 40, 66, 0.95);
+  --mis-glass-bg: rgba(22, 32, 52, 0.72);
+  --mis-glass-border: rgba(255, 255, 255, 0.08);
+  /* En oscuro el reflejo es más discreto: el vidrio ya contrasta con el
+     fondo, así que una línea muy brillante se vería como un borde postizo. */
+  --mis-glass-specular-top: rgba(255, 255, 255, 0.16);
+  /* En oscuro el vidrio original ya contrasta: se conserva. */
+  --mis-card-bg: var(--mis-glass-bg);
+  --mis-card-border: color-mix(in srgb, var(--mis-border) 55%, var(--mis-glass-border));
+  --mis-tile-bg: color-mix(in srgb, var(--mis-surface) 55%, transparent);
+  --mis-tile-border: var(--mis-border);
+  --mis-header-control-bg: rgba(255, 255, 255, 0.08);
+  --mis-header-control-hover: rgba(255, 255, 255, 0.15);
+  --mis-header-control-border: rgba(255, 255, 255, 0.16);
+  --mis-header-control-active: rgba(255, 255, 255, 0.22);
+  --mis-sidebar-item-hover: rgba(255, 255, 255, 0.1);
+  --mis-sidebar-item-active: rgba(255, 255, 255, 0.2);
+  --mis-sidebar-item-border: rgba(255, 255, 255, 0.18);
+  --mis-wallpaper: url('/assets/images/fc/fondos/wallpaper_dark_cell.png');
+  --mis-overlay-bg: rgba(8, 14, 26, 0.78);
+  --mis-dialog-mask: rgba(8, 16, 30, 0.3);
+  --mis-dialog-bg: rgba(22, 32, 52, 0.86);
+  --mis-dialog-border: rgba(255, 255, 255, 0.14);
+  --mis-hover-bg: rgba(0, 162, 255, 0.08);
+  --mis-table-row-hover-bg: rgba(0, 162, 255, 0.16);
+  --mis-scrollbar-thumb: rgba(0, 162, 255, 0.25);
+  --mis-scrollbar-thumb-hover: rgba(0, 162, 255, 0.45);
+
+  /* Sigue siendo navy, pero más claro que el #2A4E8F anterior: como fondo de
+     un botón sólido, aquel quedaba a 2:1 del panel oscuro — por debajo del
+     3:1 que pide WCAG 1.4.11 para el contorno de un control. */
+  --mis-primary: #3e6fb5;
+  --mis-primary-hover: #4c81cc;
+  --mis-primary-light: #1d2d45;
+  --mis-primary-text: #8fbef5;
+
+  --mis-secondary: #4dc3ff;
+  --mis-secondary-hover: #00a2ff;
+  --mis-secondary-light: #12293d;
+
+  --mis-accent: #4dc3ff;
+
+  --mis-success: #4ade80;
+  --mis-success-light: #12331e;
+  --mis-warning: #fbbf24;
+  --mis-warning-light: #3a2e10;
+  --mis-danger: #f87171;
+  --mis-danger-light: #3b1a1a;
+
+  --mis-text-primary: #e8eef9;
+  --mis-text-secondary: #a3b2c9;
+  --mis-text-tertiary: #6f819c;
+
+  /* Sombras: sobre fondo oscuro el negro no se ve — más opacidad y difusión. */
+  --mis-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --mis-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.32);
+  --mis-shadow-lg: 0 14px 40px rgba(0, 0, 0, 0.6), 0 4px 10px rgba(0, 0, 0, 0.38);
+
+  /* Incentivos, tema oscuro: se mantiene la paleta del legado STG
+     (`modules/incentivos3/*.scss`); solo el resto del anillo se oscurece,
+     porque el gris claro encandila sobre fondo oscuro. */
+  --mis-inc-semaforo-mal: #e91e2f;
+  --mis-inc-semaforo-bien: #3bd136;
+  --mis-inc-semaforo-neutro: #d3d3d3;
+  --mis-inc-avance-meta: #3fe91e;
+  --mis-inc-avance-medio: #efb45f;
+  --mis-inc-avance-bajo: #e3005b;
+  --mis-inc-avance-resto: #3d4b60;
+  --mis-inc-avance-meta-texto: #38cb1b;
+  --mis-inc-avance-medio-texto: #c38c3d;
+  --mis-inc-avance-bajo-texto: #e3005b;
+  --mis-inc-monto: #009fe3;
+  --mis-inc-positivo: #3bd136;
+  --mis-inc-negativo: #e3005b;
+  --mis-inc-modelo: #ff4500;
+  --mis-inc-sp-activo: #009fe3;
+  --mis-inc-sp-negativo: #e3005b;
+  --mis-inc-sp-inactivo: #a9a9a9;
+  --mis-inc-chip-neutro: #bdbdbd;
+  --mis-inc-chip-real: #a0d2fa;
+  --mis-inc-chip-mon: #125386;
+  --mis-inc-chip-meta-baja: #e4858d;
+  --mis-inc-chip-meta-ok: #64ef5f;
+  --mis-inc-chip-borde: #125386;
+  --mis-inc-avatar: #045394;
+
+  /* Paleta del Ranking — la versión clara es ilegible sobre fondo oscuro. */
+  --mis-ranking-header-bg: #0a2c4d;
+  --mis-ranking-subheader-bg: #1e4e7d;
+  --mis-ranking-row1-bg: #143a4a;
+
+  color-scheme: dark;
+}
+
+/* Escritorio: fondo apaisado, claro u oscuro. */
+@media (min-width: 768px) {
+  :root {
+    --mis-wallpaper: url('/assets/images/fc/fondos/wallpaper.png');
+  }
+  :root.dark {
+    --mis-wallpaper: url('/assets/images/fc/fondos/wallpaper_dark.png');
+  }
+}

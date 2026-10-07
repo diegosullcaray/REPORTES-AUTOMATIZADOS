@@ -8,6 +8,8 @@ Con un solo comando el reporte: se conecta a SQL Server → **comprueba que las 
 python main.py saca-tu-garra          # un reporte, con la fecha de corte de tu .env
 ```
 
+**¿Prefieres el navegador?** La [interfaz web](governance/docs/development/runbooks/interfaz-web.md) hace lo mismo (validar tablas, ejecutar, vista previa del Excel, correo) sobre este mismo motor.
+
 > **Regla que manda sobre todo:** cuando la documentación y el código discrepan, gana el código y se corrige el documento. Reglas del repositorio: [AGENTS.md](AGENTS.md).
 
 ---
