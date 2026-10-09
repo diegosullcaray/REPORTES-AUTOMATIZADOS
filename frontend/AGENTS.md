@@ -11,7 +11,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 ## Reglas de la web de reportes
 
 1. **Color solo por token `--mis-*`** (`src/app/tokens.css`, copia de MIS; no se edita aquí). Usa `text-[var(--mis-text-secondary)]`
-   o `style={{ background: "var(--mis-surface)" }}`, o las clases de shadcn (que ya apuntan a los tokens). Nada de hex en componentes.
+   o `style={{ background: "var(--mis-surface)" }}`, o las clases de shadcn (que ya apuntan a los tokens). Nada de hex ni paleta cruda de Tailwind en componentes; la marca como texto es `--mis-primary-text`, nunca `text-primary` (detalle y guardas: skill `web-diseno-dokploy` y `src/lib/colores.test.ts`).
 2. **Capas**: `lib/api.ts` es la única puerta a la API; `lib/formato.ts` funciones puras; `components/` presentación;
    `features/` orquestación por pantalla; `app/` solo rutas.
 3. **Estados en orden**: error → cargando (esqueleto de la propia tabla) → vacío → contenido (`components/estados.tsx`).

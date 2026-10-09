@@ -27,7 +27,7 @@ export function PaginaError({ codigo, mensaje, detalle, onReintentar, compacta }
         </header>
       )}
       <main className="px-4 py-10 text-center sm:px-6 lg:px-8">
-        <h1 className="block text-7xl font-bold text-primary sm:text-9xl">{codigo}</h1>
+        <h1 className="block text-7xl font-bold text-[var(--mis-primary-text)] sm:text-9xl">{codigo}</h1>
         <p className="mt-3 text-muted-foreground">{mensaje}</p>
         {detalle && <p className="mt-2 font-mono text-xs break-all text-muted-foreground">{detalle}</p>}
         <div className="mt-5 flex flex-col items-center justify-center gap-2 sm:flex-row sm:gap-3">

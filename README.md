@@ -27,6 +27,8 @@ Un solo comando levanta el **backend** y el **frontend**, muestra los dos regist
 | `--sin-navegador` | no abre el navegador |
 | `--puerto-api 8100` · `--puerto-web 3100` | usar otros puertos si los de por defecto están ocupados |
 
+Con `--prod` y otro puerto de API, la URL se aplica al compilar (el script lo hace solo).
+
 Antes de la primera vez: crea el entorno y el `.env` del backend ([instalación](backend/README.md#2-instalación-paso-a-paso-primera-vez)) y define en `backend/.env` `WEB_USUARIO` y `WEB_CLAVE` para poder iniciar sesión. Si dice que un puerto está en uso, ya hay una API o una web corriendo: ciérralas (Ctrl+C en su terminal) y vuelve a lanzar.
 
 Para trabajar solo con el motor, sin web: `cd backend` y `python main.py listar` (guía completa en [backend/README.md](backend/README.md)). Para arrancar cada parte por separado: [sección 5 del backend](backend/README.md#5-api-de-la-web) y [frontend/README.md](frontend/README.md).

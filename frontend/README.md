@@ -22,7 +22,7 @@ npm run dev                         :: desarrollo
 npm run build && npm start          :: uso normal
 ```
 
-Abre <http://localhost:3000>. Si la API corre en otro puerto: `set REPORTES_API_URL=http://127.0.0.1:PUERTO` antes de arrancar la web.
+Abre <http://localhost:3000>. Si la API corre en otro puerto: `set REPORTES_API_URL=http://127.0.0.1:PUERTO` antes de `npm run dev` o, en producción, antes de `npm run build` (el destino del proxy se fija al compilar).
 
 ## Iniciar sesión
 

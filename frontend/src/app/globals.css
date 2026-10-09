@@ -73,14 +73,15 @@
   --sidebar-border: var(--mis-border);
   --sidebar-ring: var(--mis-primary);
 
-  /* Consola de ejecución: oscura en los dos temas, como una terminal. */
+  /* Consola de ejecución: oscura en los dos temas, como una terminal. Los colores son los de `.dark` de MIS
+     (tokens.css): texto, texto secundario, éxito, peligro, advertencia y marca como texto. */
   --terminal-bg: color-mix(in srgb, var(--mis-brand-navy) 18%, #05080f);
-  --terminal-fg: #dbe4f0;
-  --terminal-tenue: #8b98ab;
+  --terminal-fg: #e8eef9;
+  --terminal-tenue: #a3b2c9;
   --terminal-ok: #4ade80;
   --terminal-error: #f87171;
   --terminal-aviso: #fbbf24;
-  --terminal-paso: #7cc4ff;
+  --terminal-paso: #8fbef5;
 }
 
 @layer base {

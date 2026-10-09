@@ -13,7 +13,7 @@ export function CampoCorte({ reporte, valor, onCambio }: { reporte: ReporteDetal
     <div className="flex flex-col gap-1">
       <Label htmlFor="corte">Fecha de corte {reporte.frecuencia === "mensual" && "(fin de mes)"}</Label>
       <Input id="corte" type="date" value={valor} onChange={(e) => onCambio(e.target.value)} aria-invalid={!!error} aria-describedby="corte-ayuda" className="w-48" />
-      <span id="corte-ayuda" className={`text-[12px] ${error ? "text-[var(--mis-danger)]" : "text-[var(--mis-text-tertiary)]"}`}>{error ?? ayuda}</span>
+      <span id="corte-ayuda" className={`text-[12px] ${error ? "text-[var(--mis-danger)]" : "text-[var(--mis-text-secondary)]"}`}>{error ?? ayuda}</span>
     </div>
   );
 }

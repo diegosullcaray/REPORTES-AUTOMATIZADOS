@@ -17,7 +17,7 @@ function Hoja({ hoja }: { hoja: HojaPrevia }) {
   if (hoja.filas.length === 0) return <EstadoVacio titulo="Hoja vacía" descripcion="Esta hoja no tiene filas de datos." />;
   return (
     <div className="flex flex-col gap-2">
-      <p className="text-[12px] text-[var(--mis-text-tertiary)]">
+      <p className="text-[12px] text-[var(--mis-text-secondary)]">
         {hoja.filas.length < hoja.total_filas ? `Mostrando las primeras ${hoja.filas.length} de ${numero.format(hoja.total_filas)} filas. Descarga el Excel para verlas todas.` : `${hoja.total_filas} filas.`}
       </p>
       <div className="rounded-lg border bg-card max-h-[60vh] overflow-auto">

@@ -20,10 +20,18 @@ function mensajeDe(cuerpo: unknown): string | null {
   return null;
 }
 
-/** Recarga completa a propósito: descarta caché y estado de la sesión anterior. */
+let yendoALogin = false;
+
+/** Borra la cookie de sesión (es HttpOnly: solo la API puede) y va al login con recarga completa, que descarta caché y estado. Una sola vez aunque fallen varias peticiones. */
 export function irALogin() {
-  // eslint-disable-next-line @next/next/no-location-assign-relative-destination
-  window.location.href = "/login";
+  if (yendoALogin) return;
+  yendoALogin = true;
+  fetch("/api/sesion", { method: "DELETE" })
+    .catch(() => undefined)
+    .finally(() => {
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+      window.location.href = "/login";
+    });
 }
 
 async function pedir<T>(ruta: string, init?: RequestInit): Promise<T> {
@@ -34,8 +42,9 @@ async function pedir<T>(ruta: string, init?: RequestInit): Promise<T> {
     throw new ErrorApi(0, SIN_API);
   }
   if (!res.ok) {
-    // Sesión vencida o ausente: a la pantalla de acceso (el propio login maneja su 401).
-    if (res.status === 401 && ruta !== "/sesion" && typeof window !== "undefined") irALogin();
+    // Sesión vencida o inválida: se limpia y se va al login. El intento de login (POST /sesion) maneja su propio 401: «usuario o contraseña incorrectos».
+    const esLogin = ruta === "/sesion" && init?.method === "POST";
+    if (res.status === 401 && !esLogin && typeof window !== "undefined") irALogin();
     const cuerpo = await res.json().catch(() => null);
     // El proxy devuelve 500 sin JSON cuando la API está apagada.
     throw new ErrorApi(res.status, mensajeDe(cuerpo) ?? (res.status >= 500 ? SIN_API : `Error ${res.status}`));
