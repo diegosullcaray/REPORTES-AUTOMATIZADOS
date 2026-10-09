@@ -12,10 +12,9 @@ import { useConsulta } from "@/hooks/use-consulta";
 import { api } from "@/lib/api";
 import { errorDeCorte, fecha } from "@/lib/formato";
 import type { ReporteDetalle } from "@/lib/tipos";
-import { CampoCorte } from "./campo-corte";
 
 /** Paso 4: prueba -> conforme -> todos. Reutiliza el Excel e imagen de la prueba; no vuelve a consultar. */
-export function PanelCorreo({ reporte, corte, onCorte }: { reporte: ReporteDetalle; corte: string; onCorte: (v: string) => void }) {
+export function PanelCorreo({ reporte, corte }: { reporte: ReporteDetalle; corte: string }) {
   const router = useRouter();
   const valido = !errorDeCorte(reporte.frecuencia, corte);
   const { datos, error, cargando, recargar } = useConsulta(valido ? `envio/${reporte.nombre}/${corte}` : null, () => api.estadoEnvio(reporte.nombre, corte || null));
@@ -36,7 +35,6 @@ export function PanelCorreo({ reporte, corte, onCorte }: { reporte: ReporteDetal
 
   return (
     <div className="flex flex-col gap-4">
-      <CampoCorte reporte={reporte} valor={corte} onCambio={onCorte} />
       <ol className="list-decimal space-y-1 pl-5 text-[13px] text-[var(--mis-text-secondary)]">
         <li>Ejecuta el reporte con «Enviar el correo de PRUEBA»: llega solo a tu correo.</li>
         <li>Revisa el correo, la imagen del resumen y el Excel (pestaña Archivos).</li>

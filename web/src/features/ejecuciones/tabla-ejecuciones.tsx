@@ -1,7 +1,7 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { Copy, ExternalLink, FileText, History, MoreHorizontal, ScrollText } from "lucide-react";
+import { Copy, FileText, History, MoreHorizontal, ScrollText } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -99,14 +99,13 @@ export function TablaEjecuciones({ reporte }: { reporte?: string }) {
       header: () => <span className="sr-only">Acciones</span>,
       cell: ({ row: { original: x } }) => (
         <div className="flex items-center justify-end gap-1">
-          <Button variant="ghost" size="sm" onClick={() => setLog(x.id)}><ScrollText /> Log</Button>
+          <Button variant="ghost" size="sm" onClick={() => setLog(x.id)}><ScrollText /> Detalle</Button>
           <DropdownMenu>
             <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" aria-label="Más acciones" />}><MoreHorizontal /></DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-52">
               <DropdownMenuGroup>
                 <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                <DropdownMenuItem onClick={() => setLog(x.id)}><ScrollText /> Ver log</DropdownMenuItem>
-                <DropdownMenuItem render={<Link href={`/ejecuciones/${x.id}`} />}><ExternalLink /> Detalle y archivos</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLog(x.id)}><ScrollText /> Ver detalle</DropdownMenuItem>
                 <DropdownMenuItem render={<Link href={`/reportes/${x.reporte}`} />}><FileText /> Ir al reporte</DropdownMenuItem>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />

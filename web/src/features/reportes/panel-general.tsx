@@ -14,14 +14,12 @@ import { useConsulta } from "@/hooks/use-consulta";
 import { api } from "@/lib/api";
 import { ESTADO_EJECUCION, TIPO, enCurso, errorDeCorte, fecha } from "@/lib/formato";
 import type { Correo, ReporteDetalle, Verificacion } from "@/lib/tipos";
-import { CampoCorte } from "./campo-corte";
 
 type Pestana = "validacion" | "archivos" | "ejecuciones";
 
 interface Props {
   reporte: ReporteDetalle;
-  corte: string;
-  onCorte: (v: string) => void;
+  corte: string; // se elige una sola vez, junto a las pestañas
   verificacion: Verificacion | null;
   irA: (p: Pestana) => void;
 }
@@ -57,7 +55,7 @@ function Dato({ etiqueta, children }: { etiqueta: string; children: ReactNode })
  * Pestaña General (como «Deploy Settings» de Dokploy): acciones del reporte arriba, log en vivo,
  * parámetros de la ejecución e información del reporte. La API vuelve a validar todo antes de encolar.
  */
-export function PanelGeneral({ reporte, corte, onCorte, verificacion, irA }: Props) {
+export function PanelGeneral({ reporte, corte, verificacion, irA }: Props) {
   const [forzar, setForzar] = useState(false);
   const [escritura, setEscritura] = useState(false);
   const [correo, setCorreo] = useState<Correo>("prueba");
@@ -115,9 +113,7 @@ export function PanelGeneral({ reporte, corte, onCorte, verificacion, irA }: Pro
         )}
       </Tarjeta>
 
-      <div className="grid gap-4 xl:grid-cols-[1fr_22rem]">
-        <Tarjeta titulo="Parámetros" descripcion="Se aplican a la próxima ejecución.">
-          <CampoCorte reporte={reporte} valor={corte} onCambio={onCorte} />
+      <Tarjeta titulo="Parámetros" descripcion="Se aplican a la próxima ejecución, con la fecha de corte elegida arriba.">
           {reporte.envia_correo && (
             <fieldset className="flex flex-col gap-2">
               <legend className="mb-1 text-sm font-medium">Correo</legend>
@@ -150,7 +146,7 @@ export function PanelGeneral({ reporte, corte, onCorte, verificacion, irA }: Pro
         </Tarjeta>
 
         <Tarjeta titulo="Información">
-          <dl className="grid grid-cols-2 gap-4">
+          <dl className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
             <Dato etiqueta="Nº del legado">{reporte.orden}</Dato>
             <Dato etiqueta="Tipo">{TIPO[reporte.frecuencia]}</Dato>
             <Dato etiqueta="Responsable">{reporte.grupo === "diarias" ? "—" : reporte.grupo === "piero" ? "Piero" : "Erick"}</Dato>
@@ -160,10 +156,9 @@ export function PanelGeneral({ reporte, corte, onCorte, verificacion, irA }: Pro
           </dl>
           <div className="flex flex-col gap-1">
             <span className="text-xs text-muted-foreground">Carpeta de salida</span>
-            <code className="rounded-md bg-muted px-2 py-1 font-mono text-xs break-all">data/outputs/{reporte.carpeta}</code>
+            <code className="w-fit rounded-md bg-muted px-2 py-1 font-mono text-xs break-all">data/outputs/{reporte.carpeta}</code>
           </div>
         </Tarjeta>
-      </div>
 
       <Confirmar abierto={confirmando} onAbierto={setConfirmando} titulo={`Ejecutar «${reporte.nombre}»`} accion={enviando ? "Encolando…" : "Ejecutar"}
         deshabilitado={enviando} peligro={forzar || escritura} onConfirmar={ejecutar}

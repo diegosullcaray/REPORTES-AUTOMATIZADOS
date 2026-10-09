@@ -1,9 +1,10 @@
 "use client";
 
-import { ChevronRight, ChevronsUpDown, Database, FileSpreadsheet, History, House, Mail, Monitor, Moon, SlidersHorizontal, Sun, UserRound } from "lucide-react";
+import { ChevronRight, ChevronsUpDown, Database, FileSpreadsheet, History, House, LogOut, Mail, Monitor, Moon, SlidersHorizontal, Sun, UserRound } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
+import { useState } from "react";
 import { Punto } from "@/components/estados";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
@@ -14,7 +15,7 @@ import {
   SidebarMenuBadge, SidebarMenuButton, SidebarMenuItem, SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem, SidebarRail,
 } from "@/components/ui/sidebar";
 import { useConsulta } from "@/hooks/use-consulta";
-import { api } from "@/lib/api";
+import { api, irALogin } from "@/lib/api";
 import { agruparPorCarpeta, enCurso, iniciales, titulo } from "@/lib/formato";
 import type { ReporteResumen } from "@/lib/tipos";
 
@@ -38,9 +39,11 @@ function Hoja({ r, ruta }: { r: ReporteResumen; ruta: string }) {
 /** Carpeta plegable dentro del árbol: categoría (Diarios, Piero, Erick) o carpeta del legado con sub-reportes (09 → 09.1, 09.2). */
 function Carpeta({ etiqueta, orden, reportes, ruta, abierta }: { etiqueta: string; orden?: string; reportes: ReporteResumen[]; ruta: string; abierta?: boolean }) {
   const contieneActivo = reportes.some((r) => ruta === rutaDe(r));
+  const [elegido, setElegido] = useState<boolean | null>(null); // null = sigue a la ruta hasta que el usuario la pliegue o despliegue
   return (
-    <Collapsible defaultOpen={abierta || contieneActivo} className="group/carpeta" render={<SidebarMenuSubItem />}>
-      <CollapsibleTrigger render={<SidebarMenuSubButton />} title={etiqueta}>
+    <Collapsible open={elegido ?? (!!abierta || contieneActivo)} onOpenChange={setElegido} className="group/carpeta" render={<SidebarMenuSubItem />}>
+      {/* SidebarMenuSubButton es un <a> por defecto; para plegar hace falta un <button> real (teclado y lectores de pantalla). */}
+      <CollapsibleTrigger render={<SidebarMenuSubButton render={<button type="button" />} />} title={etiqueta}>
         {orden && <span className="w-7 shrink-0 text-[11px] text-muted-foreground tabular-nums">{orden}</span>}
         <span className="truncate">{etiqueta}</span>
         <ChevronRight className="ml-auto size-3.5 shrink-0 transition-transform duration-150 group-data-[open]/carpeta:rotate-90" />
@@ -62,8 +65,9 @@ function Carpeta({ etiqueta, orden, reportes, ruta, abierta }: { etiqueta: strin
 function MenuReportes({ ruta }: { ruta: string }) {
   const { datos } = useConsulta("reportes", api.reportes);
   const de = (g: string) => datos?.filter((r) => r.grupo === g) ?? [];
+  const [elegido, setElegido] = useState<boolean | null>(null); // null = abierto mientras estés en Reportes
   return (
-    <Collapsible defaultOpen={ruta.startsWith("/reportes")} className="group/reportes" render={<SidebarMenuItem />}>
+    <Collapsible open={elegido ?? ruta.startsWith("/reportes")} onOpenChange={setElegido} className="group/reportes" render={<SidebarMenuItem />}>
       <SidebarMenuButton isActive={ruta === "/reportes"} tooltip="Reportes" render={<Link href="/reportes" />}>
         <FileSpreadsheet />
         <span>Reportes</span>
@@ -72,7 +76,7 @@ function MenuReportes({ ruta }: { ruta: string }) {
         <ChevronRight className="transition-transform duration-150 group-data-[open]/reportes:rotate-90" />
       </CollapsibleTrigger>
       <CollapsibleContent>
-        {/* Las carpetas se montan con el catálogo ya cargado: así su `defaultOpen` ve el reporte abierto. */}
+        {/* Las carpetas se montan con el catálogo ya cargado: así ven desde el inicio qué reporte está abierto. */}
         {datos && (
           <SidebarMenuSub>
             <Carpeta etiqueta="Diarios" reportes={de("diarias")} ruta={ruta} abierta />
@@ -126,6 +130,8 @@ function MenuUsuario({ enMarcha, apiCaida }: { enMarcha: number; apiCaida: boole
           <DropdownMenuItem onClick={() => setTheme("dark")}><Moon /> Oscuro {resolvedTheme === "dark" && "✓"}</DropdownMenuItem>
           <DropdownMenuItem onClick={() => setTheme("system")}><Monitor /> Como el sistema</DropdownMenuItem>
         </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => api.cerrarSesion().finally(irALogin)}><LogOut /> Cerrar sesión</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

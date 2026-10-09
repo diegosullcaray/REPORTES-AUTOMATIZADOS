@@ -153,3 +153,7 @@ export interface EstadoEnvio {
   todos: string | null;
   excel: string | null;
 }
+
+export interface Sesion {
+  usuario: string;
+}

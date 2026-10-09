@@ -4,9 +4,11 @@ import { Download } from "lucide-react";
 import { useState } from "react";
 import { EsqueletoFilas, EstadoVacio, ErrorEnLinea } from "@/components/estados";
 import { buttonVariants } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useConsulta } from "@/hooks/use-consulta";
 import { api, urlArchivo } from "@/lib/api";
+import { titulo } from "@/lib/formato";
 import type { Celda, HojaPrevia, TipoArchivo } from "@/lib/tipos";
 
 const numero = new Intl.NumberFormat("es-PE", { maximumFractionDigits: 2 });
@@ -62,24 +64,41 @@ function VistaDatos({ reporte, archivo }: { reporte: string; archivo: string }) 
   );
 }
 
-/** Vista previa de un archivo generado: tabla para Excel, imagen en línea, texto plano. */
-export function VistaPreviaArchivo({ reporte, archivo, tipo }: { reporte: string; archivo: string; tipo: TipoArchivo }) {
+export interface ArchivoAbierto {
+  reporte: string;
+  nombre: string;
+  tipo: TipoArchivo;
+}
+
+/** Vista previa de un archivo generado en un diálogo amplio: tabla para Excel, imagen, texto plano. */
+export function DialogoVistaPrevia({ archivo, onCerrar }: { archivo: ArchivoAbierto | null; onCerrar: () => void }) {
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex items-center justify-between gap-2">
-        <span className="truncate text-[13px] font-semibold">{archivo}</span>
-        <a href={urlArchivo(reporte, archivo)} className={buttonVariants({ variant: "outline", size: "sm" })}>
-          <Download /> Descargar
-        </a>
-      </div>
-      {tipo === "imagen" ? (
-        // eslint-disable-next-line @next/next/no-img-element -- archivo local servido por la API, no optimizable
-        <img src={urlArchivo(reporte, archivo, true)} alt={`Vista previa de ${archivo}`} className="rounded-lg border bg-card max-w-full" />
-      ) : tipo === "otro" ? (
-        <EstadoVacio titulo="Sin vista previa" descripcion="Este tipo de archivo solo se puede descargar." />
-      ) : (
-        <VistaDatos key={archivo} reporte={reporte} archivo={archivo} />
-      )}
-    </div>
+    <Dialog open={!!archivo} onOpenChange={(abierto) => !abierto && onCerrar()}>
+      <DialogContent className="flex max-h-[90vh] flex-col sm:max-w-6xl">
+        {archivo && (
+          <>
+            <DialogHeader className="flex-row items-center justify-between gap-3 pr-8">
+              <div className="flex min-w-0 flex-col gap-1">
+                <DialogTitle className="truncate">{archivo.nombre}</DialogTitle>
+                <DialogDescription>Vista previa · {titulo(archivo.reporte)}</DialogDescription>
+              </div>
+              <a href={urlArchivo(archivo.reporte, archivo.nombre)} className={buttonVariants({ variant: "outline", size: "sm" })}>
+                <Download /> Descargar
+              </a>
+            </DialogHeader>
+            <div className="min-h-0 overflow-auto">
+              {archivo.tipo === "imagen" ? (
+                // eslint-disable-next-line @next/next/no-img-element -- archivo local servido por la API, no optimizable
+                <img src={urlArchivo(archivo.reporte, archivo.nombre, true)} alt={`Vista previa de ${archivo.nombre}`} className="mx-auto max-w-full rounded-lg border" />
+              ) : archivo.tipo === "otro" ? (
+                <EstadoVacio titulo="Sin vista previa" descripcion="Este tipo de archivo solo se puede descargar." />
+              ) : (
+                <VistaDatos key={archivo.nombre} reporte={archivo.reporte} archivo={archivo.nombre} />
+              )}
+            </div>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }

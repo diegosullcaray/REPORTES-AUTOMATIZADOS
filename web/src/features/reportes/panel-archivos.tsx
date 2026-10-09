@@ -1,54 +1,53 @@
 "use client";
 
-import { FileImage, FileSpreadsheet, FileText, File as FileIcon, RefreshCw } from "lucide-react";
+import { Download, Eye, FileImage, FileSpreadsheet, FileText, File as FileIcon, RefreshCw } from "lucide-react";
 import { useState } from "react";
 import { EsqueletoFilas, EstadoVacio, ErrorEnLinea } from "@/components/estados";
-import { Button } from "@/components/ui/button";
+import { Hace } from "@/components/hace";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { useConsulta } from "@/hooks/use-consulta";
-import { api } from "@/lib/api";
-import { fecha, tamano } from "@/lib/formato";
-import type { Archivo } from "@/lib/tipos";
-import { VistaPreviaArchivo } from "./vista-previa";
+import { api, urlArchivo } from "@/lib/api";
+import { tamano } from "@/lib/formato";
+import { DialogoVistaPrevia, type ArchivoAbierto } from "./vista-previa";
 
 const ICONOS = { excel: FileSpreadsheet, imagen: FileImage, texto: FileText, otro: FileIcon };
 
-export function PanelArchivos({ reporte, inicial }: { reporte: string; inicial?: string }) {
+/** Archivos de la carpeta de salida en una sola lista; la vista previa se abre en un diálogo. */
+export function PanelArchivos({ reporte }: { reporte: string }) {
   const { datos, error, cargando, recargar } = useConsulta(`archivos/${reporte}`, () => api.archivos(reporte));
-  const [elegido, setElegido] = useState<string | undefined>(inicial);
-  const actual: Archivo | undefined = datos?.find((a) => a.nombre === elegido) ?? datos?.[0];
+  const [abierto, setAbierto] = useState<ArchivoAbierto | null>(null);
 
   if (error) return <ErrorEnLinea titulo="No se pudieron listar los archivos" detalle={error} onReintentar={recargar} />;
   if (cargando && !datos) return <EsqueletoFilas filas={5} />;
   if (!datos?.length) return <EstadoVacio icono={FileSpreadsheet} titulo="Aún no hay archivos" descripcion="Cuando ejecutes el reporte, el Excel aparecerá aquí con su vista previa." />;
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[minmax(240px,320px)_1fr]">
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center justify-between">
-          <span className="text-[12px] text-[var(--mis-text-tertiary)]">{datos.length} archivo(s) en la carpeta del reporte</span>
-          <Button variant="ghost" size="icon-sm" onClick={recargar} aria-label="Actualizar lista"><RefreshCw /></Button>
-        </div>
-        <ul className="flex max-h-[30vh] flex-col gap-1 overflow-auto lg:max-h-[65vh]">
-          {datos.map((a) => {
-            const Icono = ICONOS[a.tipo];
-            const activo = a.nombre === actual?.nombre;
-            return (
-              <li key={a.nombre}>
-                <button onClick={() => setElegido(a.nombre)} aria-pressed={activo}
-                  className="flex w-full items-center gap-2 rounded-[var(--mis-radius-sm)] px-2 py-1.5 text-left transition-colors duration-150 hover:bg-[var(--mis-hover-bg)]"
-                  style={activo ? { background: "var(--mis-primary-light)" } : undefined}>
-                  <Icono className="size-4 shrink-0 text-[var(--mis-primary-text)]" />
-                  <span className="flex min-w-0 flex-col">
-                    <span className="truncate text-[13px]">{a.nombre}</span>
-                    <span className="text-[11px] text-[var(--mis-text-tertiary)]">{fecha(a.modificado)} · {tamano(a.tamano)}</span>
-                  </span>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <span className="text-sm text-muted-foreground">{datos.length} archivo(s), del más reciente al más antiguo</span>
+        <Button variant="outline" size="icon-sm" onClick={recargar} aria-label="Actualizar lista"><RefreshCw className={cargando ? "animate-spin" : ""} /></Button>
       </div>
-      {actual && <VistaPreviaArchivo key={actual.nombre} reporte={reporte} archivo={actual.nombre} tipo={actual.tipo} />}
+      <ul className="divide-y rounded-lg border">
+        {datos.map((a) => {
+          const Icono = ICONOS[a.tipo];
+          return (
+            <li key={a.nombre} className="flex flex-wrap items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/40">
+              <Icono className="size-5 shrink-0 text-muted-foreground" />
+              <div className="flex min-w-0 flex-1 flex-col">
+                <span className="truncate text-sm font-medium" title={a.nombre}>{a.nombre}</span>
+                <span className="text-xs text-muted-foreground"><Hace iso={a.modificado} /> · {tamano(a.tamano)}</span>
+              </div>
+              <div className="flex gap-2">
+                {a.tipo !== "otro" && (
+                  <Button variant="outline" size="sm" onClick={() => setAbierto({ reporte, nombre: a.nombre, tipo: a.tipo })}><Eye /> Vista previa</Button>
+                )}
+                <a href={urlArchivo(reporte, a.nombre)} className={buttonVariants({ variant: "ghost", size: "sm" })}><Download /> Descargar</a>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+      <DialogoVistaPrevia archivo={abierto} onCerrar={() => setAbierto(null)} />
     </div>
   );
 }

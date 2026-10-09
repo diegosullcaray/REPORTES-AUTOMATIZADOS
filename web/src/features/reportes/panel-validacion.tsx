@@ -7,18 +7,16 @@ import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { ESTADO_TABLA, errorDeCorte, fecha } from "@/lib/formato";
 import type { ReporteDetalle, Verificacion } from "@/lib/tipos";
-import { CampoCorte } from "./campo-corte";
 
 interface Props {
   reporte: ReporteDetalle;
-  corte: string;
-  onCorte: (v: string) => void;
+  corte: string; // se elige una sola vez, junto a las pestañas
   verificacion: Verificacion | null;
   onVerificacion: (v: Verificacion | null) => void;
 }
 
-/** Paso 1: ¿las tablas llegaron al corte? Si no, mensaje listo para Producción. Solo hace SELECT. */
-export function PanelValidacion({ reporte, corte, onCorte, verificacion, onVerificacion }: Props) {
+/** ¿Las tablas llegaron al corte? Si no, mensaje listo para Producción. Solo hace SELECT. */
+export function PanelValidacion({ reporte, corte, verificacion, onVerificacion }: Props) {
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const invalido = errorDeCorte(reporte.frecuencia, corte);
@@ -39,11 +37,11 @@ export function PanelValidacion({ reporte, corte, onCorte, verificacion, onVerif
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
-        <CampoCorte reporte={reporte} valor={corte} onCambio={(v) => { onCorte(v); setError(null); }} />
-        <Button onClick={verificar} disabled={cargando || !!invalido} className="sm:mt-[22px]">
-          <ShieldCheck /> {cargando ? "Verificando…" : "Verificar tablas"}
+      <div className="flex flex-wrap items-center gap-3">
+        <Button onClick={verificar} disabled={cargando || !!invalido}>
+          <ShieldCheck /> {cargando ? "Verificando…" : `Verificar tablas al ${corte ? fecha(corte) : "corte"}`}
         </Button>
+        {invalido && <span className="text-sm text-muted-foreground">{invalido}</span>}
       </div>
 
       {error ? (

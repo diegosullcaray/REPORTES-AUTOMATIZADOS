@@ -16,6 +16,7 @@ import { useConsulta } from "@/hooks/use-consulta";
 import { api } from "@/lib/api";
 import { ESTADO_EJECUCION, TIPO, enCurso, titulo } from "@/lib/formato";
 import type { Verificacion } from "@/lib/tipos";
+import { CampoCorte } from "./campo-corte";
 import { PanelArchivos } from "./panel-archivos";
 import { PanelCorreo } from "./panel-correo";
 import { PanelGeneral } from "./panel-general";
@@ -84,6 +85,8 @@ export function DetalleReporte({ nombre }: { nombre: string }) {
             ) : cargando && !r ? (
               <EsqueletoFilas filas={5} />
             ) : r && (
+              <div className="flex flex-col gap-4">
+              <CampoCorte reporte={r} valor={corte} onCambio={setCorte} />
               <Tabs value={pestana} onValueChange={(v) => irA(v as Pestana)}>
                 <TabsList className="w-full justify-start overflow-x-auto sm:w-fit">
                   <TabsTrigger value="general">General</TabsTrigger>
@@ -93,11 +96,11 @@ export function DetalleReporte({ nombre }: { nombre: string }) {
                   {r.envia_correo && <TabsTrigger value="correo">Correo</TabsTrigger>}
                 </TabsList>
                 <TabsContent value="general" className="pt-3">
-                  <PanelGeneral reporte={r} corte={corte} onCorte={setCorte} verificacion={verificacion} irA={irA} />
+                  <PanelGeneral reporte={r} corte={corte} verificacion={verificacion} irA={irA} />
                 </TabsContent>
                 <TabsContent value="validacion" className="pt-3">
                   <Tarjeta titulo="Validación de tablas" descripcion="Comprueba que cada tabla llegue al corte (solo lectura) y arma el pedido a Producción si falta alguna.">
-                    <PanelValidacion reporte={r} corte={corte} onCorte={setCorte} verificacion={verificacion} onVerificacion={setVerificacion} />
+                    <PanelValidacion reporte={r} corte={corte} verificacion={verificacion} onVerificacion={setVerificacion} />
                   </Tarjeta>
                 </TabsContent>
                 <TabsContent value="ejecuciones" className="pt-3"><ListaEjecuciones reporte={r.nombre} /></TabsContent>
@@ -109,11 +112,12 @@ export function DetalleReporte({ nombre }: { nombre: string }) {
                 {r.envia_correo && (
                   <TabsContent value="correo" className="pt-3">
                     <Tarjeta titulo="Correo" descripcion="Prueba → conforme → envío a toda la lista.">
-                      <PanelCorreo reporte={r} corte={corte} onCorte={setCorte} />
+                      <PanelCorreo reporte={r} corte={corte} />
                     </Tarjeta>
                   </TabsContent>
                 )}
               </Tabs>
+              </div>
             )}
           </div>
         </div>

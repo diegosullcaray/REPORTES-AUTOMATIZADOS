@@ -130,6 +130,15 @@ class PruebaConexion(BaseModel):
     milisegundos: int
 
 
+class PedidoSesion(BaseModel):
+    usuario: str = Field(min_length=1, max_length=256)
+    clave: str = Field(min_length=1, max_length=256)
+
+
+class Sesion(BaseModel):
+    usuario: str
+
+
 class Perfil(BaseModel):
     """Quién ejecuta la API y cómo está configurado el envío de correo (sin contraseñas ni webhook)."""
 

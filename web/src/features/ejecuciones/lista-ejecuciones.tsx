@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock, ExternalLink, Rocket, ScrollText } from "lucide-react";
+import { Clock, Rocket, ScrollText } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { Chip, EsqueletoFilas, ErrorEnLinea, EstadoVacio, Punto } from "@/components/estados";
@@ -51,8 +51,7 @@ export function ListaEjecuciones({ reporte, limite = 20 }: { reporte: string; li
                       {x.fin && <Badge variant="outline" className="gap-1 text-[10px]"><Clock className="size-3" />{duracion(x.inicio, x.fin)}</Badge>}
                     </span>
                     <span className="flex gap-2">
-                      <Button variant="outline" size="sm" onClick={() => setLog(x.id)}><ScrollText /> Ver log</Button>
-                      <Link href={`/ejecuciones/${x.id}`} className={buttonVariants({ variant: "ghost", size: "sm" })}><ExternalLink /> Detalle</Link>
+                      <Button variant="outline" size="sm" onClick={() => setLog(x.id)}><ScrollText /> Ver detalle</Button>
                     </span>
                   </div>
                 </li>

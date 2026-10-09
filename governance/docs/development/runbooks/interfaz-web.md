@@ -16,7 +16,9 @@ npm install
 npm run build && npm start        :: o `npm run dev` mientras desarrollas
 ```
 
-Abre http://localhost:3000. Si la API corre en otro puerto: `set REPORTES_API_URL=http://127.0.0.1:PUERTO` antes de `npm start`.
+Abre http://localhost:3000 e **inicia sesión con tu cuenta de Windows** (`DOMINIO\usuario`). Entra quien figure en `USUARIOS_WEB`
+del `.env` (vacío = solo quien ejecuta la API); la sesión dura 8 h, firmada con `SESION_SECRETO`, y 5 fallos bloquean al usuario 5 min.
+Toda la API exige esa sesión (401 sin ella). Si la API corre en otro puerto: `set REPORTES_API_URL=http://127.0.0.1:PUERTO` antes de `npm start`.
 Si cambias el `.env`, reinicia la API (lo lee al arrancar).
 
 ## Secciones
@@ -25,7 +27,7 @@ Si cambias el `.env`, reinicia la API (lo lee al arrancar).
 |---|---|
 | **Inicio** | Cortes vigentes del `.env`, métricas de los últimos 7 días (ejecuciones, % de éxito, estados), **avance del cierre de mes** (mensuales con una ejecución correcta para `FECHA_CORTE_MENSUAL` y cuáles faltan) y ejecuciones recientes con acceso al log |
 | **Reportes** | Tabla del catálogo (Nº del legado, tipo, responsable, servidor, última ejecución) con buscador, filtro y orden |
-| **Ejecuciones** | Historial completo: filtros por estado y tipo, orden por columna, columnas a elección, paginación; por fila: **Log** en panel lateral, detalle, ir al reporte, copiar el comando. Se refresca cada 5 s |
+| **Ejecuciones** | Historial completo: filtros por estado y tipo, orden por columna, columnas a elección, paginación; por fila: **Detalle** en un diálogo (datos, log en vivo y archivos con vista previa), ir al reporte, copiar el comando. Se refresca cada 5 s |
 | **Perfil** (menú de usuario, al pie del sidebar) | *Perfil*: usuario y equipo que ejecutan la API, cuenta y correo de prueba, estado del envío (contraseña, webhook, nº de destinatarios) y tema. *Configuración*: cortes, carpetas y driver que leyó la API. *Bases de datos*: los 3 servidores con **Test de conexión** (uno o todos). Nada de esto muestra contraseñas |
 
 Navegación (como Dokploy): el sidebar principal (Inicio · Reportes · Ejecuciones) se pliega a íconos con el botón del
@@ -43,7 +45,7 @@ insignias (tipo, servidor, responsable · Nº). La pestaña abierta queda en la 
 |---|---|---|
 | General | Tarjeta **Ejecución** con las acciones (Ejecutar, Verificar tablas, Archivos, Ejecuciones, Copiar comando) y el **log en vivo**; tarjeta **Parámetros** (fecha de corte, correo, confirmaciones) y tarjeta **Información** (Nº, responsable, servidor, tablas, carpeta de salida) | `python main.py <r> --fecha-corte …` |
 | Validación (reportes de lote) | **Verificar tablas** (solo SELECT). Si falta alguna: mensaje para Producción, **Copiar** o **Guardar** en `data/outputs/solicitudes/` | `tablas <r> --verificar` · `solicitud-actualizacion` |
-| Ejecuciones | Las últimas 20, numeradas, con estado, corte, duración, **Ver log** y detalle | — |
+| Ejecuciones | Las últimas 20, numeradas, con estado, corte, duración, **Ver detalle** (diálogo con log y archivos) | — |
 | Archivos | Excel, imagen y textos de la carpeta del reporte, con **vista previa** (200 filas por hoja) y descarga | `data/outputs/<…>/` |
 | Correo (solo `cartera-sin-asignar`) | Estado de la prueba; **Enviar a toda la lista** exige marcar «Revisé el correo de prueba» | `--correo todos --conforme` |
 

@@ -2,10 +2,12 @@
 
 from fastapi.testclient import TestClient
 
+from api import sesion
 from api.app import app
 from reportes.registro import REPORTES
 
 cliente = TestClient(app)
+cliente.cookies.set(sesion.COOKIE, sesion.emitir("tester"))
 
 
 def test_catalogo_lista_todos_los_reportes():
@@ -59,3 +61,7 @@ def test_prueba_de_servidor_desconocido_es_404():
 
 def test_archivo_fuera_de_la_carpeta_es_404():
     assert cliente.get("/api/reportes/saca-tu-garra/archivos/..%2F..%2F.env/vista-previa").status_code == 404
+
+
+def test_sin_sesion_la_api_responde_401():
+    assert TestClient(app).get("/api/reportes").status_code == 401

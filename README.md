@@ -20,15 +20,16 @@ python main.py saca-tu-garra          # un reporte, con la fecha de corte de tu 
 2. [Instalación paso a paso (primera vez)](#2-instalación-paso-a-paso-primera-vez)
 3. [Configurar el `.env`](#3-configurar-el-env)
 4. [Comprobar que todo funciona](#4-comprobar-que-todo-funciona)
-5. [Ejecutar un reporte (el flujo de cada vez)](#5-ejecutar-un-reporte-el-flujo-de-cada-vez)
-6. [Cierre de mes](#6-cierre-de-mes)
-7. [Reportes disponibles](#7-reportes-disponibles)
-8. [Qué se genera y dónde](#8-qué-se-genera-y-dónde)
-9. [Si algo falla](#9-si-algo-falla)
-10. [Qué tener siempre en cuenta](#10-qué-tener-siempre-en-cuenta)
-11. [Estructura del proyecto](#11-estructura-del-proyecto)
-12. [Guías (mapa de la documentación)](#12-guías-mapa-de-la-documentación)
-13. [Si vas a modificar o crear un reporte](#13-si-vas-a-modificar-o-crear-un-reporte)
+5. [Iniciar la interfaz web](#5-iniciar-la-interfaz-web)
+6. [Ejecutar un reporte (el flujo de cada vez)](#6-ejecutar-un-reporte-el-flujo-de-cada-vez)
+7. [Cierre de mes](#7-cierre-de-mes)
+8. [Reportes disponibles](#8-reportes-disponibles)
+9. [Qué se genera y dónde](#9-qué-se-genera-y-dónde)
+10. [Si algo falla](#10-si-algo-falla)
+11. [Qué tener siempre en cuenta](#11-qué-tener-siempre-en-cuenta)
+12. [Estructura del proyecto](#12-estructura-del-proyecto)
+13. [Guías (mapa de la documentación)](#13-guías-mapa-de-la-documentación)
+14. [Si vas a modificar o crear un reporte](#14-si-vas-a-modificar-o-crear-un-reporte)
 
 ---
 
@@ -111,6 +112,10 @@ RCC_PASSWORD=<la contraseña va SOLO aquí>
 FECHA_CORTE_MENSUAL=2026-09-30
 FECHA_CORTE_DIARIA=
 
+# Interfaz web (opcionales)
+# USUARIOS_WEB=ana,luis          quién entra con su cuenta de Windows (vacío = solo quien ejecuta la API)
+# SESION_SECRETO=                firma de la cookie de sesión (vacío = se genera en cada arranque)
+
 # Opcionales
 # REPORTES_DIR_INPUTS=D:\FINANCIERA CONFIANZA\data\inputs
 # REPORTES_DIR_OUTPUTS=D:\FINANCIERA CONFIANZA\data\outputs
@@ -144,11 +149,37 @@ python main.py probar-conexiones      :: prueba los 3 servidores
 python governance\scripts\verificar.py   :: compuertas del repo (no se conecta a ninguna BD)
 ```
 
-`probar-conexiones` debe mostrar `OK` en los servidores que vayas a usar. Mensajes típicos: ver [Si algo falla](#9-si-algo-falla).
+`probar-conexiones` debe mostrar `OK` en los servidores que vayas a usar. Mensajes típicos: ver [Si algo falla](#10-si-algo-falla).
 
 ---
 
-## 5. Ejecutar un reporte (el flujo de cada vez)
+## 5. Iniciar la interfaz web
+
+La web es opcional: hace lo mismo que la consola, en el navegador. Necesita **dos procesos** (cada uno en su terminal) y **Node 20 o superior**. Detalle de pantallas: [runbook de la interfaz web](governance/docs/development/runbooks/interfaz-web.md).
+
+```bat
+:: Terminal 1 — API (entorno activado y .env completo; si cambias el .env, reinicia la API)
+env\Scripts\activate
+python -m uvicorn api.app:app --app-dir src --host 127.0.0.1 --port 8000
+
+:: Terminal 2 — Web (la primera vez instala las dependencias)
+cd web
+npm install
+npm run build && npm start          :: o `npm run dev` mientras desarrollas
+```
+
+Abre <http://localhost:3000>. Te pedirá **iniciar sesión con tu cuenta de Windows** (`DOMINIO\usuario` o `usuario@dominio` y tu contraseña de Windows):
+
+- Entra quien figure en `USUARIOS_WEB` del `.env` (separados por coma). Si no lo defines, solo entra el usuario de Windows que ejecuta la API.
+- La sesión dura 8 horas y se cierra desde el menú de usuario (pie del sidebar). Tras 5 intentos fallidos el usuario queda bloqueado 5 minutos.
+- Define `SESION_SECRETO` en el `.env` para que las sesiones sobrevivan a un reinicio de la API; sin él se generan en cada arranque.
+- La API solo escucha en `127.0.0.1`. Si corre en otro puerto: `set REPORTES_API_URL=http://127.0.0.1:PUERTO` antes de `npm start`.
+
+Si la web dice *«No hay conexión con la API»*, la terminal 1 no está corriendo. Antes de entregar cambios en la web, dentro de `web/`: `npm test`, `npx tsc --noEmit`, `npx eslint src` y `npx next build`.
+
+---
+
+## 6. Ejecutar un reporte (el flujo de cada vez)
 
 Los 6 pasos son iguales para todos los reportes. Guía completa: [ejecutar un reporte](governance/docs/development/runbooks/ejecutar-un-reporte.md).
 
@@ -195,7 +226,7 @@ Los 5 reportes con lógica propia (`cmg-mora`, `bancarizados`, `bancarizados-pro
 
 ---
 
-## 6. Cierre de mes
+## 7. Cierre de mes
 
 Procedimiento completo, con el orden sugerido de reportes y las tablas que suelen retrasar el cierre: [proceso de cierre de mes](governance/docs/development/runbooks/proceso-cierre-de-mes.md). Resumen:
 
@@ -208,7 +239,7 @@ Procedimiento completo, con el orden sugerido de reportes y las tablas que suele
 
 ---
 
-## 7. Reportes disponibles
+## 8. Reportes disponibles
 
 `python main.py listar` muestra la lista actual, **en el orden y con la numeración de las carpetas del legado**. Catálogo completo (tablas críticas, salida, avisos): [catálogo de comandos](governance/docs/development/runbooks/comandos.md).
 
@@ -237,7 +268,7 @@ Procedimiento completo, con el orden sugerido de reportes y las tablas que suele
 
 ---
 
-## 8. Qué se genera y dónde
+## 9. Qué se genera y dónde
 
 Las salidas siguen la misma numeración del legado:
 
@@ -254,7 +285,7 @@ Los archivos contienen **datos de clientes**: no los subas al repositorio ni los
 
 ---
 
-## 9. Si algo falla
+## 10. Si algo falla
 
 | Mensaje | Causa | Qué hacer |
 |---|---|---|
@@ -278,7 +309,7 @@ Más contexto: [solicitud de actualización de tablas](governance/docs/developme
 
 ---
 
-## 10. Qué tener siempre en cuenta
+## 11. Qué tener siempre en cuenta
 
 1. **Nunca ejecutes con tablas `DESACTUALIZADA`:** el resultado sale plausible y equivocado.
 2. **Confirma la fecha de corte** impresa al inicio. Es lo primero que se olvida al cambiar de mes.
@@ -295,7 +326,7 @@ Más contexto: [solicitud de actualización de tablas](governance/docs/developme
 
 ---
 
-## 11. Estructura del proyecto
+## 12. Estructura del proyecto
 
 ```text
 main.py                       punto de entrada único (listar | probar-conexiones | tablas | solicitud-actualizacion | <reporte>)
@@ -311,6 +342,8 @@ src/reportes/
   comun/fechas.py             fecha de corte (.env / --fecha-corte) y tokens @@F@@…
   comun/excel.py              formato Excel del legado (tabla, resumen jerárquico, columnas)
   comun/imagen.py correo.py   imagen del resumen y envío por correo (cuenta MIS)
+src/api/                      API de la web (FastAPI): rutas, servicios, ejecuciones y sesión con cuenta de Windows
+web/                          interfaz Next.js + shadcn (login, reportes, ejecuciones, perfil)
   diarios/                    r02_cartera_sin_asignar.py, r04_1_cmg_mora.py … (número del legado)
   mensuales/piero/            r01_desembolsos_por_canal.py … r09_2_michael_castigos.py
   mensuales/erick/            r01_productos_verdes.py … r03_4_indicadores_clientes.py
@@ -322,7 +355,7 @@ docs/LEGADO/                  archivo histórico, solo lectura
 
 ---
 
-## 12. Guías (mapa de la documentación)
+## 13. Guías (mapa de la documentación)
 
 Todo está en [`governance/`](governance/readme.md). Lo que más vas a usar:
 
@@ -343,7 +376,7 @@ Todo está en [`governance/`](governance/readme.md). Lo que más vas a usar:
 
 ---
 
-## 13. Si vas a modificar o crear un reporte
+## 14. Si vas a modificar o crear un reporte
 
 - Reglas: [AGENTS.md](AGENTS.md). Guía: [crear un reporte nuevo](governance/docs/development/report-creation-guide.md) y la skill [reportes-ejecutor](governance/skills/reportes-ejecutor/SKILL.md).
 - Un reporte = un módulo `.py` con un `ReporteLote`: el T-SQL va dentro, **las fechas solo por tokens** (`@@F@@`, `@@F_ISO@@`, `@@F_ANT@@`…, nunca literales), registrado en `registro.py` y con **todas sus tablas** en `tablas.py`.

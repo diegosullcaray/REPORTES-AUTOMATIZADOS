@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
-import { AppSidebar } from "@/components/app-sidebar";
-import { Encabezado } from "@/components/encabezado";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
@@ -19,16 +16,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="es" suppressHydrationWarning className={`${geist.variable} ${geistMono.variable}`}>
-      <body>
+      <body suppressHydrationWarning>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <TooltipProvider>
-            <SidebarProvider style={{ "--sidebar-width": "19.5rem" } as React.CSSProperties}>
-              <AppSidebar />
-              <SidebarInset className="min-w-0">
-                <Encabezado />
-                <main className="flex min-h-0 flex-1">{children}</main>
-              </SidebarInset>
-            </SidebarProvider>
+            {children}
             <Toaster position="bottom-right" richColors />
           </TooltipProvider>
         </ThemeProvider>

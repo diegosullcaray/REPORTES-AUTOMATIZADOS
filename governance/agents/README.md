@@ -30,6 +30,7 @@ graph TD
 |---|---|---|
 | [Curador de gobernanza](./06-curador-de-gobernanza.md) | periódicamente o si `verificar.py` falla por algo ajeno | se regenera línea base/inventario solo para destrabar |
 | [Migrador del legado](./07-migrador-legado.md) | antes de la fase 1 | el contrato no tiene fuente legada |
+| [Diseñador web](./08-disenador-web.md) | al crear o cambiar una pantalla de la web | una regla vive solo en la web, hay color fuera de tokens o se esquiva `lib/api.ts` |
 
 ## Uso
 Cada archivo trae frontmatter (`name`, `description`, `tools`) y un prompt de sistema. Puede usarse como subagente (copiar a `.claude/agents/`), como prompt directo o como checklist humano.

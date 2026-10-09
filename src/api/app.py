@@ -16,10 +16,10 @@ from __future__ import annotations
 from contextlib import asynccontextmanager
 from datetime import date
 
-from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi import FastAPI, HTTPException, Query, Request, Response
 from fastapi.responses import FileResponse, JSONResponse
 
-from . import ejecuciones, servicios
+from . import ejecuciones, servicios, sesion
 from . import esquemas as e
 
 
@@ -32,6 +32,15 @@ async def _vida(_: FastAPI):
 app = FastAPI(title="Reportes automatizados", lifespan=_vida)
 
 
+@app.middleware("http")
+async def _exigir_sesion(request: Request, siguiente):
+    """Todo /api exige cookie de sesión válida salvo iniciar sesión y consultar si la hay."""
+    libre = request.url.path == "/api/sesion"
+    if request.url.path.startswith("/api") and not libre and not sesion.leer(request.cookies.get(sesion.COOKIE)):
+        return JSONResponse(status_code=401, content={"detail": "Inicia sesión para continuar"})
+    return await siguiente(request)
+
+
 @app.exception_handler(servicios.PeticionInvalida)
 async def _invalida(_: Request, exc: servicios.PeticionInvalida):
     return JSONResponse(status_code=422, content={"detail": str(exc)})
@@ -40,6 +49,32 @@ async def _invalida(_: Request, exc: servicios.PeticionInvalida):
 @app.exception_handler(servicios.NoEncontrado)
 async def _no_encontrado(_: Request, exc: servicios.NoEncontrado):
     return JSONResponse(status_code=404, content={"detail": str(exc)})
+
+
+# ---- sesión (cuenta de Windows)
+@app.post("/api/sesion", response_model=e.Sesion)
+def iniciar_sesion(pedido: e.PedidoSesion, respuesta: Response):
+    try:
+        usuario = sesion.iniciar(pedido.usuario, pedido.clave)
+    except PermissionError as exc:
+        raise HTTPException(429, str(exc)) from None
+    if not usuario:
+        raise HTTPException(401, "Usuario o contraseña incorrectos, o sin permiso para entrar")
+    respuesta.set_cookie(sesion.COOKIE, sesion.emitir(usuario), max_age=sesion.DURACION, httponly=True, samesite="strict")
+    return e.Sesion(usuario=usuario)
+
+
+@app.get("/api/sesion", response_model=e.Sesion)
+def sesion_actual(request: Request):
+    usuario = sesion.leer(request.cookies.get(sesion.COOKIE))
+    if not usuario:
+        raise HTTPException(401, "Sin sesión")
+    return e.Sesion(usuario=usuario)
+
+
+@app.delete("/api/sesion", status_code=204)
+def cerrar_sesion(respuesta: Response):
+    respuesta.delete_cookie(sesion.COOKIE)
 
 
 # ---- catálogo
