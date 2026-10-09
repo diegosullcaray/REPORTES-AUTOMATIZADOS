@@ -40,6 +40,7 @@ La sesión dura 8 horas; tras 5 intentos fallidos el usuario queda bloqueado 5 m
 src/
   app/(auth)/login/     pantalla de acceso, sin sidebar
   app/(panel)/          pantallas con sidebar; rutas delgadas que montan un feature
+  app/not-found.tsx · error.tsx · (panel)/error.tsx · global-error.tsx   páginas 404 y 500 (como la de errores de Dokploy)
   proxy.ts              sin cookie de sesión → /login
   features/<tema>/      orquestación por pantalla: auth, reportes, ejecuciones, inicio
   components/           presentación reutilizable (Marco, TablaDatos, Terminal, diálogos)

@@ -35,6 +35,8 @@ Si cambias el `.env`, reinicia la API (lo lee al arrancar).
 | **Notificaciones** (`/configuracion/notificaciones`) | Lista de proveedores como en Dokploy: **Correo (SMTP)** (servidor, puerto, cuenta, contraseña de aplicación, remitente, correo de prueba) y **Google Chat** (webhook). Cada uno se configura en un diálogo, con **Probar** y **Guardar** en el `.env`. La contraseña y el webhook son de solo escritura (no se muestran; vacío = no se tocan, el botón de papelera los quita). La prueba de correo llega solo a `CORREO_PRUEBA`; la de Google Chat pide confirmación porque publica en el espacio. Rigen desde el próximo envío, sin reiniciar |
 | **Bases de datos** (`/servidores`) | Tabla de los 3 servidores (autenticación, estado de credenciales en el `.env`, bases) con buscador, **Test de conexión** por fila y **Probar todas**. No muestra contraseñas |
 
+Páginas de error (como en Dokploy): **404** para rutas inexistentes y **500** para fallos inesperados, con «Reintentar» e «Ir al inicio». Dentro del panel el error conserva el sidebar y el encabezado; si falla el layout raíz, `global-error`. (Los errores de la API —sin conexión, 422— se siguen mostrando dentro de cada pantalla.)
+
 Navegación (como Dokploy): el sidebar principal (Inicio · Reportes · Ejecuciones) se pliega a íconos con el botón del
 encabezado o **Ctrl+B**. **Reportes** es un menú plegable con el árbol del legado: Diarios · Heredados de Piero · Heredados de
 Erick, y dentro las carpetas con sub-reportes (04 → 04.1, 04.2; 09 → 09.1, 09.2…). Al pie va el menú de usuario (iniciales,
