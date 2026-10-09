@@ -11,7 +11,8 @@ import sys
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(RAIZ / "src"))
+BACK = RAIZ / "backend"  # el motor Python vive en backend/; governance/ queda en la raíz
+sys.path.insert(0, str(BACK / "src"))
 SALIDA = RAIZ / "governance" / "docs" / "architecture" / "module-inventory.md"
 SALIDA_TABLAS = RAIZ / "governance" / "docs" / "data" / "tables-inventory.md"
 SALIDA_COLUMNAS = RAIZ / "governance" / "docs" / "data" / "columnas-fecha-de-corte.md"
@@ -24,7 +25,7 @@ def generar() -> str:
     from reportes.config import SERVIDORES
     from reportes.registro import REPORTES, ordenados
 
-    tests = sorted(p.name for p in (RAIZ / "tests").glob("test_*.py"))
+    tests = sorted(p.name for p in (BACK / "tests").glob("test_*.py"))
     L = ["# Inventario de módulos", "",
          "> **Generado** por `governance/scripts/generar_inventario.py`. No editar a mano: `python governance/scripts/generar_inventario.py`.", "",
          "## Conexiones (3 servidores)", "",

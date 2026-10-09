@@ -6,12 +6,4 @@ __pycache__/
 .pytest_cache/
 *.xlsx
 *.pkl
-# data/: entradas y salidas locales; se versiona solo la estructura
-data/*
-!data/inputs/
-!data/outputs/
-data/inputs/*
-data/outputs/*
-!data/inputs/.gitkeep
-!data/inputs/correos_*.txt
-!data/outputs/.gitkeep
+# data/ del motor: ver backend/.gitignore

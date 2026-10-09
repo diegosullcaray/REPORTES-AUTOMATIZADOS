@@ -17,13 +17,13 @@ tablas, ejecución, vista previa de las salidas y envío de correo) con el estil
    Estado y log quedan en `data/outputs/ejecuciones/` (no versionado).
 3. **Las reglas se validan en el servidor antes de encolar** (fin de mes, corte no futuro, `--confirmar-escritura`,
    prueba previa + conforme para enviar a todos). La web solo anticipa los mensajes; la API decide.
-4. **Web Next.js + shadcn/ui en `web/`**, que consume la API por proxy (`/api`, mismo origen, sin CORS).
+4. **Web Next.js + shadcn/ui en `frontend/`**, que consume la API por proxy (`/api`, mismo origen, sin CORS).
 5. **Estética Dokploy con la paleta de MIS** (tarea `governance/tasks/tareasdiarias.md`, 2026-10-07): interfaz plana con el
    `Sidebar` de shadcn (retráctil a íconos, con «Reportes» como menú plegable del árbol del legado y, al pie, el menú de
    usuario que lleva a Perfil, donde vive la configuración; el sidebar secundario se retiró el 2026-10-07), encabezado con
    `SidebarTrigger` y migas, vista de reporte limpia (título, tipo, parámetros, botón y log tipo terminal) y Configuración ›
    Bases de datos con test de conexión por servidor. Sin wallpaper ni vidrio. Los colores siguen saliendo de
-   `web/src/app/tokens.css` (copia de `MIS-angular-front/src/app/theme/tokens.css`): las variables de shadcn solo reexportan
+   `frontend/src/app/tokens.css` (copia de `MIS-angular-front/src/app/theme/tokens.css`): las variables de shadcn solo reexportan
    tokens `--mis-*`; los únicos valores propios son los de la terminal, definidos una vez en `globals.css`.
 7. **Patrones de Dokploy** (análisis de su código, 2026-10-07): sidebar flotante con grupos y pie de estado, tarjeta
    enmarcada (`Marco`) para cada sección, tablas con TanStack Table v8 (buscador, filtros, orden, columnas visibles,
@@ -36,4 +36,4 @@ tablas, ejecución, vista previa de las salidas y envío de correo) con el estil
 - Un reporte nuevo aparece en la web sin tocarla (sale de `registro.py`).
 - Los reportes con lógica propia (sin `ReporteLote`) se ejecutan, pero no admiten `--forzar`, confirmación de escritura ni correo.
 - La vista previa lee las primeras 200 filas de cada hoja; el Excel completo se descarga.
-- Si cambia un contrato de `esquemas.py`, se actualiza `web/src/lib/tipos.ts`.
+- Si cambia un contrato de `esquemas.py`, se actualiza `frontend/src/lib/tipos.ts`.

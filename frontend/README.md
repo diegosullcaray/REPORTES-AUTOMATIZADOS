@@ -8,11 +8,13 @@ Interfaz Next.js + shadcn/ui (estética Dokploy) de los reportes automatizados. 
 Necesita **Node 20+** y dos terminales. La web no hace nada sin la API: la consume por proxy en `/api`.
 
 ```bat
-:: Terminal 1 — API (desde la raíz del repo, con el entorno activado y el .env completo)
+:: Terminal 1 — API (desde backend\, con el entorno activado y el .env completo)
+cd ..\backend
 env\Scripts\activate
 python -m uvicorn api.app:app --app-dir src --host 127.0.0.1 --port 8000
 
-:: Terminal 2 — Web (desde esta carpeta)
+:: Terminal 2 — Web (desde frontend\)
+cd ..\frontend
 npm install                         :: solo la primera vez
 npm run dev                         :: desarrollo
 npm run build && npm start          :: uso normal
@@ -24,7 +26,7 @@ Abre <http://localhost:3000>. Si la API corre en otro puerto: `set REPORTES_API_
 
 Se entra con la **cuenta de Windows** (`DOMINIO\usuario` o `usuario@dominio`). Sin sesión, todo redirige a `/login` y la API responde 401.
 
-| Variable del `.env` (raíz) | Efecto |
+| Variable de `backend\.env` | Efecto |
 |---|---|
 | `USUARIOS_WEB` | Usuarios que pueden entrar, separados por coma. Vacío = solo quien ejecuta la API |
 | `SESION_SECRETO` | Firma de la cookie. Vacío = se genera en cada arranque y las sesiones caen al reiniciar la API |

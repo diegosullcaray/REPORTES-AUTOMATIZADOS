@@ -10,6 +10,8 @@ python main.py saca-tu-garra          # un reporte, con la fecha de corte de tu 
 
 **¿Prefieres el navegador?** La [interfaz web](governance/docs/development/runbooks/interfaz-web.md) hace lo mismo (validar tablas, ejecutar, vista previa del Excel, correo) sobre este mismo motor.
 
+> **Dónde se trabaja:** el motor está en `backend/` y la web en `frontend/`. Todos los comandos de Python de este README (`python main.py …`, `env\Scripts\activate`) se ejecutan **dentro de `backend/`**, y las rutas `data\…` y `.env` son las de esa carpeta. Los de la web, dentro de `frontend/`.
+
 > **Regla que manda sobre todo:** cuando la documentación y el código discrepan, gana el código y se corrige el documento. Reglas del repositorio: [AGENTS.md](AGENTS.md).
 
 ---
@@ -57,11 +59,11 @@ Los 3 servidores (cada reporte elige **su propia base de datos** dentro del serv
 
 ## 2. Instalación paso a paso (primera vez)
 
-Todos los comandos se escriben en una terminal dentro de la carpeta del proyecto.
+Todos los comandos se escriben en una terminal dentro de la carpeta `backend/` del proyecto.
 
 ```bat
-:: 1) Entra a la carpeta del proyecto
-cd "D:\FINANCIERA CONFIANZA\02 TAREAS\05 TAREAS-AUTOMATIZADAS"
+:: 1) Entra a la carpeta del motor
+cd "D:\FINANCIERA CONFIANZA\02 TAREAS\05 TAREAS-AUTOMATIZADAS\backend"
 
 :: 2) Crea el entorno virtual (se llama "env"; ya está en .gitignore)
 python -m venv env
@@ -146,7 +148,7 @@ GOOGLE_CHAT_WEBHOOK_URL=<webhook>
 ```bat
 python main.py listar                 :: lista los 22 reportes (no se conecta)
 python main.py probar-conexiones      :: prueba los 3 servidores
-python governance\scripts\verificar.py   :: compuertas del repo (no se conecta a ninguna BD)
+python ..\governance\scripts\verificar.py   :: compuertas del repo (no se conecta a ninguna BD)
 ```
 
 `probar-conexiones` debe mostrar `OK` en los servidores que vayas a usar. Mensajes típicos: ver [Si algo falla](#10-si-algo-falla).
@@ -158,12 +160,13 @@ python governance\scripts\verificar.py   :: compuertas del repo (no se conecta a
 La web es opcional: hace lo mismo que la consola, en el navegador. Necesita **dos procesos** (cada uno en su terminal) y **Node 20 o superior**. Detalle de pantallas: [runbook de la interfaz web](governance/docs/development/runbooks/interfaz-web.md).
 
 ```bat
-:: Terminal 1 — API (entorno activado y .env completo; si cambias el .env, reinicia la API)
+:: Terminal 1 — API (desde backend\, entorno activado y .env completo; si cambias el .env, reinicia la API)
+cd backend
 env\Scripts\activate
 python -m uvicorn api.app:app --app-dir src --host 127.0.0.1 --port 8000
 
-:: Terminal 2 — Web (la primera vez instala las dependencias)
-cd web
+:: Terminal 2 — Web (desde la raíz del repo; la primera vez instala las dependencias)
+cd frontend
 npm install
 npm run build && npm start          :: o `npm run dev` mientras desarrollas
 ```
@@ -175,7 +178,7 @@ Abre <http://localhost:3000>. Te pedirá **iniciar sesión con tu cuenta de Wind
 - Define `SESION_SECRETO` en el `.env` para que las sesiones sobrevivan a un reinicio de la API; sin él se generan en cada arranque.
 - La API solo escucha en `127.0.0.1`. Si corre en otro puerto: `set REPORTES_API_URL=http://127.0.0.1:PUERTO` antes de `npm start`.
 
-Si la web dice *«No hay conexión con la API»*, la terminal 1 no está corriendo. Antes de entregar cambios en la web, dentro de `web/`: `npm test`, `npx tsc --noEmit`, `npx eslint src` y `npx next build`.
+Si la web dice *«No hay conexión con la API»*, la terminal 1 no está corriendo. Antes de entregar cambios en la web, dentro de `frontend/`: `npm test`, `npx tsc --noEmit`, `npx eslint src` y `npx next build`.
 
 ---
 
@@ -328,27 +331,31 @@ Más contexto: [solicitud de actualización de tablas](governance/docs/developme
 
 ## 12. Estructura del proyecto
 
+El repositorio tiene dos partes independientes y una de gobernanza:
+
 ```text
-main.py                       punto de entrada único (listar | probar-conexiones | tablas | solicitud-actualizacion | <reporte>)
-.env.example                  plantilla del .env (el .env real no se versiona)
-requirements*.txt             dependencias (dev = pytest)
-src/reportes/
-  config.py                   rutas, los 3 servidores y carpetas data/
-  db.py                       ÚNICO acceso a SQL Server (servidor + base por reporte)
-  registro.py                 catálogo de reportes
-  tablas.py                   tablas de cada reporte (servidor, tipo, columna de fecha)
-  verificacion.py             ¿tablas al día? + mensaje para Producción
-  comun/ejecutor.py           flujo común: conexión → tablas → consulta → validación → Excel
-  comun/fechas.py             fecha de corte (.env / --fecha-corte) y tokens @@F@@…
-  comun/excel.py              formato Excel del legado (tabla, resumen jerárquico, columnas)
-  comun/imagen.py correo.py   imagen del resumen y envío por correo (cuenta MIS)
-src/api/                      API de la web (FastAPI): rutas, servicios, ejecuciones y sesión con cuenta de Windows
-web/                          interfaz Next.js + shadcn (login, reportes, ejecuciones, perfil)
-  diarios/                    r02_cartera_sin_asignar.py, r04_1_cmg_mora.py … (número del legado)
-  mensuales/piero/            r01_desembolsos_por_canal.py … r09_2_michael_castigos.py
-  mensuales/erick/            r01_productos_verdes.py … r03_4_indicadores_clientes.py
-data/inputs/  data/outputs/   entradas y salidas locales (no versionadas)
-tests/                        pytest (no tocan las bases reales)
+backend/                      Python: motor de reportes + API de la web (se trabaja dentro de esta carpeta)
+  main.py                     punto de entrada único (listar | probar-conexiones | tablas | solicitud-actualizacion | <reporte>)
+  .env.example                plantilla del .env (el .env real no se versiona)
+  requirements*.txt           dependencias (dev = pytest)
+  env/                        entorno virtual (no versionado)
+  src/reportes/
+    config.py                 rutas, los 3 servidores y carpetas data/
+    db.py                     ÚNICO acceso a SQL Server (servidor + base por reporte)
+    registro.py               catálogo de reportes
+    tablas.py                 tablas de cada reporte (servidor, tipo, columna de fecha)
+    verificacion.py           ¿tablas al día? + mensaje para Producción
+    comun/ejecutor.py         flujo común: conexión → tablas → consulta → validación → Excel
+    comun/fechas.py           fecha de corte (.env / --fecha-corte) y tokens @@F@@…
+    comun/excel.py            formato Excel del legado (tabla, resumen jerárquico, columnas)
+    comun/imagen.py correo.py imagen del resumen y envío por correo (cuenta MIS)
+    diarios/                  r02_cartera_sin_asignar.py, r04_1_cmg_mora.py … (número del legado)
+    mensuales/piero/          r01_desembolsos_por_canal.py … r09_2_michael_castigos.py
+    mensuales/erick/          r01_productos_verdes.py … r03_4_indicadores_clientes.py
+  src/api/                    API de la web (FastAPI): rutas, servicios, ejecuciones y sesión con cuenta de Windows
+  data/inputs/  data/outputs/ entradas y salidas locales (no versionadas)
+  tests/                      pytest (no tocan las bases reales)
+frontend/                     interfaz Next.js + shadcn (login, reportes, ejecuciones, perfil)
 governance/                   marco de gobernanza (agentes, skills, docs, scripts)
 docs/LEGADO/                  archivo histórico, solo lectura
 ```

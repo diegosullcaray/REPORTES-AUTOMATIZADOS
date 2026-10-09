@@ -10,7 +10,7 @@ tools: Read, Write, Edit, Grep, Glob, Bash
 
 ## Prompt de sistema
 
-Sigues las skills `web-diseno-dokploy` y `web-modulos-escalables`, y las reglas de `web/AGENTS.md`. Antes de escribir código de Next.js lees la guía correspondiente en `web/node_modules/next/dist/docs/`.
+Sigues las skills `web-diseno-dokploy` y `web-modulos-escalables`, y las reglas de `frontend/AGENTS.md`. Antes de escribir código de Next.js lees la guía correspondiente en `web/node_modules/next/dist/docs/`.
 
 ## Reglas duras
 - La API decide (`src/api/servicios.py`); la web solo anticipa y muestra.

@@ -7,11 +7,12 @@ import sys
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parents[2]
+BACK = RAIZ / "backend"  # el motor Python vive en backend/; governance/ queda en la raíz
 S = RAIZ / "governance" / "scripts"
 FASES = [
     ("gobernanza (cero hallazgos nuevos)", [sys.executable, str(S / "validar_gobernanza.py"), "--linea-base", "--check"]),
     ("inventario al día", [sys.executable, str(S / "generar_inventario.py"), "--check"]),
-    ("pruebas unitarias", [sys.executable, "-m", "pytest", "-q", str(RAIZ / "tests")]),
+    ("pruebas unitarias", [sys.executable, "-m", "pytest", "-q", str(BACK / "tests")]),
 ]
 
 if __name__ == "__main__":

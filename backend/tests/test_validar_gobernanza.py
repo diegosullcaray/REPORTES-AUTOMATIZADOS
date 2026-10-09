@@ -1,7 +1,7 @@
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "governance" / "scripts"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "governance" / "scripts"))
 import validar_gobernanza as vg  # noqa: E402
 
 
@@ -14,5 +14,5 @@ def test_regla_de_secretos_detecta_literales(tmp_path, monkeypatch):
     malo = tmp_path / "x.py"
     malo.write_text("conn = 'UID=sa;PWD=abc123;'\n", encoding="utf-8")
     monkeypatch.setattr(vg, "FUENTES", [malo])
-    monkeypatch.setattr(vg, "RAIZ", tmp_path)
+    monkeypatch.setattr(vg, "BACK", tmp_path)
     assert [h.regla for h in vg.r_secretos()] == ["secretos-en-codigo"]

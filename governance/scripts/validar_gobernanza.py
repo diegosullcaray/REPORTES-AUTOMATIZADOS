@@ -20,10 +20,11 @@ from datetime import date
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(RAIZ / "src"))
+BACK = RAIZ / "backend"  # el motor Python vive en backend/; governance/ queda en la raíz
+sys.path.insert(0, str(BACK / "src"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 LINEA_BASE = RAIZ / "governance" / "gobernanza.linea-base.json"
-FUENTES = [p for p in (RAIZ / "src").rglob("*.py") if "__pycache__" not in p.parts] + [RAIZ / "main.py"]
+FUENTES = [p for p in (BACK / "src").rglob("*.py") if "__pycache__" not in p.parts] + [BACK / "main.py"]
 
 
 @dataclass(frozen=True)
@@ -39,7 +40,7 @@ class Hallazgo:
 
 
 def rel(p: Path) -> str:
-    return p.relative_to(RAIZ).as_posix()
+    return p.relative_to(BACK).as_posix()  # rutas de la línea base relativas a backend/
 
 
 # ---------------------------------------------------------------- reglas
@@ -82,7 +83,7 @@ def r_registro():
     from reportes.registro import REPORTES
 
     for r in REPORTES.values():
-        ruta = RAIZ / "src" / (r.modulo.replace(".", "/") + ".py")
+        ruta = BACK / "src" / (r.modulo.replace(".", "/") + ".py")
         if not ruta.exists():
             yield Hallazgo("registro-sincronizado", "error", "src/reportes/registro.py", f"{r.nombre}: módulo {r.modulo} no existe")
             continue
@@ -93,8 +94,8 @@ def r_registro():
                 yield Hallazgo("registro-sincronizado", "error", "src/reportes/registro.py", f"{r.nombre}: servidor '{b}' no está en config.SERVIDORES")
     registrados = {r.modulo for r in REPORTES.values()}
     for carpeta in ("diarios", "mensuales"):
-        for p in sorted((RAIZ / "src" / "reportes" / carpeta).rglob("*.py")):
-            mod = ".".join(p.relative_to(RAIZ / "src").with_suffix("").parts)
+        for p in sorted((BACK / "src" / "reportes" / carpeta).rglob("*.py")):
+            mod = ".".join(p.relative_to(BACK / "src").with_suffix("").parts)
             if p.stem != "__init__" and mod not in registrados:
                 yield Hallazgo("registro-sincronizado", "aviso", rel(p), "módulo sin registrar en registro.py")
     for r in REPORTES.values():
@@ -107,10 +108,10 @@ def r_registro():
 
 def r_nombres():
     ok = re.compile(r"^[a-z0-9_]+(\.[a-z]+)?$")
-    for p in (RAIZ / "src").rglob("*.py"):
+    for p in (BACK / "src").rglob("*.py"):
         if "__pycache__" in p.parts:
             continue
-        for parte in p.relative_to(RAIZ).parts:
+        for parte in p.relative_to(BACK).parts:
             if not ok.match(parte):
                 yield Hallazgo("nombres-canonicos", "aviso", rel(p), f"'{parte}' debe ser snake_case sin espacios ni tildes")
                 break
@@ -135,7 +136,7 @@ def r_fechas_fijas():
 
 
 def r_prueba():
-    tests = {p.name for p in (RAIZ / "tests").rglob("test_*.py")} if (RAIZ / "tests").exists() else set()
+    tests = {p.name for p in (BACK / "tests").rglob("test_*.py")} if (BACK / "tests").exists() else set()
     for p in FUENTES:
         if p.stem in {"__init__", "main"}:
             continue
@@ -146,7 +147,7 @@ def r_prueba():
 def r_env():
     from reportes.config import SERVIDORES
 
-    ejemplo = (RAIZ / ".env.example").read_text(encoding="utf-8")
+    ejemplo = (BACK / ".env.example").read_text(encoding="utf-8")
     for b in SERVIDORES.values():
         for suf in ("SERVER", "USER", "PASSWORD"):
             if f"{b.prefijo}_{suf}" not in ejemplo:
@@ -154,7 +155,7 @@ def r_env():
 
 
 def r_gitignore():
-    g = (RAIZ / ".gitignore").read_text(encoding="utf-8").splitlines()
+    g = (BACK / ".gitignore").read_text(encoding="utf-8").splitlines()
     for req in (".env", "data/*", "*.pkl"):
         if req not in g:
             yield Hallazgo("gitignore-protege-datos", "error", ".gitignore", f"falta '{req}'")

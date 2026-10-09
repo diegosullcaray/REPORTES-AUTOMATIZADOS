@@ -5,13 +5,14 @@ Gestiona los reportes desde el navegador con el mismo procedimiento que la conso
 ## Arrancar (dos terminales)
 
 ```bat
-:: 1) API (entorno activado, .env completo)
+:: 1) API (desde backend\, entorno activado, .env completo)
+cd backend
 env\Scripts\activate
 pip install -r requirements.txt
 python -m uvicorn api.app:app --app-dir src --host 127.0.0.1 --port 8000
 
-:: 2) Web (Node 20+)
-cd web
+:: 2) Web (Node 20+, desde la raíz del repo)
+cd frontend
 npm install
 npm run build && npm start        :: o `npm run dev` mientras desarrollas
 ```
@@ -72,10 +73,10 @@ Si la API se reinicia con una ejecución en curso, queda en **Error** con la not
 
 ```text
 src/api/            app.py (rutas) · esquemas.py (contratos) · servicios.py (casos de uso) · ejecuciones.py (cola)
-web/src/app/        rutas: / · /reportes · /reportes/[nombre] · /ejecuciones · /ejecuciones/[id] · /perfil; tokens.css (copia de MIS)
-web/src/lib/        api.ts (transporte) · tipos.ts (espejo de esquemas.py) · formato.ts (funciones puras)
-web/src/features/   orquestación por pantalla (inicio, reportes, ejecuciones, perfil)
-web/src/components/ presentación compartida: app-sidebar, encabezado (migas), pagina, terminal, estados, confirmar; ui/ = shadcn
+frontend/src/app/        rutas: / · /reportes · /reportes/[nombre] · /ejecuciones · /ejecuciones/[id] · /perfil; tokens.css (copia de MIS)
+frontend/src/lib/        api.ts (transporte) · tipos.ts (espejo de esquemas.py) · formato.ts (funciones puras)
+frontend/src/features/   orquestación por pantalla (inicio, reportes, ejecuciones, perfil)
+frontend/src/components/ presentación compartida: app-sidebar, encabezado (migas), pagina, terminal, estados, confirmar; ui/ = shadcn
 ```
 
 API usada por Perfil: `GET /api/perfil` (sin contraseñas ni webhook), `GET /api/configuracion`, `GET /api/servidores` (sin secretos) y `POST /api/servidores/{nombre}/prueba` (`SELECT 1`).

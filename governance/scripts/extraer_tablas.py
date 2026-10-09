@@ -11,6 +11,7 @@ import re
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parents[2]
+BACK = RAIZ / "backend"  # el motor Python vive en backend/; governance/ queda en la raíz
 BASES_CONOCIDAS = {"dwh", "intcom", "csd", "storage", "dma", "appj", "slc", "dbriesgos", "dw_raw_v2", "dw_raw",
                    "dbrcc", "dw_metadata", "rcc_cd"}
 RX = re.compile(r"\b(?:FROM|JOIN|INTO|UPDATE|TRUNCATE\s+TABLE|EXEC(?:UTE)?)\s+(\[?[A-Za-z_{][\w$#.{}\[\]]*)", re.I)
@@ -57,12 +58,12 @@ def por_reporte() -> dict[str, set[str]]:
     """comando -> tablas que aparecen en el módulo del reporte (el SQL va incrustado en cada módulo)."""
     import sys
 
-    sys.path.insert(0, str(RAIZ / "src"))
+    sys.path.insert(0, str(BACK / "src"))
     from reportes.registro import REPORTES
 
     res: dict[str, set[str]] = {}
     for r in REPORTES.values():
-        ruta = RAIZ / "src" / (r.modulo.replace(".", "/") + ".py")
+        ruta = BACK / "src" / (r.modulo.replace(".", "/") + ".py")
         res[r.comando if hasattr(r, "comando") else r.nombre] = extraer_texto(ruta.read_text(encoding="utf-8"))
     return res
 
