@@ -51,7 +51,7 @@ async def _no_encontrado(_: Request, exc: servicios.NoEncontrado):
     return JSONResponse(status_code=404, content={"detail": str(exc)})
 
 
-# ---- sesión (cuenta de Windows)
+# ---- sesión (usuario y clave del .env)
 @app.post("/api/sesion", response_model=e.Sesion)
 def iniciar_sesion(pedido: e.PedidoSesion, respuesta: Response):
     try:

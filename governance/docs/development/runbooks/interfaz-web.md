@@ -17,8 +17,8 @@ npm install
 npm run build && npm start        :: o `npm run dev` mientras desarrollas
 ```
 
-Abre http://localhost:3000 e **inicia sesión con tu cuenta de Windows** (`DOMINIO\usuario`). Entra quien figure en `USUARIOS_WEB`
-del `.env` (vacío = solo quien ejecuta la API); la sesión dura 8 h, firmada con `SESION_SECRETO`, y 5 fallos bloquean al usuario 5 min.
+Abre http://localhost:3000 e **inicia sesión con `WEB_USUARIO` y `WEB_CLAVE` del `.env`** (si falta alguno, nadie entra). La sesión dura 8 h,
+firmada con `SESION_SECRETO`, y 5 fallos bloquean al usuario 5 min.
 Toda la API exige esa sesión (401 sin ella). Si la API corre en otro puerto: `set REPORTES_API_URL=http://127.0.0.1:PUERTO` antes de `npm start`.
 Si cambias el `.env`, reinicia la API (lo lee al arrancar).
 

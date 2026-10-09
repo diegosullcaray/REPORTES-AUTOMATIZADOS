@@ -24,14 +24,15 @@ Abre <http://localhost:3000>. Si la API corre en otro puerto: `set REPORTES_API_
 
 ## Iniciar sesión
 
-Se entra con la **cuenta de Windows** (`DOMINIO\usuario` o `usuario@dominio`). Sin sesión, todo redirige a `/login` y la API responde 401.
+El usuario y la clave están en `backend/.env` (nunca en el código). Sin sesión, todo redirige a `/login` y la API responde 401.
 
 | Variable de `backend\.env` | Efecto |
 |---|---|
-| `USUARIOS_WEB` | Usuarios que pueden entrar, separados por coma. Vacío = solo quien ejecuta la API |
+| `WEB_USUARIO` | Usuario para entrar (no distingue mayúsculas) |
+| `WEB_CLAVE` | Clave. Si falta alguna de las dos, **nadie puede entrar** |
 | `SESION_SECRETO` | Firma de la cookie. Vacío = se genera en cada arranque y las sesiones caen al reiniciar la API |
 
-La sesión dura 8 horas; tras 5 intentos fallidos el usuario queda bloqueado 5 minutos. Se cierra desde el menú de usuario (pie del sidebar).
+La sesión dura 8 horas; tras 5 intentos fallidos el usuario queda bloqueado 5 minutos. Se cierra desde el menú de usuario (pie del sidebar). Reinicia la API después de cambiar el `.env`.
 
 ## Estructura
 

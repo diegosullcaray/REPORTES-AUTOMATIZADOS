@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { api } from "@/lib/api";
 
-/** Usuario y contraseña de Windows; la API los valida y deja la cookie de sesión. */
+/** Usuario y contraseña definidos en el .env de la API; ella los valida y deja la cookie de sesión. */
 export function FormularioLogin() {
   const router = useRouter();
   const [enviando, setEnviando] = useState(false);
@@ -35,12 +35,12 @@ export function FormularioLogin() {
     <form onSubmit={entrar} className="flex flex-col gap-4">
       {error && <Aviso tono="peligro">{error}</Aviso>}
       <div className="flex flex-col gap-2">
-        <Label htmlFor="usuario">Usuario de Windows</Label>
-        <Input id="usuario" name="usuario" autoComplete="username" placeholder="DOMINIO\usuario" required autoFocus />
+        <Label htmlFor="usuario">Usuario</Label>
+        <Input id="usuario" name="usuario" autoComplete="username" required autoFocus />
       </div>
       <div className="flex flex-col gap-2">
         <Label htmlFor="clave">Contraseña</Label>
-        <Input id="clave" name="clave" type="password" autoComplete="current-password" placeholder="Tu contraseña de Windows" required />
+        <Input id="clave" name="clave" type="password" autoComplete="current-password" required />
       </div>
       <Button type="submit" className="w-full" disabled={enviando}><LogIn /> {enviando ? "Verificando…" : "Iniciar sesión"}</Button>
     </form>

@@ -1,14 +1,12 @@
-"""Inicio de sesión con la cuenta de Windows y cookie firmada.
+"""Inicio de sesión con usuario y clave del .env, y cookie firmada.
 
-La clave se valida contra Windows (LogonUser, cuenta local o de dominio) y nunca se guarda ni se registra.
-Quién puede entrar: `USUARIOS_WEB` en .env (separados por coma); si está vacío, solo el usuario que ejecuta la API.
+Credenciales: `WEB_USUARIO` y `WEB_CLAVE` (solo en .env, nunca en código). Si faltan, nadie puede entrar.
 La cookie se firma con `SESION_SECRETO` (.env); sin él se genera uno por proceso y las sesiones caen al reiniciar.
 """
 
 from __future__ import annotations
 
 import base64
-import getpass
 import hashlib
 import hmac
 import os
@@ -28,30 +26,16 @@ def _secreto() -> bytes:
 
 
 def _nombre(usuario: str) -> str:
-    """`DOMINIO\\ana` y `ana@dominio` se reducen a `ana`, en minúsculas."""
-    return usuario.split("\\")[-1].split("@")[0].strip().lower()
+    return usuario.strip().lower()
 
 
-def permitido(usuario: str) -> bool:
-    lista = {_nombre(u) for u in os.environ.get("USUARIOS_WEB", "").split(",") if u.strip()}
-    return _nombre(usuario) in (lista or {_nombre(getpass.getuser())})
-
-
-def clave_valida_en_windows(usuario: str, clave: str) -> bool:
-    try:
-        import ctypes
-        logon, cerrar = ctypes.windll.advapi32.LogonUserW, ctypes.windll.kernel32.CloseHandle
-    except (AttributeError, OSError):
-        return False  # fuera de Windows no hay con qué validar: se niega, no se acepta
-    dominio, _, nombre = usuario.rpartition("\\")
-    if "@" in nombre:
-        dominio = None  # UPN: Windows resuelve el dominio solo
-    token = ctypes.c_void_p()
-    # 3 = inicio de sesión de red (no crea sesión interactiva); 0 = proveedor por defecto
-    ok = logon(nombre, dominio or ("." if dominio is not None else None), clave, 3, 0, ctypes.byref(token))
-    if ok:
-        cerrar(token)
-    return bool(ok)
+def credenciales_validas(usuario: str, clave: str) -> bool:
+    esperado_u, esperada_c = os.environ.get("WEB_USUARIO", "").strip(), os.environ.get("WEB_CLAVE", "")
+    if not esperado_u or not esperada_c:
+        return False  # sin configurar no entra nadie
+    ok_u = hmac.compare_digest(_nombre(usuario).encode(), _nombre(esperado_u).encode())
+    ok_c = hmac.compare_digest(clave.encode(), esperada_c.encode())
+    return ok_u and ok_c
 
 
 def iniciar(usuario: str, clave: str) -> str | None:
@@ -60,7 +44,7 @@ def iniciar(usuario: str, clave: str) -> str | None:
     recientes = [t for t in _fallos.get(clave_u, []) if ahora - t < _VENTANA]
     if len(recientes) >= _INTENTOS_MAX:
         raise PermissionError("Demasiados intentos. Espera unos minutos.")
-    if usuario and clave and permitido(usuario) and clave_valida_en_windows(usuario, clave):
+    if usuario and clave and credenciales_validas(usuario, clave):
         _fallos.pop(clave_u, None)
         return clave_u
     _fallos[clave_u] = [*recientes, ahora]

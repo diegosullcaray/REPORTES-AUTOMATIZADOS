@@ -115,7 +115,8 @@ FECHA_CORTE_MENSUAL=2026-09-30
 FECHA_CORTE_DIARIA=
 
 # Interfaz web (opcionales)
-# USUARIOS_WEB=ana,luis          quién entra con su cuenta de Windows (vacío = solo quien ejecuta la API)
+# WEB_USUARIO=admin              usuario para entrar a la web (sin él y WEB_CLAVE, nadie entra)
+# WEB_CLAVE=                     clave de la web (solo aquí)
 # SESION_SECRETO=                firma de la cookie de sesión (vacío = se genera en cada arranque)
 
 # Opcionales
@@ -171,9 +172,9 @@ npm install
 npm run build && npm start          :: o `npm run dev` mientras desarrollas
 ```
 
-Abre <http://localhost:3000>. Te pedirá **iniciar sesión con tu cuenta de Windows** (`DOMINIO\usuario` o `usuario@dominio` y tu contraseña de Windows):
+Abre <http://localhost:3000>. Te pedirá **iniciar sesión con el usuario y la clave que pusiste en `backend\.env`**:
 
-- Entra quien figure en `USUARIOS_WEB` del `.env` (separados por coma). Si no lo defines, solo entra el usuario de Windows que ejecuta la API.
+- Define `WEB_USUARIO` y `WEB_CLAVE` en el `.env` (y reinicia la API). Si falta alguno, nadie puede entrar.
 - La sesión dura 8 horas y se cierra desde el menú de usuario (pie del sidebar). Tras 5 intentos fallidos el usuario queda bloqueado 5 minutos.
 - Define `SESION_SECRETO` en el `.env` para que las sesiones sobrevivan a un reinicio de la API; sin él se generan en cada arranque.
 - La API solo escucha en `127.0.0.1`. Si corre en otro puerto: `set REPORTES_API_URL=http://127.0.0.1:PUERTO` antes de `npm start`.
@@ -352,7 +353,7 @@ backend/                      Python: motor de reportes + API de la web (se trab
     diarios/                  r02_cartera_sin_asignar.py, r04_1_cmg_mora.py … (número del legado)
     mensuales/piero/          r01_desembolsos_por_canal.py … r09_2_michael_castigos.py
     mensuales/erick/          r01_productos_verdes.py … r03_4_indicadores_clientes.py
-  src/api/                    API de la web (FastAPI): rutas, servicios, ejecuciones y sesión con cuenta de Windows
+  src/api/                    API de la web (FastAPI): rutas, servicios, ejecuciones y sesión con usuario y clave del .env
   data/inputs/  data/outputs/ entradas y salidas locales (no versionadas)
   tests/                      pytest (no tocan las bases reales)
 frontend/                     interfaz Next.js + shadcn (login, reportes, ejecuciones, perfil)
