@@ -12,17 +12,17 @@ from sqlalchemy.engine import URL, Engine
 from .config import ConfiguracionError, obtener_servidor
 
 
-def crear_engine(servidor: str, base: str | None = None) -> Engine:
-    """Engine SQLAlchemy para uno de los 3 servidores ('mish', 'slc', 'rcc'); `base` = catálogo opcional."""
+def crear_engine(servidor: str, base: str | None = None, timeout: int | None = None) -> Engine:
+    """Engine SQLAlchemy para uno de los 3 servidores ('mish', 'slc', 'rcc'); `base` = catálogo opcional; `timeout` = segundos máximos de inicio de sesión."""
     url = URL.create("mssql+pyodbc", query={"odbc_connect": obtener_servidor(servidor).cadena_odbc(base)})
     try:
-        return create_engine(url, pool_pre_ping=True)
+        return create_engine(url, pool_pre_ping=True, connect_args={"timeout": timeout} if timeout else {})
     except ImportError as exc:
         raise ConfiguracionError("Falta el driver ODBC / pyodbc: instala «ODBC Driver 17 for SQL Server» y `pip install -r requirements.txt`") from exc
 
 
-def leer_sql(servidor: str, consulta: str, params: dict | None = None, base: str | None = None) -> pd.DataFrame:
-    engine = crear_engine(servidor, base)
+def leer_sql(servidor: str, consulta: str, params: dict | None = None, base: str | None = None, timeout: int | None = None) -> pd.DataFrame:
+    engine = crear_engine(servidor, base, timeout)
     try:
         with engine.connect() as conn:
             return pd.read_sql(text(consulta), conn, params=params or {})

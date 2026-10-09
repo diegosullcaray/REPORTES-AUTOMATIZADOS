@@ -68,6 +68,13 @@ export interface ResumenValidacion {
   listo: boolean;
 }
 
+/** Causa de error compartida por varias tablas (conexión, credenciales, driver), con su solución. */
+export interface ProblemaValidacion {
+  causa: string;
+  tablas: number;
+  solucion: string;
+}
+
 /** Validación masiva: todas las tablas de los reportes mensuales de un responsable, cada una verificada una vez. */
 export interface VerificacionGrupo {
   grupo: string;
@@ -76,6 +83,7 @@ export interface VerificacionGrupo {
   listo: boolean;
   reportes: ResumenValidacion[];
   tablas: TablaValidada[];
+  problemas?: ProblemaValidacion[]; // una API anterior no lo envía
   solicitud: string | null;
 }
 

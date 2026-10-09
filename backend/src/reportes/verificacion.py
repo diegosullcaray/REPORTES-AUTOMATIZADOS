@@ -11,6 +11,7 @@ from datetime import date, datetime
 from enum import Enum
 
 from .comun.fechas import resolver_corte
+from .config import ConfiguracionError
 from .db import leer_sql
 from .reglas_fecha import regla_de
 from .tablas import Tabla, tablas_de
@@ -30,6 +31,7 @@ class Resultado:
     estado: Estado
     ultima_fecha: date | None = None
     detalle: str = ""
+    sin_conexion: bool = False   # el servidor no respondió o faltan sus credenciales/driver: sus demás tablas fallarían igual
 
 
 def fecha_esperada(frecuencia: str, hoy: date | None = None, fecha_corte: date | None = None, lunes_sabado: bool = True) -> date:
@@ -52,6 +54,23 @@ def _a_fecha(valor) -> date | None:
 _SEGURO = re.compile(r"^[\w.${}]+$")
 
 
+TIMEOUT_CONEXION = 10  # segundos; un servidor inalcanzable no debe retener la verificación
+
+
+def _causa(exc: Exception, servidor: str) -> tuple[str, bool]:
+    """Mensaje corto y accionable + si el fallo es de conexión (no de la tabla)."""
+    texto = str(exc)
+    if isinstance(exc, ConfiguracionError):
+        return texto[:220], True
+    if any(c in texto for c in ("08001", "08S01", "HYT00", "DBNETLIB", "10060", "10061")):
+        return f"No se pudo conectar al servidor «{servidor}»: sin red o VPN, nombre inexistente o tiempo agotado", True
+    if "28000" in texto or "Login failed" in texto:
+        return f"El servidor «{servidor}» rechazó el inicio de sesión (usuario o contraseña)", True
+    if "IM002" in texto:
+        return "No hay un driver ODBC de SQL Server instalado (o DB_ODBC_DRIVER apunta a uno que no existe)", True
+    return texto[:160], False
+
+
 def verificar_tabla(tabla: Tabla, fecha: date) -> Resultado:
     if not tabla.verificable:
         return Resultado(tabla, Estado.SIN_CONTROL)
@@ -60,9 +79,9 @@ def verificar_tabla(tabla: Tabla, fecha: date) -> Resultado:
         return Resultado(tabla, Estado.ERROR, detalle="nombre de tabla/columna inválido en el registro")
     try:
         if tabla.tipo == "dinamica":
-            leer_sql(tabla.servidor, f"SELECT TOP 0 1 AS x FROM {nombre}")
+            leer_sql(tabla.servidor, f"SELECT TOP 0 1 AS x FROM {nombre}", timeout=TIMEOUT_CONEXION)
             return Resultado(tabla, Estado.OK, detalle="existe")
-        df = leer_sql(tabla.servidor, f"SELECT MAX({tabla.col_fecha}) AS ultima FROM {nombre}")
+        df = leer_sql(tabla.servidor, f"SELECT MAX({tabla.col_fecha}) AS ultima FROM {nombre}", timeout=TIMEOUT_CONEXION)
         ultima = _a_fecha(df.iloc[0, 0])
         if ultima is None:
             return Resultado(tabla, Estado.DESACTUALIZADA, detalle="tabla sin datos")
@@ -70,7 +89,10 @@ def verificar_tabla(tabla: Tabla, fecha: date) -> Resultado:
     except Exception as exc:  # incluye ConfiguracionError (p. ej. falta RCC_USER): esa tabla queda en ERROR, las demás se verifican  # noqa: BLE001 - se informa por tabla, no se aborta todo
         texto = str(exc)
         faltante = "Invalid object name" in texto or "no es válido" in texto or "42S02" in texto
-        return Resultado(tabla, Estado.NO_EXISTE if faltante else Estado.ERROR, detalle=texto[:100])
+        if faltante:
+            return Resultado(tabla, Estado.NO_EXISTE, detalle=texto[:100])
+        causa, sin_conexion = _causa(exc, tabla.servidor)
+        return Resultado(tabla, Estado.ERROR, detalle=causa, sin_conexion=sin_conexion)
 
 
 def verificar_reporte(reporte: str, fecha: date) -> list[Resultado]:

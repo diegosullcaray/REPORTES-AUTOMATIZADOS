@@ -5,6 +5,8 @@ Interfaz Next.js + shadcn/ui (estética Dokploy) de los reportes automatizados. 
 
 ## Iniciar el sistema
 
+**Lo más rápido:** `python iniciar.py` desde la raíz del repo levanta la API y la web a la vez (ver el [README principal](../README.md#arranque-rápido)). Lo siguiente es para arrancarlas por separado.
+
 Necesita **Node 20+** y dos terminales. La web no hace nada sin la API: la consume por proxy en `/api`.
 
 ```bat

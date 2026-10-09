@@ -158,6 +158,8 @@ python ..\governance\scripts\verificar.py   :: compuertas del repo (no se conect
 
 ## 5. API de la web
 
+> Para levantar la API **y** la web juntas: `python iniciar.py` desde la raíz del repositorio ([README principal](../README.md#arranque-rápido)).
+
 La [interfaz web](../frontend/README.md) consume una API (FastAPI, `src/api/`) que vive en este backend. Se arranca desde `backend/`, con el entorno activado y el `.env` completo (si cambias el `.env`, reinicia la API):
 
 ```bat
@@ -287,6 +289,7 @@ Los archivos contienen **datos de clientes**: no los subas al repositorio ni los
 
 | Mensaje | Causa | Qué hacer |
 |---|---|---|
+| `El driver ODBC «…» no está instalado` / `No hay un driver ODBC de SQL Server instalado` | `DB_ODBC_DRIVER` (por defecto Driver 17) no existe en este equipo. Si hay otro driver de SQL Server se usa el mejor disponible (18, 17, 13, Native Client o el «SQL Server» de Windows); si no hay ninguno, falla con la lista de los instalados | instala «ODBC Driver 17 for SQL Server» o define `DB_ODBC_DRIVER` con uno instalado |
 | `Falta el driver ODBC / pyodbc` | no está el driver 17 o el entorno no tiene `pyodbc` | instala el driver; activa `env` y `pip install -r requirements.txt` |
 | `La conexión rcc requiere RCC_USER y RCC_PASSWORD` | falta usuario/contraseña de `rcc` en el `.env` | complétalos (solo en tu `.env`) |
 | `Falta la fecha de corte mensual: … FECHA_CORTE_MENSUAL` | no hay fecha en `.env` ni `--fecha-corte` | escribe `FECHA_CORTE_MENSUAL=AAAA-MM-DD` |

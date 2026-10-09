@@ -20,6 +20,26 @@ DIR_INPUTS = Path(os.getenv("REPORTES_DIR_INPUTS", RAIZ / "data" / "inputs"))
 DIR_OUTPUTS = Path(os.getenv("REPORTES_DIR_OUTPUTS", RAIZ / "data" / "outputs"))
 
 DRIVER_ODBC = os.getenv("DB_ODBC_DRIVER", "ODBC Driver 17 for SQL Server")
+# Si el configurado no está instalado se usa el mejor disponible (la cadena de conexión solo lleva opciones comunes a todos).
+_DRIVERS_PREFERIDOS = ("ODBC Driver 18 for SQL Server", "ODBC Driver 17 for SQL Server", "ODBC Driver 13 for SQL Server", "SQL Server Native Client 11.0", "SQL Server")
+
+
+def driver_en_uso() -> str:
+    """El driver configurado (`DB_ODBC_DRIVER`) si está instalado; si no, el mejor de la lista. Sin ninguno: error claro con los instalados."""
+    try:
+        import pyodbc
+    except ImportError:
+        return DRIVER_ODBC  # sin pyodbc la conexión ya falla con su propio mensaje
+    instalados = pyodbc.drivers()
+    if DRIVER_ODBC in instalados:
+        return DRIVER_ODBC
+    for candidato in _DRIVERS_PREFERIDOS:
+        if candidato in instalados:
+            return candidato
+    raise ConfiguracionError(
+        f"El driver ODBC «{DRIVER_ODBC}» no está instalado y no hay otro de SQL Server. Instala «ODBC Driver 17 for SQL Server» "
+        f"o define DB_ODBC_DRIVER con uno de los instalados: {', '.join(instalados) or 'ninguno'}"
+    )
 
 
 class ConfiguracionError(RuntimeError):
@@ -62,7 +82,7 @@ class Servidor:
 
     def cadena_odbc(self, base: str | None = None) -> str:
         """`base` (la que pide el reporte) manda sobre `<PREF>_DATABASE`; sin ninguna, se usa la base por defecto del login."""
-        partes = [f"DRIVER={{{DRIVER_ODBC}}}", f"SERVER={self.servidor}"]
+        partes = [f"DRIVER={{{driver_en_uso()}}}", f"SERVER={self.servidor}"]
         catalogo = base or self.base_defecto
         if catalogo:
             partes.append(f"DATABASE={catalogo}")

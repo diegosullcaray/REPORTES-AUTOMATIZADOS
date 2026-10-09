@@ -26,7 +26,7 @@ def test_usuario_fuera_de_la_lista_no_entra(monkeypatch):
 
 def test_cookie_alterada_o_vencida_se_rechaza(monkeypatch):
     token = sesion.emitir("ana")
-    assert sesion.leer(token) == "ana" and sesion.leer(token[:-1] + "0") is None and sesion.leer("basura") is None
+    assert sesion.leer(token) == "ana" and sesion.leer(token[:-1] + ("1" if token[-1] == "0" else "0")) is None and sesion.leer("basura") is None
     monkeypatch.setattr(sesion, "DURACION", -1)
     assert sesion.leer(sesion.emitir("ana")) is None
 

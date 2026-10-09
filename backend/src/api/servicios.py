@@ -11,6 +11,7 @@ import json
 import os
 import platform
 import time
+from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime
 from decimal import Decimal
 from functools import lru_cache
@@ -27,7 +28,7 @@ from reportes.db import leer_sql
 from reportes.registro import DIA_ANTERIOR_SIMPLE, REPORTES, Reporte, carpeta_salida, ordenados
 from reportes.reglas_fecha import regla_de
 from reportes.tablas import tablas_de
-from reportes.verificacion import Estado, mensaje_solicitud, mensaje_solicitud_grupo, nombre_resuelto, verificar_reporte, verificar_tabla
+from reportes.verificacion import Estado, mensaje_solicitud, mensaje_solicitud_grupo, nombre_resuelto, Resultado, verificar_reporte, verificar_tabla
 
 from . import entorno, sesion
 from . import esquemas as e
@@ -157,9 +158,39 @@ def _verificar_grupo(grupo: str, fecha: date | None):
         for t in tablas_de(r.nombre):
             clave = nombre_resuelto(t, corte)
             if clave not in unicas:
-                unicas[clave] = [t, verificar_tabla(t, corte), []]
+                unicas[clave] = [t, None, []]
             unicas[clave][2].append(r.nombre)
+
+    def por_servidor(claves: list[str]) -> None:
+        """Un servidor, en orden. Si no responde, sus demás tablas se marcan con la misma causa sin reintentar (cada intento tarda)."""
+        caido: Resultado | None = None
+        for clave in claves:
+            t = unicas[clave][0]
+            if caido and t.verificable:
+                unicas[clave][1] = Resultado(t, Estado.ERROR, detalle=caido.detalle, sin_conexion=True)
+            else:
+                unicas[clave][1] = verificar_tabla(t, corte)
+                if unicas[clave][1].sin_conexion:
+                    caido = unicas[clave][1]
+
+    grupos: dict[str, list[str]] = {}
+    for clave, (t, _, _) in unicas.items():
+        grupos.setdefault(t.servidor, []).append(clave)
+    with ThreadPoolExecutor(max_workers=len(grupos)) as pool:  # los servidores se consultan a la vez
+        list(pool.map(por_servidor, grupos.values()))
     return corte, reportes, unicas
+
+
+def _solucion(causa: str) -> str:
+    if "driver ODBC" in causa:
+        return "Instala «ODBC Driver 17 for SQL Server» o define DB_ODBC_DRIVER en backend/.env con un driver instalado."
+    if "requiere" in causa and "_USER" in causa:
+        return "Define el usuario y la contraseña de esa conexión en backend/.env (por ejemplo RCC_USER y RCC_PASSWORD)."
+    if "No se pudo conectar" in causa:
+        return "Comprueba la red o la VPN y que el nombre del servidor en backend/.env sea correcto; luego vuelve a verificar."
+    if "rechazó el inicio de sesión" in causa:
+        return "Revisa el usuario y la contraseña de esa conexión en backend/.env."
+    return "Revisa el detalle de la tabla y vuelve a verificar."
 
 
 def verificar_grupo(grupo: str, fecha: date | None) -> e.VerificacionGrupo:
@@ -171,7 +202,12 @@ def verificar_grupo(grupo: str, fecha: date | None) -> e.VerificacionGrupo:
         dudosas = sum(x.estado is Estado.ERROR for x in propias)
         resumen.append(e.ResumenValidacion(nombre=r.nombre, orden=r.orden, tablas=len(propias), pendientes=pendientes, dudosas=dudosas, listo=not (pendientes or dudosas)))
     por_pedir = [tuple(x) for x in unicas.values() if x[1].estado in _PENDIENTE]
+    causas: dict[str, int] = {}
+    for _, res, _ in unicas.values():
+        if res.estado is Estado.ERROR:
+            causas[res.detalle] = causas.get(res.detalle, 0) + 1
     return e.VerificacionGrupo(
+        problemas=[e.ProblemaValidacion(causa=c, tablas=n, solucion=_solucion(c)) for c, n in sorted(causas.items(), key=lambda x: -x[1])],
         grupo=grupo, titulo=GRUPOS_VALIDACION[grupo], corte=corte, listo=all(x.listo for x in resumen), reportes=resumen,
         tablas=[
             e.TablaValidada(nombre=nombre, servidor=t.servidor, estado=res.estado.value, ultima_fecha=res.ultima_fecha, detalle=res.detalle, reportes=usan)

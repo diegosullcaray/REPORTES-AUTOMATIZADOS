@@ -75,6 +75,14 @@ class TablaValidada(ResultadoTabla):
     reportes: list[str]           # reportes del grupo que usan esta tabla
 
 
+class ProblemaValidacion(BaseModel):
+    """Una causa de error compartida por varias tablas (p. ej. sin red a un servidor), para no repetirla en cada fila."""
+
+    causa: str
+    tablas: int
+    solucion: str
+
+
 class VerificacionGrupo(BaseModel):
     """Validación masiva: todas las tablas de los reportes mensuales de un responsable, cada una verificada una sola vez."""
 
@@ -84,6 +92,7 @@ class VerificacionGrupo(BaseModel):
     listo: bool
     reportes: list[ResumenValidacion]
     tablas: list[TablaValidada]
+    problemas: list[ProblemaValidacion]   # errores que no son de la tabla sino de la conexión, agrupados por causa
     solicitud: str | None         # un solo mensaje para Producción si falta alguna
 
 

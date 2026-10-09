@@ -54,3 +54,20 @@ def test_base_del_reporte_manda_sobre_la_del_env(monkeypatch):
     monkeypatch.setenv("SLC_DATABASE", "slc")
     assert "DATABASE=storage" in config.obtener_servidor("slc").cadena_odbc("storage")
     assert "DATABASE=slc" in config.obtener_servidor("slc").cadena_odbc()
+
+
+def test_driver_odbc_cae_al_mejor_instalado_o_explica_cual_falta(monkeypatch):
+    import pyodbc
+
+    from reportes import config
+
+    monkeypatch.setattr(config, "DRIVER_ODBC", "ODBC Driver 99 for SQL Server")
+    monkeypatch.setattr(pyodbc, "drivers", lambda: ["Microsoft Access Driver", "SQL Server", "ODBC Driver 17 for SQL Server"])
+    assert config.driver_en_uso() == "ODBC Driver 17 for SQL Server"          # el preferido instalado, no el legado
+    monkeypatch.setattr(pyodbc, "drivers", lambda: ["SQL Server"])
+    assert config.driver_en_uso() == "SQL Server"
+    monkeypatch.setattr(pyodbc, "drivers", lambda: ["Microsoft Access Driver"])
+    with pytest.raises(config.ConfiguracionError, match="no está instalado.*Microsoft Access Driver"):
+        config.driver_en_uso()
+    monkeypatch.setattr(pyodbc, "drivers", lambda: ["ODBC Driver 99 for SQL Server"])
+    assert config.driver_en_uso() == "ODBC Driver 99 for SQL Server"          # el configurado manda si está instalado
