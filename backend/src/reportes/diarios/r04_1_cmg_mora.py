@@ -10,7 +10,8 @@ from ..config import ConfiguracionError
 from ..registro import carpeta_salida
 from ..db import conexion_pyodbc
 
-def generar_inserts_sql(fecha_corte: datetime.date | None = None):
+def generar_inserts_sql(fecha_corte: datetime.date | None = None) -> int:
+    """0 = TXT generado. 1 = abortó o falló (sin datos, tabla del día ausente, provisiones en 0, error SQL): nunca se presenta como éxito."""
     # 1. Fecha: --fecha-corte > FECHA_CORTE_DIARIA del .env > día anterior (lunes: sábado)
     hoy = datetime.date.today()
     fecha_ejec, origen = resolver_corte("diaria", fecha_corte)
@@ -81,7 +82,7 @@ def generar_inserts_sql(fecha_corte: datetime.date | None = None):
         cursor.execute("SELECT COUNT(*) FROM DW_Raw_v2.dbo.CMGMora_Recaudo")
         if cursor.fetchone()[0] == 0:
             print(f"\n[!] ALERTA: No se encontró data en RECAUDO_DIARIO_FINANZAS para la fecha {fec_str}. Abortando.")
-            return
+            return 1
 
         # ==========================================
         # PARTE 2: Actualización y validación de variables (NO CERO)
@@ -106,7 +107,7 @@ def generar_inserts_sql(fecha_corte: datetime.date | None = None):
         cursor.execute(f"SELECT OBJECT_ID('{tabla_prov}')")
         if cursor.fetchone()[0] is None:
             print(f"\n[!] ERROR: La tabla {tabla_prov} no existe en la base de datos. Abortando.")
-            return
+            return 1
         
         # Extraer los valores
         sql_get_vars = f"""
@@ -129,7 +130,7 @@ def generar_inserts_sql(fecha_corte: datetime.date | None = None):
             print("🛑 ADVERTENCIA: Las variables de provisión están en 0.")
             print("🛑 SEGÚN LAS REGLAS, NO SE GENERARÁN LOS INSERTS. ABORTANDO.")
             print("="*60 + "\n")
-            return
+            return 1
             
         # Si pasaron la validación (no son 0), actualizamos en SQL
         sql_update_prov = """
@@ -170,7 +171,7 @@ def generar_inserts_sql(fecha_corte: datetime.date | None = None):
         
         if not inserts:
             print("\n[!] No se generaron registros en la tabla.")
-            return
+            return 1
             
         archivo_txt = os.path.join(ruta_salida, f"inserts_{fec_str}.txt")
         with open(archivo_txt, 'w', encoding='utf-8') as f:
@@ -179,9 +180,13 @@ def generar_inserts_sql(fecha_corte: datetime.date | None = None):
                 
         print(f"\n✅ [ÉXITO] Se generaron {len(inserts)} registros INSERTS.")
         print(f"✅ [ARCHIVO GUARDADO EN] {archivo_txt}")
+        return 0
 
+    except ConfiguracionError:
+        raise  # lo traduce main() a código 2 (configuración), no a un error de datos
     except Exception as e:
         print(f"\n[X] Ocurrió un error en la ejecución SQL o en el proceso: {e}")
+        return 1
     finally:
         if 'conn_ctx' in locals():
             conn_ctx.__exit__(None, None, None)
@@ -194,11 +199,10 @@ def main(argv=None) -> int:
     parser.add_argument("--fecha-corte", type=lambda v: fecha_iso(v), help="AAAA-MM-DD (defecto: FECHA_CORTE_DIARIA del .env; sin ninguna: día anterior, lunes = sábado)")
     args = parser.parse_args(argv)
     try:
-        generar_inserts_sql(args.fecha_corte)
+        return generar_inserts_sql(args.fecha_corte)
     except (ConfiguracionError, ValueError) as exc:
         print(f"✗ {exc}")
         return 2
-    return 0
 
 
 if __name__ == '__main__':

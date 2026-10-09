@@ -9,6 +9,6 @@ Qué origen consume cada reporte. **El detalle tabla por tabla (con columna de f
 | Bancarizados por producto | `slc` | `csd.dbo.Clientes_DS`, SP de desembolsos en `dwh` | mes |
 | Clientes extranjeros | `slc` (+ `rcc` con `--pasivos-directo`) | créditos, pasivos, seguros por nacionalidad | fin de mes |
 | Indicadores de clientes | `slc` | `INTCOM.dbo.ccd`, `csd.dbo.Clientes_DS`, `DWH.dbo.HCARCAP001`, `INTCOM.dbo.CCS_FUND_F` | mes (seguros con desfase configurable) |
-| Resto de reportes (17 comandos de lote) | `slc` | ver [inventario de tablas](./tables-inventory.md) | fin de mes (diarios: día anterior) |
+| Resto de reportes (16 comandos de lote) | `slc` | ver [inventario de tablas](./tables-inventory.md) | fin de mes (diarios: día anterior) |
 
 > Los reportes de lote consultan `storage` (servidor `mish`) o `dwh`/`intcom`/`dma`/`csd` (servidor `slc`); ver [servidores y bases](./servidores-y-bases.md) y el [inventario de tablas](./tables-inventory.md).

@@ -1,6 +1,6 @@
 # Documentación — Reportes Automatizados
 
-Entorno Python con los reportes de Financiera Confianza, que ejecutas tú bajo demanda, sobre 3 servidores SQL Server (`mish`, `slc`, `rcc`); cada reporte usa su propia base de datos.
+Reportes de Financiera Confianza que ejecutas tú bajo demanda (backend Python y web Next.js), sobre 3 servidores SQL Server (`mish`, `slc`, `rcc`); cada reporte usa su propia base de datos. Las rutas `src/`, `tests/` y `data/` de estos documentos son relativas a `backend/`.
 
 | Área | Responsabilidad |
 |---|---|
@@ -24,6 +24,7 @@ El archivo histórico del que parte todo está en `docs/LEGADO/` (raíz del repo
 | Saber a qué base conecta cada cosa | [Contrato de conexiones](./data/contracts/conexiones-bd.md) |
 | Agregar un reporte | [Guía de nuevo reporte](./development/report-creation-guide.md) |
 | **Ejecutar un reporte / cierre de mes** | [Runbooks](./development/runbooks/README.md) |
+| **Usar la interfaz web** (login, validación masiva, configuración) | [Runbook de la web](./development/runbooks/interfaz-web.md) |
 | **Saber qué tabla usa cada reporte** | [Inventario de tablas](./data/tables-inventory.md) |
 | Rastrear una cifra | [Linaje](./data/lineage.md) |
 | Ver el estado generado del código | [Inventario](./architecture/module-inventory.md) |

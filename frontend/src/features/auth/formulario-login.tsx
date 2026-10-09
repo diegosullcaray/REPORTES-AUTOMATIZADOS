@@ -1,6 +1,6 @@
 "use client";
 
-import { LogIn } from "lucide-react";
+import { Eye, EyeOff, LogIn } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
@@ -15,6 +15,7 @@ export function FormularioLogin() {
   const router = useRouter();
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [visible, setVisible] = useState(false);
 
   const entrar = async (ev: FormEvent<HTMLFormElement>) => {
     ev.preventDefault();
@@ -40,7 +41,13 @@ export function FormularioLogin() {
       </div>
       <div className="flex flex-col gap-2">
         <Label htmlFor="clave">Contraseña</Label>
-        <Input id="clave" name="clave" type="password" autoComplete="current-password" required />
+        <div className="relative">
+          <Input id="clave" name="clave" type={visible ? "text" : "password"} autoComplete="current-password" className="pr-10" required />
+          <Button type="button" variant="ghost" size="icon-sm" className="absolute top-1/2 right-1 -translate-y-1/2"
+            aria-label={visible ? "Ocultar contraseña" : "Mostrar contraseña"} aria-pressed={visible} onClick={() => setVisible((v) => !v)}>
+            {visible ? <EyeOff /> : <Eye />}
+          </Button>
+        </div>
       </div>
       <Button type="submit" className="w-full" disabled={enviando}><LogIn /> {enviando ? "Verificando…" : "Iniciar sesión"}</Button>
     </form>

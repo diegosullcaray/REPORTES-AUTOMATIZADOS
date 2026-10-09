@@ -142,7 +142,7 @@ export function TablaEjecuciones({ reporte }: { reporte?: string }) {
     <>
       <TablaDatos columnas={columnas} datos={datos} cargando={consulta.cargando} error={consulta.error} onRecargar={consulta.recargar}
         buscar={reporte ? "Buscar por corte u opción…" : "Buscar por reporte, corte u opción…"} filtros={filtros}
-        ordenInicial={[{ id: "inicio", desc: true }]}
+        porPagina={7} ordenInicial={[{ id: "inicio", desc: true }]}
         nombres={{ estado: "Estado", reporte: "Reporte", corte: "Corte", opciones: "Opciones", inicio: "Inicio", duracion: "Duración", archivos: "Archivos" }}
         vacio={{ icono: History, titulo: "Sin ejecuciones", descripcion: "Aquí aparecerá cada reporte que ejecutes desde la web." }} />
       <VisorLog id={log} onCerrar={() => setLog(null)} />

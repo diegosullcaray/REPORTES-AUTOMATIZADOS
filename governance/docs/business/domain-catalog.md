@@ -1,12 +1,12 @@
 # Catálogo de reportes
 
-Numeración y responsable = carpetas del legado (`docs/LEGADO`): **Diarias** 02, 04; **Piero** 01–09; **Erick** 01–03 (ver [registro](../../../src/reportes/registro.py) y `python main.py listar`).
+Numeración y responsable = carpetas del legado (`docs/LEGADO`): **Diarias** 02, 04; **Piero** 01–09; **Erick** 01–03 (ver [registro](../../../backend/src/reportes/registro.py) y `python main.py listar`).
 
 Todos son ejecutables con `python main.py <comando> --fecha-corte AAAA-MM-DD`. Qué hace cada comando, sus tablas críticas y su salida: [catálogo de comandos](../development/runbooks/comandos.md) (generado). Quién pide cada reporte y a quién se entrega (según las notas heredadas):
 
 | Comando | Solicitante / destinatarios | Nota clave |
 |---|---|---|
-| `cmg-mora`, `cmg-castigos` | MIS / Riesgos | diario; lunes toma el sábado; aborta si provisiones = 0 |
+| `cmg-mora` | MIS / Riesgos | diario; lunes toma el sábado; aborta si provisiones = 0 |
 | `cartera-sin-asignar` | MIS | diario; Excel base en `data/inputs/cartera_sin_asignar_base.xlsm` |
 | `desembolsos-por-canal` | Sergio, Sebastián; cc Abigail, Michel | canales CT/BT; si no hay acceso a producción, pedir que lo ejecuten |
 | `fondeo-estable` | Eddy Martínez; cc Michael, Abigail | inicio de mes (día ~3); tabla tipo WAS |

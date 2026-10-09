@@ -19,6 +19,9 @@ from pathlib import Path
 from ..config import RAIZ, ConfiguracionError
 
 DESTINATARIOS_DEFECTO = RAIZ / "data" / "inputs" / "correos_cartera_sin_asignar.txt"
+HOST_DEFECTO, PUERTO_DEFECTO = "smtp.gmail.com", 465
+REMITENTE_DEFECTO = "Sistemas de Información de Gestión"
+CORREO_PRUEBA_DEFECTO = "diego.sullcaray@confianza.pe"
 
 
 class CorreoError(RuntimeError):
@@ -46,13 +49,13 @@ def config_desde_env() -> ConfigCorreo:
     if not usuario or not clave:
         raise ConfiguracionError("Falta SMTP_USER y SMTP_PASSWORD en el .env (cuenta MIS para enviar correos)")
     try:
-        puerto = int(os.getenv("SMTP_PORT", "465"))
+        puerto = int(os.getenv("SMTP_PORT", str(PUERTO_DEFECTO)))
     except ValueError as exc:
         raise ConfiguracionError("SMTP_PORT en el .env debe ser un número (465 por defecto)") from exc
     return ConfigCorreo(
-        host=os.getenv("SMTP_HOST", "smtp.gmail.com").strip(), puerto=puerto, usuario=usuario, clave=clave,
-        remitente_nombre=os.getenv("MAIL_FROM_NAME", "Sistemas de Información de Gestión").strip(),
-        correo_prueba=os.getenv("CORREO_PRUEBA", "diego.sullcaray@confianza.pe").strip(),
+        host=os.getenv("SMTP_HOST", HOST_DEFECTO).strip(), puerto=puerto, usuario=usuario, clave=clave,
+        remitente_nombre=os.getenv("MAIL_FROM_NAME", REMITENTE_DEFECTO).strip(),
+        correo_prueba=os.getenv("CORREO_PRUEBA", CORREO_PRUEBA_DEFECTO).strip(),
         logo=Path(os.environ["LOGO_PATH"]) if os.getenv("LOGO_PATH", "").strip() else None,   # opcional: logo de la firma
         webhook=(os.getenv("GOOGLE_CHAT_WEBHOOK_URL") or "").strip() or None,
     )

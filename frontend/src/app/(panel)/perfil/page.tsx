@@ -1,10 +1,5 @@
-import { Suspense } from "react";
-import { PanelPerfil } from "@/features/perfil/panel-perfil";
+import { PanelCuenta } from "@/features/perfil/panel-cuenta";
 
 export default function PaginaPerfil() {
-  return (
-    <Suspense>
-      <PanelPerfil />
-    </Suspense>
-  );
+  return <PanelCuenta />;
 }

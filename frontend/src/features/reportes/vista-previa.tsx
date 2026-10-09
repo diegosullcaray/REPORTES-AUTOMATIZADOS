@@ -54,7 +54,7 @@ function VistaDatos({ reporte, archivo }: { reporte: string; archivo: string }) 
     <div className="flex flex-col gap-3">
       {datos.hojas.length > 1 && (
         <Tabs value={String(hoja)} onValueChange={(v) => setHoja(Number(v))}>
-          <TabsList variant="line" className="overflow-x-auto w-full justify-start">
+          <TabsList variant="line" className="overflow-x-auto no-scrollbar w-full justify-start">
             {datos.hojas.map((h, i) => <TabsTrigger key={h.nombre} value={String(i)} className="flex-none">{h.nombre}</TabsTrigger>)}
           </TabsList>
         </Tabs>

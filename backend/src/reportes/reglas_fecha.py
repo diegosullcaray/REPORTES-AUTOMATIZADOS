@@ -29,10 +29,6 @@ REGLAS: dict[str, dict[str, str]] = {
         "dw_raw_v2.dbo.cmgmora_strjercor": SIN,
         "storage.com_act.sbtvrie001": "destino de los INSERT que genera el reporte; no se consulta",
     },
-    "cmg-castigos": {
-        "storage.com_act.sdas005": "SFECPRO IN (los 11 últimos cierres hábiles hasta D) con SCODAGR = 1",
-        "storage.ref.rcalen001": "RFEC con RCIEBT = 1 hasta D (define los 11 últimos cierres hábiles)",
-    },
     "desembolsos-por-canal": {
         "storage.com_act.hcda001": "HFECPRO = F",
         "storage.com_act.hmcm001": "HFECPRO = EOMONTH(F)",

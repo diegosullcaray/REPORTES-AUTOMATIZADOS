@@ -35,20 +35,6 @@ python main.py cmg-mora [--fecha-corte AAAA-MM-DD]   # sin la opción usa FECHA_
 - **Críticas** (se validan al corte): `dbriesgos.dbo.gasto_prov_ope_diaria`, `dbriesgos.dbo.prov_proy_{yyyymmdd}_0`, `dbriesgos.dbo.recaudo_diario_finanzas`
 - Guía propia: [runbook](./cmg-mora.md)
 
-## Diarias 04.2 · `cmg-castigos` — diaria
-
-CMG Mora · recuperación de castigos 12M (SRECCAST12M): suma de SDAS005 en los últimos 11 cierres
-
-```bash
-python main.py tablas cmg-castigos --verificar   # ¿tablas al día? (fecha del .env)
-python main.py cmg-castigos [--fecha-corte AAAA-MM-DD]   # sin la opción usa FECHA_CORTE_DIARIA del .env
-```
-
-- **Servidor**: `mish` · **Tablas**: 2 (1 verificables por fecha) → [inventario](../../data/tables-inventory.md)
-- **Críticas** (se validan al corte): `storage.com_act.sdas005`
-- **Base de datos**: `storage` (editable en el módulo; el servidor lo define el `.env`)
-- **Salida**: `data/outputs/diarias/04_cmg_mora/CmgCastigos_{AAAAMMDD}.xlsx` · hojas: `Castigos 12M`
-
 # Mensuales · heredados de Piero
 
 ## Piero 01 · `desembolsos-por-canal` — mensual

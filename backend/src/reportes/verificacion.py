@@ -77,6 +77,21 @@ def verificar_reporte(reporte: str, fecha: date) -> list[Resultado]:
     return [verificar_tabla(t, fecha) for t in tablas_de(reporte)]
 
 
+def mensaje_solicitud_grupo(titulo: str, fecha: date, pendientes: list[tuple[Tabla, Resultado, list[str]]]) -> str:
+    """Un solo pedido a Producción para varios reportes: cada tabla pendiente una vez, con los reportes que la usan."""
+    if not pendientes:
+        return f"Todas las tablas de «{titulo}» están al día al {fecha:%d/%m/%Y}; no hace falta pedir actualización."
+    L = [f"Hola, para generar los reportes mensuales de «{titulo}» con corte al {fecha:%d/%m/%Y} necesito que, por favor, "
+         "actualices (o confirmes que ya cargó el cierre en) las siguientes tablas de producción:", ""]
+    for t, r, reportes in pendientes:
+        extra = f" — última fecha cargada: {r.ultima_fecha:%d/%m/%Y}" if r.ultima_fecha else f" — {r.estado.value.lower()}"
+        col = f" (columna de fecha: {t.col_fecha})" if t.col_fecha else ""
+        L.append(f"  • {nombre_resuelto(t, fecha)}  [conexión {t.servidor}]{col}{extra}")
+        L.append(f"      la usan: {', '.join(reportes)}")
+    L += ["", f"Necesito que lleguen hasta el {fecha:%d/%m/%Y}. Cuando estén listas me avisas y ejecuto los reportes. ¡Gracias!"]
+    return "\n".join(L)
+
+
 def mensaje_solicitud(reporte: str, fecha: date, resultados: list[Resultado] | None = None) -> str:
     """Texto listo para enviar a quien actualiza en Producción."""
     if resultados is None:

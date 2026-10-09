@@ -1,7 +1,7 @@
 // Transporte: única puerta hacia la API de Python (proxy /api en next.config.ts). Sin estado ni presentación.
 import type {
-  Archivo, ConfiguracionGeneral, Ejecucion, EjecucionDetalle, EstadoEnvio, PedidoEjecucion, Perfil, PruebaConexion, ReporteDetalle, ReporteResumen,
-  Servidor, Sesion, Solicitud, Verificacion, VistaPrevia,
+  Archivo, ConfiguracionGeneral, Ejecucion, EjecucionDetalle, EstadoEnvio, PedidoEjecucion, Notificaciones, Perfil, PedidoConfiguracion, PedidoCuenta, PedidoNotificaciones, PruebaConexion, PruebaNotificacion, ReporteDetalle, ReporteResumen,
+  Servidor, Sesion, Solicitud, Verificacion, VerificacionGrupo, VistaPrevia,
 } from "./tipos";
 
 export class ErrorApi extends Error {
@@ -52,10 +52,14 @@ let catalogo: Promise<ReporteResumen[]> | null = null;
 
 export const api = {
   iniciarSesion: (usuario: string, clave: string) => pedir<Sesion>("/sesion", enviar({ usuario, clave })),
+  sesion: () => pedir<Sesion>("/sesion"),
+  actualizarCuenta: (cambios: PedidoCuenta) => pedir<Sesion>("/cuenta", { method: "PUT", body: JSON.stringify(cambios) }),
   cerrarSesion: () => fetch("/api/sesion", { method: "DELETE" }),
   reportes: () => (catalogo ??= pedir<ReporteResumen[]>("/reportes").catch((e) => { catalogo = null; throw e; })),
   reporte: (nombre: string) => pedir<ReporteDetalle>(r(nombre)),
   verificar: (nombre: string, fecha_corte: string | null) => pedir<Verificacion>(`${r(nombre)}/verificacion`, enviar({ fecha_corte })),
+  verificarGrupo: (grupo: string, fecha_corte: string | null) => pedir<VerificacionGrupo>(`/validacion/${grupo}`, enviar({ fecha_corte })),
+  guardarSolicitudGrupo: (grupo: string, fecha_corte: string | null) => pedir<Solicitud>(`/validacion/${grupo}/solicitud`, enviar({ fecha_corte })),
   guardarSolicitud: (nombre: string, fecha_corte: string | null) => pedir<Solicitud>(`${r(nombre)}/solicitud`, enviar({ fecha_corte })),
   archivos: (nombre: string) => pedir<Archivo[]>(`${r(nombre)}/archivos`),
   vistaPrevia: (nombre: string, archivo: string) => pedir<VistaPrevia>(`${a(nombre, archivo)}/vista-previa`),
@@ -67,6 +71,10 @@ export const api = {
   ejecucion: (id: string) => pedir<EjecucionDetalle>(`/ejecuciones/${encodeURIComponent(id)}`),
   perfil: () => pedir<Perfil>("/perfil"),
   configuracion: () => pedir<ConfiguracionGeneral>("/configuracion"),
+  guardarConfiguracion: (cambios: PedidoConfiguracion) => pedir<ConfiguracionGeneral>("/configuracion", { method: "PUT", body: JSON.stringify(cambios) }),
+  notificaciones: () => pedir<Notificaciones>("/notificaciones"),
+  guardarNotificaciones: (cambios: PedidoNotificaciones) => pedir<Notificaciones>("/notificaciones", { method: "PUT", body: JSON.stringify(cambios) }),
+  probarNotificacion: (canal: "correo" | "chat") => pedir<PruebaNotificacion>(`/notificaciones/${canal}/prueba`, { method: "POST" }),
   servidores: () => pedir<Servidor[]>("/servidores"),
   probarServidor: (nombre: string) => pedir<PruebaConexion>(`/servidores/${encodeURIComponent(nombre)}/prueba`, { method: "POST" }),
 };

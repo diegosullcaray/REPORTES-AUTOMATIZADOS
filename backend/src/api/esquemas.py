@@ -62,6 +62,31 @@ class Verificacion(BaseModel):
     solicitud: str | None         # mensaje para Producción si falta alguna
 
 
+class ResumenValidacion(BaseModel):
+    nombre: str
+    orden: str
+    tablas: int
+    pendientes: int               # desactualizadas o inexistentes
+    dudosas: int                  # no se pudieron verificar
+    listo: bool
+
+
+class TablaValidada(ResultadoTabla):
+    reportes: list[str]           # reportes del grupo que usan esta tabla
+
+
+class VerificacionGrupo(BaseModel):
+    """Validación masiva: todas las tablas de los reportes mensuales de un responsable, cada una verificada una sola vez."""
+
+    grupo: str
+    titulo: str
+    corte: date
+    listo: bool
+    reportes: list[ResumenValidacion]
+    tablas: list[TablaValidada]
+    solicitud: str | None         # un solo mensaje para Producción si falta alguna
+
+
 class Solicitud(BaseModel):
     archivo: str
     texto: str
@@ -135,6 +160,14 @@ class PedidoSesion(BaseModel):
     clave: str = Field(min_length=1, max_length=256)
 
 
+class PedidoCuenta(BaseModel):
+    """Cambio de usuario y/o contraseña de la web. Siempre exige la contraseña actual."""
+
+    clave_actual: str = Field(min_length=1, max_length=256)
+    usuario: str | None = Field(default=None, max_length=64)
+    clave_nueva: str | None = Field(default=None, max_length=256)
+
+
 class Sesion(BaseModel):
     usuario: str
 
@@ -159,6 +192,47 @@ class ConfiguracionGeneral(BaseModel):
     dir_inputs: str
     dir_outputs: str
     driver_odbc: str
+    pendientes_reinicio: list[str] = []   # ajustes guardados en el .env que la API aplica al reiniciar
+
+
+class Notificaciones(BaseModel):
+    """Correo (SMTP) y Google Chat. La clave y el webhook nunca se devuelven: solo si están configurados."""
+
+    smtp_host: str
+    smtp_port: int
+    smtp_user: str
+    remitente_nombre: str
+    correo_prueba: str
+    clave_configurada: bool
+    webhook_configurado: bool
+    destinatarios: int | None
+
+
+class PedidoNotificaciones(BaseModel):
+    """Solo se cambian los campos enviados; texto vacío = quitar la variable del .env."""
+
+    smtp_host: str | None = None
+    smtp_port: str | None = None
+    smtp_user: str | None = None
+    smtp_clave: str | None = None
+    remitente_nombre: str | None = None
+    correo_prueba: str | None = None
+    webhook: str | None = None
+
+
+class PruebaNotificacion(BaseModel):
+    ok: bool
+    detalle: str
+
+
+class PedidoConfiguracion(BaseModel):
+    """Solo se cambian los campos enviados; texto vacío = quitar la variable del .env."""
+
+    corte_mensual: str | None = None
+    corte_diario: str | None = None
+    dir_inputs: str | None = None
+    dir_outputs: str | None = None
+    driver_odbc: str | None = None
 
 
 class EstadoEnvio(BaseModel):

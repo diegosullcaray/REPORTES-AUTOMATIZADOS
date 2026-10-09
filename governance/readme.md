@@ -1,12 +1,14 @@
 # Marco de Gobernanza — Reportes Automatizados
 
-Centro de gobernanza, automatización y estándares técnicos de los **reportes de Financiera Confianza que ejecutas tú bajo demanda** (nada corre solo) (Finanzas / Riesgos / MIS): entorno **Python** que consulta **3 servidores SQL Server** (`mish`, `slc`, `rcc`), cada reporte con su propia base de datos y genera archivos de salida (Excel/TXT).
+Centro de gobernanza, automatización y estándares técnicos de los **reportes de Financiera Confianza que ejecutas tú bajo demanda** (nada corre solo) (Finanzas / Riesgos / MIS): un **backend Python** que consulta **3 servidores SQL Server** (`mish`, `slc`, `rcc`), cada reporte con su propia base de datos y genera archivos de salida (Excel/TXT), y un **frontend web** (Next.js) para gestionarlos. Reparto del repositorio: [ADR-0013](./docs/architecture/adr/ADR-0013-repositorio-en-backend-y-frontend.md).
 
 ```text
+backend/                          motor Python + API de la web (main.py, src/, tests/, data/, .env)
+frontend/                         interfaz web Next.js + shadcn
 governance/
   ├── scripts/                      automatización: verificación, inventario
   ├── skills/                       guías operativas para desarrolladores y agentes
-  ├── agents/                       pipeline de 5 agentes + 2 transversales
+  ├── agents/                       pipeline de 5 agentes + 3 transversales
   ├── docs/                         documentación canónica
   ├── tasks/                        especificaciones de trabajo en curso
   ├── gobernanza.linea-base.json    deuda congelada (ver ADR-0003)
@@ -15,16 +17,19 @@ governance/
 
 **Regla que gobierna todo lo demás: cuando la documentación y el código discrepan, gana el código.** El documento se corrige o se borra.
 
+> **Rutas:** en estos documentos `src/…`, `tests/…`, `data/…`, `main.py` y `.env` son relativos a `backend/`, y los comandos de Python se ejecutan dentro de esa carpeta. `governance/`, `docs/LEGADO/` y `frontend/` cuelgan de la raíz del repositorio.
+
 ---
 
 ## 0. Cómo se ejecuta un reporte
 
 ```bash
-# 1) en tu .env: FECHA_CORTE_MENSUAL=AAAA-MM-DD  y/o  FECHA_CORTE_DIARIA=AAAA-MM-DD
+# 1) en backend/.env: FECHA_CORTE_MENSUAL=AAAA-MM-DD  y/o  FECHA_CORTE_DIARIA=AAAA-MM-DD
+cd backend
 python main.py <reporte>                    # usa la fecha del .env; --fecha-corte la cambia solo esta vez
 ```
 
-Paso a paso: [ejecutar un reporte](./docs/development/runbooks/ejecutar-un-reporte.md). No hay tareas programadas ni ejecución automática: el reporte corre cuando tú lo lanzas.
+Paso a paso: [ejecutar un reporte](./docs/development/runbooks/ejecutar-un-reporte.md). No hay tareas programadas ni ejecución automática: el reporte corre cuando tú lo lanzas. También desde el navegador: [interfaz web](./docs/development/runbooks/interfaz-web.md).
 
 ---
 
@@ -33,7 +38,7 @@ Paso a paso: [ejecutar un reporte](./docs/development/runbooks/ejecutar-un-repor
 Un solo comando antes de cada commit (no se conecta a ninguna base de datos):
 
 ```bash
-python governance/scripts/verificar.py   # gobernanza + inventario + pruebas
+python governance/scripts/verificar.py   # desde la raíz: gobernanza + inventario + pruebas del backend
 ```
 
 Qué verifica cada compuerta y cómo se maneja la deuda heredada: [compuertas de calidad](./docs/development/quality-gates.md).
@@ -60,6 +65,8 @@ Manual: [`scripts/README.md`](./scripts/README.md).
 | [`reportes-ejecucion-y-cierre`](./skills/reportes-ejecucion-y-cierre/SKILL.md) | cómo ejecutar un reporte: verificar tablas, pedir actualización, ejecutar, validar |
 | [`reportes-testing`](./skills/reportes-testing/SKILL.md) | pytest sin tocar las bases reales |
 | [`reportes-migrar-legado`](./skills/reportes-migrar-legado/SKILL.md) | cómo pasar un reporte manual de `docs/LEGADO` a automatizado |
+| [`web-diseno-dokploy`](./skills/web-diseno-dokploy/SKILL.md) | estética y patrones de interfaz copiados de Dokploy para la web |
+| [`web-modulos-escalables`](./skills/web-modulos-escalables/SKILL.md) | cómo crecer la web por módulos (`features/`, rutas delgadas, `lib/api.ts`) |
 
 ## 4. Agentes (`governance/agents/`)
 
@@ -75,6 +82,7 @@ Transversales:
 
 - [Curador de gobernanza](./agents/06-curador-de-gobernanza.md) — persigue la deriva entre código y documentación
 - [Migrador del legado](./agents/07-migrador-legado.md) — usa `docs/LEGADO` como especificación, no la memoria
+- [Diseñador web](./agents/08-disenador-web.md) — diseña y revisa la web con la estética de Dokploy y módulos por funcionalidad
 
 Detalle: [`agents/README.md`](./agents/README.md).
 

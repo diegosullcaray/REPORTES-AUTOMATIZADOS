@@ -1,9 +1,8 @@
 "use client";
 
-import { ChevronRight, ChevronsUpDown, Database, FileSpreadsheet, History, House, LogOut, Mail, Monitor, Moon, SlidersHorizontal, Sun, UserRound } from "lucide-react";
+import { Bell, ChevronRight, ChevronsUpDown, Database, FileSpreadsheet, History, House, LogOut, Mail, ShieldCheck, SlidersHorizontal, UserRound } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useTheme } from "next-themes";
 import { useState } from "react";
 import { Punto } from "@/components/estados";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -89,12 +88,18 @@ function MenuReportes({ ruta }: { ruta: string }) {
   );
 }
 
-/** Menú de usuario en el pie (como el UserNav de Dokploy): perfil, configuración, tema y estado de la API. */
+/** Páginas de ajustes, cada una con su ruta (como los ítems de Settings en Dokploy). */
+const AJUSTES = [
+  { ruta: "/configuracion", texto: "General", icono: SlidersHorizontal },
+  { ruta: "/configuracion/notificaciones", texto: "Notificaciones", icono: Bell },
+  { ruta: "/servidores", texto: "Bases de datos", icono: Database },
+] as const;
+
+/** Menú de usuario en el pie (como el UserNav de Dokploy): perfil, configuración y estado de la API. */
 function MenuUsuario({ enMarcha, apiCaida }: { enMarcha: number; apiCaida: boolean }) {
   const router = useRouter();
-  const { datos: p } = useConsulta("perfil", api.perfil);
-  const { resolvedTheme, setTheme } = useTheme();
-  const usuario = p?.usuario ?? "…";
+  const { datos: sesion } = useConsulta("sesion", api.sesion);
+  const usuario = sesion?.usuario ?? "…";
   return (
     <DropdownMenu>
       <DropdownMenuTrigger render={<SidebarMenuButton size="lg" className="data-popup-open:bg-sidebar-accent" />}>
@@ -114,21 +119,12 @@ function MenuUsuario({ enMarcha, apiCaida }: { enMarcha: number; apiCaida: boole
         <DropdownMenuGroup>
           <DropdownMenuLabel className="flex flex-col">
             Mi cuenta
-            <span className="text-xs font-normal text-muted-foreground">{p ? `${p.usuario} · ${p.equipo}` : "…"}</span>
+            <span className="text-xs font-normal text-muted-foreground">{usuario}</span>
           </DropdownMenuLabel>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem onClick={() => router.push("/perfil")}><UserRound /> Perfil</DropdownMenuItem>
-          <DropdownMenuItem onClick={() => router.push("/perfil?seccion=general")}><SlidersHorizontal /> Configuración</DropdownMenuItem>
-          <DropdownMenuItem onClick={() => router.push("/perfil?seccion=bases")}><Database /> Bases de datos</DropdownMenuItem>
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuGroup>
-          <DropdownMenuLabel>Tema</DropdownMenuLabel>
-          <DropdownMenuItem onClick={() => setTheme("light")}><Sun /> Claro {resolvedTheme === "light" && "✓"}</DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setTheme("dark")}><Moon /> Oscuro {resolvedTheme === "dark" && "✓"}</DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setTheme("system")}><Monitor /> Como el sistema</DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => api.cerrarSesion().finally(irALogin)}><LogOut /> Cerrar sesión</DropdownMenuItem>
@@ -167,9 +163,22 @@ export function AppSidebar() {
             </SidebarMenuItem>
             <MenuReportes ruta={ruta} />
             <SidebarMenuItem>
+              <SidebarMenuButton isActive={ruta.startsWith("/validacion")} tooltip="Validación de tablas" render={<Link href="/validacion" />}><ShieldCheck /><span>Validación de tablas</span></SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
               <SidebarMenuButton isActive={ruta.startsWith("/ejecuciones")} tooltip="Ejecuciones" render={<Link href="/ejecuciones" />}><History /><span>Ejecuciones</span></SidebarMenuButton>
               {enMarcha > 0 && <SidebarMenuBadge>{enMarcha}</SidebarMenuBadge>}
             </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroup>
+        <SidebarGroup>
+          <SidebarGroupLabel>Configuración</SidebarGroupLabel>
+          <SidebarMenu>
+            {AJUSTES.map(({ ruta: destino, texto, icono: Icono }) => (
+              <SidebarMenuItem key={destino}>
+                <SidebarMenuButton isActive={ruta === destino} tooltip={texto} render={<Link href={destino} />}><Icono /><span>{texto}</span></SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>

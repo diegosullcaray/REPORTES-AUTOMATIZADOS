@@ -1,7 +1,8 @@
 "use client";
 
-import { CircleCheck, CircleDashed, CircleX, Copy, FolderOpen, History, Play, ShieldCheck } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { Copy, Play } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
 import { toast } from "sonner";
 import { Confirmar } from "@/components/confirmar";
 import { Aviso, Chip, ErrorEnLinea } from "@/components/estados";
@@ -12,23 +13,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { useConsulta } from "@/hooks/use-consulta";
 import { api } from "@/lib/api";
-import { ESTADO_EJECUCION, TIPO, enCurso, errorDeCorte, fecha } from "@/lib/formato";
-import type { Correo, ReporteDetalle, Verificacion } from "@/lib/tipos";
-
-type Pestana = "validacion" | "archivos" | "ejecuciones";
-
-interface Props {
-  reporte: ReporteDetalle;
-  corte: string; // se elige una sola vez, junto a las pestañas
-  verificacion: Verificacion | null;
-  irA: (p: Pestana) => void;
-}
-
-function Paso({ estado, children }: { estado: "ok" | "pendiente" | "mal"; children: ReactNode }) {
-  const Icono = estado === "ok" ? CircleCheck : estado === "mal" ? CircleX : CircleDashed;
-  const color = estado === "ok" ? "var(--mis-success)" : estado === "mal" ? "var(--mis-danger)" : "var(--mis-text-tertiary)";
-  return <li className="flex items-start gap-2"><Icono className="mt-0.5 size-4 shrink-0" style={{ color }} /><span>{children}</span></li>;
-}
+import { ESTADO_EJECUCION, enCurso, errorDeCorte, fecha } from "@/lib/formato";
+import type { Correo, ReporteDetalle } from "@/lib/tipos";
 
 function Opcion({ id, marcado, onCambio, titulo, detalle }: { id: string; marcado: boolean; onCambio: (v: boolean) => void; titulo: string; detalle: string }) {
   return (
@@ -42,20 +28,11 @@ function Opcion({ id, marcado, onCambio, titulo, detalle }: { id: string; marcad
   );
 }
 
-function Dato({ etiqueta, children }: { etiqueta: string; children: ReactNode }) {
-  return (
-    <div className="flex flex-col gap-1">
-      <dt className="text-xs text-muted-foreground">{etiqueta}</dt>
-      <dd className="text-sm font-medium">{children}</dd>
-    </div>
-  );
-}
-
 /**
- * Pestaña General (como «Deploy Settings» de Dokploy): acciones del reporte arriba, log en vivo,
- * parámetros de la ejecución e información del reporte. La API vuelve a validar todo antes de encolar.
+ * Pestaña General (como «Deploy Settings» de Dokploy): Ejecutar y log en vivo,
+ * y los parámetros de la ejecución. Lo demás (tipo, servidor, responsable) vive en el encabezado y en las pestañas. La API vuelve a validar todo antes de encolar.
  */
-export function PanelGeneral({ reporte, corte, verificacion, irA }: Props) {
+export function PanelGeneral({ reporte, corte }: { reporte: ReporteDetalle; corte: string }) {
   const [forzar, setForzar] = useState(false);
   const [escritura, setEscritura] = useState(false);
   const [correo, setCorreo] = useState<Correo>("prueba");
@@ -66,11 +43,8 @@ export function PanelGeneral({ reporte, corte, verificacion, irA }: Props) {
   const { datos: x } = useConsulta(id && `ejecucion/${id}`, () => api.ejecucion(id!), (d) => enCurso(d.estado), 1500);
 
   const errorCorte = errorDeCorte(reporte.frecuencia, corte);
-  const vigente = verificacion?.corte === corte ? verificacion : null;
-  const tablasMal = !!vigente && !vigente.listo;
   const corriendo = !!x && enCurso(x.estado);
-  const motivo = errorCorte ?? (reporte.escribe_en_bd && !escritura ? "Confirma la escritura en la base de datos." : tablasMal && !forzar ? "Hay tablas desactualizadas." : null);
-  const verificables = reporte.tablas.filter((t) => t.verificable).length;
+  const motivo = errorCorte ?? (reporte.escribe_en_bd && !escritura ? "Confirma la escritura en la base de datos." : null);
 
   async function ejecutar() {
     setEnviando(true);
@@ -93,14 +67,11 @@ export function PanelGeneral({ reporte, corte, verificacion, irA }: Props) {
 
   return (
     <div className="flex flex-col gap-4">
-      <Tarjeta titulo="Ejecución" descripcion="Valida las tablas al corte, ejecuta el reporte y revisa sus archivos.">
-        <div className="grid grid-cols-2 gap-3 lg:flex lg:flex-wrap">
+      <Tarjeta titulo="Ejecución" descripcion="Ejecuta el reporte con el corte elegido arriba.">
+        <div className="flex flex-wrap gap-3">
           <Button onClick={() => setConfirmando(true)} disabled={!!motivo || enviando || corriendo} title={motivo ?? undefined}>
             <Play /> {corriendo ? "Ejecutando…" : "Ejecutar"}
           </Button>
-          {reporte.es_lote && <Button variant="secondary" onClick={() => irA("validacion")}><ShieldCheck /> Verificar tablas</Button>}
-          <Button variant="secondary" onClick={() => irA("archivos")}><FolderOpen /> Archivos</Button>
-          <Button variant="secondary" onClick={() => irA("ejecuciones")}><History /> Ejecuciones</Button>
           <Button variant="outline" onClick={() => { navigator.clipboard.writeText(`python main.py ${reporte.nombre}${corte ? ` --fecha-corte ${corte}` : ""}`); toast.success("Comando copiado"); }}>
             <Copy /> Copiar comando
           </Button>
@@ -113,7 +84,7 @@ export function PanelGeneral({ reporte, corte, verificacion, irA }: Props) {
         )}
       </Tarjeta>
 
-      <Tarjeta titulo="Parámetros" descripcion="Se aplican a la próxima ejecución, con la fecha de corte elegida arriba.">
+      <Tarjeta titulo="Parámetros" descripcion="Condiciones de la próxima ejecución.">
           {reporte.envia_correo && (
             <fieldset className="flex flex-col gap-2">
               <legend className="mb-1 text-sm font-medium">Correo</legend>
@@ -130,34 +101,16 @@ export function PanelGeneral({ reporte, corte, verificacion, irA }: Props) {
             <Opcion id="escritura" marcado={escritura} onCambio={setEscritura} titulo="Confirmo que este reporte crea/borra tablas permanentes"
               detalle="No lo ejecutes a la vez desde la consola: dos ejecuciones simultáneas se pisan." />
           )}
-          {reporte.es_lote && tablasMal && (
+          {reporte.es_lote && x?.estado === "tablas_desactualizadas" && (
             <Opcion id="forzar" marcado={forzar} onCambio={setForzar} titulo="Ejecutar aunque haya tablas desactualizadas (--forzar)"
               detalle="El resultado puede salir plausible y equivocado. Revisa el Excel antes de entregarlo." />
           )}
-          <ul className="flex flex-col gap-1.5 text-sm text-muted-foreground">
-            <Paso estado={errorCorte ? "mal" : "ok"}>Fecha de corte {corte && !errorCorte ? fecha(corte) : "pendiente"}</Paso>
-            {reporte.es_lote ? (
-              <Paso estado={!vigente ? "pendiente" : vigente.listo ? "ok" : "mal"}>
-                {!vigente ? <>Tablas sin verificar · <button className="underline" onClick={() => irA("validacion")}>verificar ahora</button> (el reporte igual se detiene si falta alguna)</>
-                  : vigente.listo ? "Tablas al día al corte" : "Hay tablas desactualizadas: pide la carga a Producción"}
-              </Paso>
-            ) : <Paso estado="pendiente">Lógica propia: no verifica tablas antes de ejecutar</Paso>}
-          </ul>
-        </Tarjeta>
-
-        <Tarjeta titulo="Información">
-          <dl className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-            <Dato etiqueta="Nº del legado">{reporte.orden}</Dato>
-            <Dato etiqueta="Tipo">{TIPO[reporte.frecuencia]}</Dato>
-            <Dato etiqueta="Responsable">{reporte.grupo === "diarias" ? "—" : reporte.grupo === "piero" ? "Piero" : "Erick"}</Dato>
-            <Dato etiqueta="Servidor"><span className="font-mono">{reporte.servidores.join(", ")}</span></Dato>
-            <Dato etiqueta="Tablas">{reporte.tablas.length} ({verificables} con control de fecha)</Dato>
-            <Dato etiqueta="Vacío">{reporte.vacio_valido ? "Es válido" : "Es error"}</Dato>
-          </dl>
-          <div className="flex flex-col gap-1">
-            <span className="text-xs text-muted-foreground">Carpeta de salida</span>
-            <code className="w-fit rounded-md bg-muted px-2 py-1 font-mono text-xs break-all">data/outputs/{reporte.carpeta}</code>
-          </div>
+          {reporte.tablas.length > 0 && (
+            <p className="text-sm text-muted-foreground">
+              Las tablas se validan en conjunto en <Link href={`/validacion${reporte.grupo === "erick" ? "?grupo=erick" : ""}`} className="underline">Validación de tablas</Link>.
+              El reporte igual se detiene si falta alguna.
+            </p>
+          )}
         </Tarjeta>
 
       <Confirmar abierto={confirmando} onAbierto={setConfirmando} titulo={`Ejecutar «${reporte.nombre}»`} accion={enviando ? "Encolando…" : "Ejecutar"}

@@ -1,3 +1,8 @@
+> **Estado (2026-10-08): implementada y superada en parte.** El estado vigente de la interfaz está en
+> [ADR-0011](../docs/architecture/adr/ADR-0011-interfaz-web.md) y [ADR-0012](../docs/architecture/adr/ADR-0012-acceso-a-la-web-y-ajustes-editables.md).
+> En particular, el **doble sidebar** que pide esta especificación se reemplazó por un **sidebar único** con grupos
+> (Principal y Configuración). Se conserva como referencia de la estética Dokploy.
+
 # Especificación de Interfaz de Usuario: Panel de Reportes Automatizados
 
 ## 1. Visión General y Estilo Visual (Inspiración: Dokploy)

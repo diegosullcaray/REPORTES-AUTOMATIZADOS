@@ -4,7 +4,7 @@
 
 Sirve para el cierre de mes: saber **qué tablas necesita cada reporte** y **a qué reportes afecta una tabla** antes de pedir a Producción que la actualice. Proceso: [cierre de mes](../development/runbooks/proceso-cierre-de-mes.md).
 
-- Tablas registradas: **81** · Reportes con tablas: **22**
+- Tablas registradas: **80** · Reportes con tablas: **21**
 - **Confianza** de la columna de fecha: `confirmada` (aparece en el SQL/código) · `convencion` (inferida por el prefijo H*/S* del core; **validar con el DBA**) · `por_confirmar`.
 
 ## 1. Por reporte (¿qué debo tener actualizado?)
@@ -31,13 +31,6 @@ Sirve para el cierre de mes: saber **qué tablas necesita cada reporte** y **a q
 | `dw_raw_v2.dbo.cmgmora_recaudo` | `rcc` | staging | — | confirmada |
 | `dw_raw_v2.dbo.cmgmora_strjercor` | `rcc` | referencia | — | confirmada |
 | `storage.com_act.sbtvrie001` | `mish` | destino | — | confirmada |
-
-### Diarias 04.2 · `cmg-castigos` (diaria)
-
-| Tabla | Conexión | Tipo | Columna de fecha | Confianza |
-|---|---|---|---|---|
-| `storage.com_act.sdas005` | `mish` | stock | `SFECPRO` | confirmada |
-| `storage.ref.rcalen001` | `mish` | referencia | `RFEC` | confirmada |
 
 ### Piero 01 · `desembolsos-por-canal` (mensual)
 
@@ -318,7 +311,6 @@ Sirve para el cierre de mes: saber **qué tablas necesita cada reporte** y **a q
 | `storage.com_act.sdae003` | `mish` | stock | `saca-tu-garra` |
 | `storage.com_act.sdaf002` | `mish` | stock | `giovanni-seguros`, `tapp-saldo-medio-territorio` |
 | `storage.com_act.sdas001` | `mish` | stock | `cartera-sin-asignar`, `saldo-medio-vigente`, `tapp-saldo-medio-territorio` |
-| `storage.com_act.sdas005` | `mish` | stock | `cmg-castigos` |
 | `storage.com_act.wcdce001` | `mish` | historica | `contratacion-electronica` |
 | `storage.com_act.wcdce002` | `mish` | historica | `contratacion-electronica` |
 | `storage.com_act.wjas001` | `mish` | historica | `saldo-medio-vigente` |
@@ -331,7 +323,7 @@ Sirve para el cierre de mes: saber **qué tablas necesita cada reporte** y **a q
 | `storage.gpr.vpph001` | `mish` | referencia | `desembolsos-por-canal`, `michael-castigos` |
 | `storage.ref.fjercor01` | `mish` | funcion | `michael-castigos` |
 | `storage.ref.fjercor02` | `mish` | funcion | `cartera-sin-asignar`, `desembolsos-por-canal`, `giovanni-cartera-agro`, `tapp-saldo-medio-territorio` |
-| `storage.ref.rcalen001` | `mish` | referencia | `clientes-rurales-migrantes`, `cmg-castigos`, `saca-tu-garra`, `tapp-saldo-medio-territorio` |
+| `storage.ref.rcalen001` | `mish` | referencia | `clientes-rurales-migrantes`, `saca-tu-garra`, `tapp-saldo-medio-territorio` |
 | `storage.ref.rtcm001` | `mish` | referencia | `desembolsos-por-canal`, `michael-castigos` |
 | `storage.ref.vjercor03` | `mish` | referencia | `cartera-sin-asignar` |
 | `storage.ref.vjercor04` | `mish` | referencia | `fondeo-estable`, `giovanni-captaciones`, `michael-captaciones` |

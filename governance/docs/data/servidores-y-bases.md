@@ -19,7 +19,7 @@ Generado: [inventario de módulos](../architecture/module-inventory.md) (columna
 
 | Servidor | Reportes |
 |---|---|
-| `mish` (`storage`) | `cartera-sin-asignar`, `cmg-castigos`, `desembolsos-por-canal`, `fondeo-estable`, `giovanni-captaciones`, `giovanni-seguros`, `giovanni-cartera-agro`, `michael-captaciones`, `michael-castigos`, `saca-tu-garra`, `saldo-medio-vigente`, `tapp-saldo-medio-territorio`, `contratacion-electronica`, `clientes-rurales-migrantes` |
+| `mish` (`storage`) | `cartera-sin-asignar`, `desembolsos-por-canal`, `fondeo-estable`, `giovanni-captaciones`, `giovanni-seguros`, `giovanni-cartera-agro`, `michael-captaciones`, `michael-castigos`, `saca-tu-garra`, `saldo-medio-vigente`, `tapp-saldo-medio-territorio`, `contratacion-electronica`, `clientes-rurales-migrantes` |
 | `slc` (`dwh`, `dma`, `csd`, `intcom`) | `bancarizados-producto`, `clientes-jovenes`, `productos-verdes`, `heredados-pdm`, `indicadores-clientes`, `clientes-extranjeros`, `bancarizados` (parte productos) |
 | `rcc` (`dbriesgos`, `DW_Raw_v2`, `DBRCC`) | `cmg-mora`, `bancarizados` (parte deuda RCC), `clientes-extranjeros` (solo con `--pasivos-directo`) |
 

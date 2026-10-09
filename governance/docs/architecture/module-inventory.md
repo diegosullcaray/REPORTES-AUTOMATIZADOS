@@ -12,13 +12,12 @@ El `.env` define **servidores**; la **base de datos la elige cada reporte** (`ba
 | `slc` | 172.24.2.213 | Windows (o SQL si hay USER/PASSWORD) | `SLC_SERVER`, `SLC_USER`, `SLC_PASSWORD` |
 | `rcc` | 172.20.0.70 | SQL (USER/PASSWORD) | `RCC_SERVER`, `RCC_USER`, `RCC_PASSWORD` |
 
-## Reportes ejecutables (22)
+## Reportes ejecutables (21)
 
 | Responsable / Nº | Comando | Frecuencia | Servidor | Base de datos | Módulo | Qué hace |
 |---|---|---|---|---|---|---|
 | Diarias 02 | `cartera-sin-asignar` | diaria | mish | storage | `reportes.diarios.r02_cartera_sin_asignar` | Cartera sin asignar (diario): cartera por sectorista/territorio sin asignación |
 | Diarias 04.1 | `cmg-mora` | diaria | rcc | propia (ver módulo) | `reportes.diarios.r04_1_cmg_mora` | Recaudo + provisiones diarios -> INSERTs SBTVRIE001 (se detiene si provisiones = 0) |
-| Diarias 04.2 | `cmg-castigos` | diaria | mish | storage | `reportes.diarios.r04_2_cmg_castigos` | CMG Mora · recuperación de castigos 12M (SRECCAST12M): suma de SDAS005 en los últimos 11 cierres |
 | Piero 01 | `desembolsos-por-canal` | mensual | mish | storage | `reportes.mensuales.piero.r01_desembolsos_por_canal` | Desembolsos por canal: contratación electrónica (CT) vs agencia física (BT) |
 | Piero 02 | `fondeo-estable` | mensual | mish | storage | `reportes.mensuales.piero.r02_fondeo_estable` | Estadística de tramo / Fondeo estable (Eddy Martínez) |
 | Piero 03 | `heredados-pdm` | mensual | slc | slc | `reportes.mensuales.piero.r03_heredados_pdm` | Heredados PDM: validar Cubo y tablas PDM completos al corte antes de ejecutar |
@@ -39,7 +38,7 @@ El `.env` define **servidores**; la **base de datos la elige cada reporte** (`ba
 | Erick 03.3 | `clientes-extranjeros` | mensual | slc, rcc | propia (ver módulo) | `reportes.mensuales.erick.r03_3_clientes_extranjeros` | Clientes por nacionalidad: créditos, pasivos y seguros |
 | Erick 03.4 | `indicadores-clientes` | mensual | slc | propia (ver módulo) | `reportes.mensuales.erick.r03_4_indicadores_clientes` | Indicadores de clientes para el Directorio |
 
-## Pruebas (22 archivos)
+## Pruebas (26 archivos)
 
 - `tests/test_app.py`
 - `tests/test_cli_tablas.py`
@@ -48,12 +47,15 @@ El `.env` define **servidores**; la **base de datos la elige cada reporte** (`ba
 - `tests/test_db.py`
 - `tests/test_ejecuciones.py`
 - `tests/test_ejecutor.py`
+- `tests/test_entorno.py`
 - `tests/test_entrega_correo.py`
 - `tests/test_esquemas.py`
 - `tests/test_excel.py`
 - `tests/test_fechas_corte.py`
 - `tests/test_formatos_reportes.py`
 - `tests/test_imagen.py`
+- `tests/test_notificaciones.py`
+- `tests/test_r04_1_cmg_mora.py`
 - `tests/test_registro.py`
 - `tests/test_reglas_fecha.py`
 - `tests/test_reportes_lote.py`
@@ -61,5 +63,6 @@ El `.env` define **servidores**; la **base de datos la elige cada reporte** (`ba
 - `tests/test_servidores_bases.py`
 - `tests/test_sesion.py`
 - `tests/test_tablas.py`
+- `tests/test_validacion_masiva.py`
 - `tests/test_validar_gobernanza.py`
 - `tests/test_verificacion.py`

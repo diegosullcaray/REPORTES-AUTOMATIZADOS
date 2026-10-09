@@ -55,6 +55,30 @@ export interface Verificacion {
   solicitud: string | null;
 }
 
+export interface TablaValidada extends ResultadoTabla {
+  reportes: string[];
+}
+
+export interface ResumenValidacion {
+  nombre: string;
+  orden: string;
+  tablas: number;
+  pendientes: number;
+  dudosas: number;
+  listo: boolean;
+}
+
+/** Validación masiva: todas las tablas de los reportes mensuales de un responsable, cada una verificada una vez. */
+export interface VerificacionGrupo {
+  grupo: string;
+  titulo: string;
+  corte: string;
+  listo: boolean;
+  reportes: ResumenValidacion[];
+  tablas: TablaValidada[];
+  solicitud: string | null;
+}
+
 export interface Solicitud {
   archivo: string;
   texto: string;
@@ -145,6 +169,44 @@ export interface ConfiguracionGeneral {
   dir_inputs: string;
   dir_outputs: string;
   driver_odbc: string;
+  pendientes_reinicio: string[];
+}
+
+/** Correo y Google Chat. La clave y el webhook nunca llegan al navegador: solo si están configurados. */
+export interface Notificaciones {
+  smtp_host: string;
+  smtp_port: number;
+  smtp_user: string;
+  remitente_nombre: string;
+  correo_prueba: string;
+  clave_configurada: boolean;
+  webhook_configurado: boolean;
+  destinatarios: number | null;
+}
+
+/** Solo se envían los campos cambiados; texto vacío = quitar la variable del .env. */
+export interface PedidoNotificaciones {
+  smtp_host?: string;
+  smtp_port?: string;
+  smtp_user?: string;
+  smtp_clave?: string;
+  remitente_nombre?: string;
+  correo_prueba?: string;
+  webhook?: string;
+}
+
+export interface PruebaNotificacion {
+  ok: boolean;
+  detalle: string;
+}
+
+/** Solo se envían los campos cambiados; texto vacío = quitar la variable del .env. */
+export interface PedidoConfiguracion {
+  corte_mensual?: string;
+  corte_diario?: string;
+  dir_inputs?: string;
+  dir_outputs?: string;
+  driver_odbc?: string;
 }
 
 export interface EstadoEnvio {
@@ -152,6 +214,13 @@ export interface EstadoEnvio {
   prueba: string | null;
   todos: string | null;
   excel: string | null;
+}
+
+/** Cambio de usuario y/o contraseña de la web; siempre con la contraseña actual. */
+export interface PedidoCuenta {
+  clave_actual: string;
+  usuario?: string;
+  clave_nueva?: string;
 }
 
 export interface Sesion {

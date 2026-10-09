@@ -23,4 +23,4 @@ Son controles correctos, **no** los saltes: significa que falta carga. Solicita 
 ## Después
 Revisa que el TXT tenga filas; luego se carga en `SBTVRIE001` según el procedimiento vigente. No ejecutar dos veces a la vez.
 
-> `cmg-castigos` (`python main.py cmg-castigos`) calcula `SRECCAST12M`, hoy una constante del reporte.
+> `SRECCAST12M` es hoy una constante del reporte (antes lo calculaba el reporte `cmg-castigos`, ya eliminado).

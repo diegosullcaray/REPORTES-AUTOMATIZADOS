@@ -45,8 +45,6 @@ _DEFINICION = [
      'Cartera sin asignar (diario): cartera por sectorista/territorio sin asignación'),
     ('cmg-mora', 'diarias', '04.1', 'reportes.diarios.r04_1_cmg_mora', 'diarias/04_cmg_mora', ('rcc',),
      'Recaudo + provisiones diarios -> INSERTs SBTVRIE001 (se detiene si provisiones = 0)'),
-    ('cmg-castigos', 'diarias', '04.2', 'reportes.diarios.r04_2_cmg_castigos', 'diarias/04_cmg_mora', ('mish',),
-     'CMG Mora · recuperación de castigos 12M (SRECCAST12M): suma de SDAS005 en los últimos 11 cierres'),
     ('desembolsos-por-canal', 'piero', '01', 'reportes.mensuales.piero.r01_desembolsos_por_canal', 'mensuales/piero/01_desembolsos_por_canal', ('mish',),
      'Desembolsos por canal: contratación electrónica (CT) vs agencia física (BT)'),
     ('fondeo-estable', 'piero', '02', 'reportes.mensuales.piero.r02_fondeo_estable', 'mensuales/piero/02_estadistica_de_tramo_fondeo_estable', ('mish',),

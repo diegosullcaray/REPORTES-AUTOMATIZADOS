@@ -7,6 +7,7 @@ import {
   Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Hora } from "@/components/hace";
+import { ModoTema } from "@/components/modo-tema";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useConsulta } from "@/hooks/use-consulta";
 import { api } from "@/lib/api";
@@ -14,7 +15,7 @@ import { CATEGORIA, titulo } from "@/lib/formato";
 
 type Miga = { texto: string; href?: string };
 
-const SECCION: Record<string, string> = { reportes: "Reportes", ejecuciones: "Ejecuciones", perfil: "Perfil" };
+const SECCION: Record<string, string> = { reportes: "Reportes", ejecuciones: "Ejecuciones", perfil: "Perfil", configuracion: "Configuración", servidores: "Bases de datos", validacion: "Validación de tablas" };
 
 /** Migas según la ruta: Reportes > Diarios > Cartera sin asignar · Ejecuciones > a1b2c3… */
 function useMigas(): Miga[] {
@@ -23,6 +24,7 @@ function useMigas(): Miga[] {
   if (!seccion) return [{ texto: "Inicio" }];
   const raiz: Miga = { texto: SECCION[seccion] ?? seccion, href: `/${seccion}` };
   if (!id) return [{ texto: raiz.texto }];
+  if (seccion === "configuracion") return [raiz, { texto: id === "notificaciones" ? "Notificaciones" : id }];
   if (seccion === "reportes") {
     const nombre = decodeURIComponent(id);
     const r = datos?.find((x) => x.nombre === nombre);
@@ -55,6 +57,7 @@ export function Encabezado() {
         </BreadcrumbList>
       </Breadcrumb>
       <Hora />
+      <ModoTema />
     </header>
   );
 }

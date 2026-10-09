@@ -100,7 +100,6 @@ _FILAS = [
     ('storage.com_act.sdae003', 'stock', 'SFECPRO', 'confirmada'),
     ('storage.com_act.sdaf002', 'stock', 'SFECPRO', 'confirmada'),
     ('storage.com_act.sdas001', 'stock', 'sfecpro', 'confirmada'),
-    ('storage.com_act.sdas005', 'stock', 'SFECPRO', 'confirmada'),
     ('storage.com_act.wcdce001', 'historica', 'hfecpro', 'confirmada'),
     ('storage.com_act.wcdce002', 'historica', 'hfecpro', 'confirmada'),
     ('storage.com_act.wjas001', 'historica', 'HFECPRO', 'confirmada'),
@@ -173,10 +172,6 @@ USO: dict[str, tuple[str, ...]] = {
         'storage.com_act.rfoc001',
         'storage.ref.rcalen001',
         'storage.ref.vurbrur01',
-    ),
-    'cmg-castigos': (
-        'storage.com_act.sdas005',
-        'storage.ref.rcalen001',
     ),
     'cmg-mora': (
         'dbriesgos.dbo.gasto_prov_ope_diaria',

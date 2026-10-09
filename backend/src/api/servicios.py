@@ -19,14 +19,17 @@ from pathlib import Path
 
 from reportes.comun import correo
 from reportes.comun.ejecutor import ReporteLote
-from reportes.comun.fechas import Cortes, resolver_corte
-from reportes.config import BASES_DE, DIR_INPUTS, DIR_OUTPUTS, DRIVER_ODBC, SERVIDORES, ConfiguracionError
+from reportes.comun.fechas import Cortes, fecha_iso, resolver_corte
+from dotenv import dotenv_values
+
+from reportes.config import BASES_DE, DIR_INPUTS, DIR_OUTPUTS, DRIVER_ODBC, RAIZ, SERVIDORES, ConfiguracionError
 from reportes.db import leer_sql
 from reportes.registro import DIA_ANTERIOR_SIMPLE, REPORTES, Reporte, carpeta_salida, ordenados
 from reportes.reglas_fecha import regla_de
 from reportes.tablas import tablas_de
-from reportes.verificacion import Estado, mensaje_solicitud, nombre_resuelto, verificar_reporte
+from reportes.verificacion import Estado, mensaje_solicitud, mensaje_solicitud_grupo, nombre_resuelto, verificar_reporte, verificar_tabla
 
+from . import entorno, sesion
 from . import esquemas as e
 
 FILAS_VISTA_PREVIA = 200
@@ -59,13 +62,22 @@ def lote(nombre: str) -> ReporteLote | None:
     return valor if isinstance(valor, ReporteLote) else None
 
 
+# Reportes con lógica propia (sin ReporteLote): lo que la pantalla debe advertir antes de ejecutar.
+AVISOS_PROPIOS = {
+    "cmg-mora": [
+        "Trunca y recarga DW_Raw_v2.CMGMora_Recaudo (rcc) y genera los INSERT de SBTVRIE001. Termina en error si no hay recaudo del día, "
+        "falta la tabla PROV_PROY del día o las provisiones están en 0. No lo ejecutes a la vez desde la consola.",
+    ],
+}
+
+
 def _resumen(r: Reporte) -> dict:
     lt = lote(r.nombre)
     return dict(
         nombre=r.nombre, grupo=r.grupo, orden=r.orden, frecuencia=r.frecuencia, servidores=list(r.servidores),
         descripcion=r.descripcion, carpeta=r.carpeta, es_lote=lt is not None,
         escribe_en_bd=bool(lt and lt.escribe_en_bd), vacio_valido=bool(lt and lt.vacio_valido),
-        envia_correo=bool(lt and lt.entrega is not None), avisos=list(lt.avisos) if lt else [],
+        envia_correo=bool(lt and lt.entrega is not None), avisos=list(lt.avisos) if lt else AVISOS_PROPIOS.get(r.nombre, []),
     )
 
 
@@ -128,6 +140,58 @@ def verificar(nombre: str, fecha: date | None) -> e.Verificacion:
     )
 
 
+GRUPOS_VALIDACION = {"piero": "Heredados de Piero", "erick": "Heredados de Erick"}
+_PENDIENTE = {Estado.DESACTUALIZADA, Estado.NO_EXISTE}
+
+
+def _verificar_grupo(grupo: str, fecha: date | None):
+    """Verifica cada tabla distinta una sola vez aunque la usen varios reportes. Devuelve corte, reportes y {tabla: [Tabla, Resultado, reportes]}."""
+    if grupo not in GRUPOS_VALIDACION:
+        raise NoEncontrado(f"Grupo desconocido: {grupo}")
+    reportes = [r for r in ordenados() if r.grupo == grupo and r.frecuencia == "mensual" and tablas_de(r.nombre)]
+    if not reportes:
+        raise NoEncontrado(f"El grupo «{grupo}» no tiene reportes mensuales con tablas registradas.")
+    corte = validar_corte(reportes[0].nombre, fecha)
+    unicas: dict[str, list] = {}
+    for r in reportes:
+        for t in tablas_de(r.nombre):
+            clave = nombre_resuelto(t, corte)
+            if clave not in unicas:
+                unicas[clave] = [t, verificar_tabla(t, corte), []]
+            unicas[clave][2].append(r.nombre)
+    return corte, reportes, unicas
+
+
+def verificar_grupo(grupo: str, fecha: date | None) -> e.VerificacionGrupo:
+    corte, reportes, unicas = _verificar_grupo(grupo, fecha)
+    resumen = []
+    for r in reportes:
+        propias = [x[1] for x in unicas.values() if r.nombre in x[2]]
+        pendientes = sum(x.estado in _PENDIENTE for x in propias)
+        dudosas = sum(x.estado is Estado.ERROR for x in propias)
+        resumen.append(e.ResumenValidacion(nombre=r.nombre, orden=r.orden, tablas=len(propias), pendientes=pendientes, dudosas=dudosas, listo=not (pendientes or dudosas)))
+    por_pedir = [tuple(x) for x in unicas.values() if x[1].estado in _PENDIENTE]
+    return e.VerificacionGrupo(
+        grupo=grupo, titulo=GRUPOS_VALIDACION[grupo], corte=corte, listo=all(x.listo for x in resumen), reportes=resumen,
+        tablas=[
+            e.TablaValidada(nombre=nombre, servidor=t.servidor, estado=res.estado.value, ultima_fecha=res.ultima_fecha, detalle=res.detalle, reportes=usan)
+            for nombre, (t, res, usan) in unicas.items()
+        ],
+        solicitud=mensaje_solicitud_grupo(GRUPOS_VALIDACION[grupo], corte, por_pedir) if por_pedir else None,
+    )
+
+
+def guardar_solicitud_grupo(grupo: str, fecha: date | None) -> e.Solicitud:
+    """Vuelve a verificar (no se confía en el navegador) y guarda el mensaje único en data/outputs/solicitudes."""
+    corte, _, unicas = _verificar_grupo(grupo, fecha)
+    texto = mensaje_solicitud_grupo(GRUPOS_VALIDACION[grupo], corte, [tuple(x) for x in unicas.values() if x[1].estado in _PENDIENTE])
+    destino = DIR_OUTPUTS / "solicitudes"
+    destino.mkdir(parents=True, exist_ok=True)
+    ruta = destino / f"solicitud_mensual_{grupo}_{corte:%Y%m%d}.txt"
+    ruta.write_text(texto + "\n", encoding="utf-8")
+    return e.Solicitud(archivo=ruta.name, texto=texto)
+
+
 def guardar_solicitud(nombre: str, fecha: date | None) -> e.Solicitud:
     """Verifica de nuevo (no se confía en lo que mande el navegador) y guarda el mensaje en data/outputs/solicitudes."""
     corte = validar_corte(nombre, fecha)
@@ -162,9 +226,88 @@ def _corte(frecuencia: str) -> e.Corte:
         return e.Corte(fecha=None, origen=str(exc))
 
 
+ENV = RAIZ / ".env"
+# campo del pedido -> variable del .env. Los cortes se leen en cada ejecución; carpetas y driver se fijan al arrancar la API.
+VARIABLES = {
+    "corte_mensual": "FECHA_CORTE_MENSUAL", "corte_diario": "FECHA_CORTE_DIARIA",
+    "dir_inputs": "REPORTES_DIR_INPUTS", "dir_outputs": "REPORTES_DIR_OUTPUTS", "driver_odbc": "DB_ODBC_DRIVER",
+}
+AL_REINICIAR = {
+    "dir_inputs": ("carpeta de entradas", lambda v: Path(v) != DIR_INPUTS),
+    "dir_outputs": ("carpeta de salidas", lambda v: Path(v) != DIR_OUTPUTS),
+    "driver_odbc": ("driver ODBC", lambda v: v != DRIVER_ODBC),
+}
+
+
+def _pendientes_reinicio() -> list[str]:
+    guardado = dotenv_values(ENV) if ENV.exists() else {}
+    return [nombre for campo, (nombre, difiere) in AL_REINICIAR.items() if guardado.get(VARIABLES[campo]) and difiere(guardado[VARIABLES[campo]])]
+
+
 def configuracion() -> e.ConfiguracionGeneral:
     return e.ConfiguracionGeneral(corte_mensual=_corte("mensual"), corte_diario=_corte("diaria"),
-                                  dir_inputs=str(DIR_INPUTS), dir_outputs=str(DIR_OUTPUTS), driver_odbc=DRIVER_ODBC)
+                                  dir_inputs=str(DIR_INPUTS), dir_outputs=str(DIR_OUTPUTS), driver_odbc=DRIVER_ODBC,
+                                  pendientes_reinicio=_pendientes_reinicio())
+
+
+def _validar_ajuste(campo: str, valor: str) -> str:
+    if not valor:
+        return ""
+    if any(c in valor for c in "\r\n#\"'"):
+        raise PeticionInvalida(f"{VARIABLES[campo]}: no admite saltos de línea, # ni comillas.")
+    if campo.startswith("corte_"):
+        try:
+            corte = fecha_iso(valor)
+            if campo == "corte_mensual":
+                Cortes.mensual(corte)
+        except (ValueError, ConfiguracionError) as exc:
+            raise PeticionInvalida(f"{VARIABLES[campo]}: {exc}") from exc
+        if corte > date.today():
+            raise PeticionInvalida(f"{VARIABLES[campo]}: la fecha {valor} está en el futuro.")
+    elif campo.startswith("dir_") and not Path(valor).is_absolute():
+        raise PeticionInvalida(f"{VARIABLES[campo]}: escribe una ruta completa (con letra de unidad).")
+    return valor
+
+
+def actualizar_cuenta(actual: str, p: e.PedidoCuenta) -> str:
+    """Cambia WEB_USUARIO y/o WEB_CLAVE en el .env (rige ya, sin reiniciar). Devuelve el usuario resultante."""
+    try:
+        if not sesion.iniciar(actual, p.clave_actual):  # misma verificación y límite de intentos que el inicio de sesión
+            raise PeticionInvalida("La contraseña actual no es correcta.")
+    except PermissionError as exc:
+        raise PeticionInvalida(str(exc)) from exc
+    usuario, clave = (p.usuario or "").strip(), p.clave_nueva or ""
+    if not usuario and not clave:
+        raise PeticionInvalida("No hay ningún cambio que guardar.")
+    cambios: dict[str, str] = {}
+    if usuario:
+        if any(c in usuario for c in "\r\n#\"' \t"):
+            raise PeticionInvalida("El usuario no admite espacios, saltos de línea, # ni comillas.")
+        cambios["WEB_USUARIO"] = usuario
+    if clave:
+        if len(clave) < 8:
+            raise PeticionInvalida("La contraseña nueva debe tener al menos 8 caracteres.")
+        if any(c in clave for c in "\r\n#\"'"):
+            raise PeticionInvalida("La contraseña no admite saltos de línea, # ni comillas (el .env no las soporta).")
+        cambios["WEB_CLAVE"] = clave
+    entorno.escribir(ENV, cambios)
+    os.environ.update(cambios)
+    return usuario or actual
+
+
+def guardar_configuracion(p: e.PedidoConfiguracion) -> e.ConfiguracionGeneral:
+    """Valida y escribe en el .env solo lo enviado. Los cortes rigen desde la próxima ejecución; carpetas y driver al reiniciar la API."""
+    cambios = {VARIABLES[c]: _validar_ajuste(c, (getattr(p, c) or "").strip()) for c in p.model_fields_set}
+    if not cambios:
+        raise PeticionInvalida("No hay ningún ajuste que guardar.")
+    entorno.escribir(ENV, cambios)
+    for campo in ("corte_mensual", "corte_diario"):
+        if campo in p.model_fields_set:  # las ejecuciones heredan os.environ: sin esto seguirían con el corte viejo
+            if cambios[VARIABLES[campo]]:
+                os.environ[VARIABLES[campo]] = cambios[VARIABLES[campo]]
+            else:
+                os.environ.pop(VARIABLES[campo], None)
+    return configuracion()
 
 
 def servidores() -> list[e.Servidor]:

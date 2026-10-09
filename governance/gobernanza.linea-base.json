@@ -5,7 +5,6 @@
     "prueba-vecina|src/reportes/comun/fechas.py|sin tests/test_<modulo>.py",
     "prueba-vecina|src/reportes/diarios/r02_cartera_sin_asignar.py|sin tests/test_<modulo>.py",
     "prueba-vecina|src/reportes/diarios/r04_1_cmg_mora.py|sin tests/test_<modulo>.py",
-    "prueba-vecina|src/reportes/diarios/r04_2_cmg_castigos.py|sin tests/test_<modulo>.py",
     "prueba-vecina|src/reportes/mensuales/erick/r01_productos_verdes.py|sin tests/test_<modulo>.py",
     "prueba-vecina|src/reportes/mensuales/erick/r02_clientes_jovenes.py|sin tests/test_<modulo>.py",
     "prueba-vecina|src/reportes/mensuales/erick/r03_1_bancarizados.py|sin tests/test_<modulo>.py",

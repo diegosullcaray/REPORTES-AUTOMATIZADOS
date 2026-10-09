@@ -9,8 +9,8 @@ export function Marco({ icono, titulo, descripcion, acciones, children, classNam
   icono?: ReactNode; titulo: ReactNode; descripcion?: ReactNode; acciones?: ReactNode; children: ReactNode; className?: string;
 }) {
   return (
-    <section className={cn("rounded-xl bg-sidebar p-2 sm:p-2.5", className)}>
-      <div className="flex h-full flex-col rounded-xl border bg-background shadow-sm">
+    <section className={cn("flex flex-1 flex-col rounded-xl bg-sidebar p-2 sm:p-2.5", className)}>
+      <div className="flex flex-1 flex-col rounded-xl border bg-background shadow-sm">
         <header className="flex flex-wrap items-start justify-between gap-4 p-4 sm:p-6">
           <div className="flex min-w-0 flex-col gap-1">
             <h1 className="flex min-w-0 items-center gap-2 text-xl font-semibold tracking-tight">

@@ -36,7 +36,6 @@ Para **Producción**: al cargar el cierre, la columna de la tabla indicada debe 
 | `storage.com_act.sdae003` | `mish` | `SFECPRO` | `saca-tu-garra` |
 | `storage.com_act.sdaf002` | `mish` | `SFECPRO` | `giovanni-seguros`, `tapp-saldo-medio-territorio` |
 | `storage.com_act.sdas001` | `mish` | `sfecpro` | `cartera-sin-asignar`, `saldo-medio-vigente`, `tapp-saldo-medio-territorio` |
-| `storage.com_act.sdas005` | `mish` | `SFECPRO` | `cmg-castigos` |
 | `storage.com_act.wcdce001` | `mish` | `hfecpro` | `contratacion-electronica` |
 | `storage.com_act.wcdce002` | `mish` | `hfecpro` | `contratacion-electronica` |
 | `storage.com_act.wjas001` | `mish` | `HFECPRO` | `saldo-medio-vigente` |
@@ -45,7 +44,7 @@ Para **Producción**: al cargar el cierre, la columna de la tabla indicada debe 
 | `storage.com_pas.wjas004` | `mish` | `HFECPRO` | `giovanni-captaciones` |
 | `storage.com_pas.wjas008` | `mish` | `hfecpro` | `fondeo-estable` |
 | `storage.com_seg.sdsf001` | `mish` | `SFECPRO` | `giovanni-seguros` |
-| `storage.ref.rcalen001` | `mish` | `RFEC` | `clientes-rurales-migrantes`, `cmg-castigos`, `saca-tu-garra`, `tapp-saldo-medio-territorio` |
+| `storage.ref.rcalen001` | `mish` | `RFEC` | `clientes-rurales-migrantes`, `saca-tu-garra`, `tapp-saldo-medio-territorio` |
 | `storage.ref.rtcm001` | `mish` | `RFECCIE` | `desembolsos-por-canal`, `michael-castigos` |
 | `storage.ref.wjercor03` | `mish` | `RFECPRO` | `giovanni-cartera-agro`, `giovanni-seguros` |
 
@@ -75,13 +74,6 @@ Sin columna de fecha de corte (41: catálogos, funciones o tablas que genera el 
 | `dw_raw_v2.dbo.cmgmora_recaudo` | — | staging: el reporte la trunca y la llena; no la carga Producción |
 | `dw_raw_v2.dbo.cmgmora_strjercor` | — | sin fecha de corte: catálogo; el reporte no lo filtra por fecha |
 | `storage.com_act.sbtvrie001` | — | destino de los INSERT que genera el reporte; no se consulta |
-
-### Diarias 04.2 · `cmg-castigos`
-
-| Tabla | Columna | Condición que aplica el reporte |
-|---|---|---|
-| `storage.com_act.sdas005` | `SFECPRO` | SFECPRO IN (los 11 últimos cierres hábiles hasta D) con SCODAGR = 1 |
-| `storage.ref.rcalen001` | `RFEC` | RFEC con RCIEBT = 1 hasta D (define los 11 últimos cierres hábiles) |
 
 ### Piero 01 · `desembolsos-por-canal`
 

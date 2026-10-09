@@ -48,4 +48,4 @@ python main.py columnas-fecha saca-tu-garra        # un reporte
 python main.py columnas-fecha --csv columnas.csv   # CSV (separador ;) para enviar
 ```
 
-Detalle completo: [columnas-fecha-de-corte](../../../data/columnas-fecha-de-corte.md) (generado). Las condiciones viven en `src/reportes/reglas_fecha.py`.
+Detalle completo: [columnas-fecha-de-corte](../../data/columnas-fecha-de-corte.md) (generado). Las condiciones viven en `src/reportes/reglas_fecha.py`.

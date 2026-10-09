@@ -19,7 +19,7 @@ from datetime import date
 from fastapi import FastAPI, HTTPException, Query, Request, Response
 from fastapi.responses import FileResponse, JSONResponse
 
-from . import ejecuciones, servicios, sesion
+from . import ejecuciones, notificaciones, servicios, sesion
 from . import esquemas as e
 
 
@@ -64,6 +64,14 @@ def iniciar_sesion(pedido: e.PedidoSesion, respuesta: Response):
     return e.Sesion(usuario=usuario)
 
 
+@app.put("/api/cuenta", response_model=e.Sesion)
+def actualizar_cuenta(pedido: e.PedidoCuenta, request: Request, respuesta: Response):
+    actual = sesion.leer(request.cookies.get(sesion.COOKIE)) or ""
+    usuario = servicios.actualizar_cuenta(actual, pedido)
+    respuesta.set_cookie(sesion.COOKIE, sesion.emitir(usuario), max_age=sesion.DURACION, httponly=True, samesite="strict")  # el nombre puede haber cambiado
+    return e.Sesion(usuario=usuario)
+
+
 @app.get("/api/sesion", response_model=e.Sesion)
 def sesion_actual(request: Request):
     usuario = sesion.leer(request.cookies.get(sesion.COOKIE))
@@ -97,6 +105,17 @@ def verificar(nombre: str, pedido: e.PedidoCorte):
 @app.post("/api/reportes/{nombre}/solicitud", response_model=e.Solicitud)
 def solicitud(nombre: str, pedido: e.PedidoCorte):
     return servicios.guardar_solicitud(nombre, pedido.fecha_corte)
+
+
+# ---- validación masiva de tablas de los reportes mensuales de un responsable (Piero / Erick)
+@app.post("/api/validacion/{grupo}", response_model=e.VerificacionGrupo)
+def verificar_grupo(grupo: str, pedido: e.PedidoCorte):
+    return servicios.verificar_grupo(grupo, pedido.fecha_corte)
+
+
+@app.post("/api/validacion/{grupo}/solicitud", response_model=e.Solicitud)
+def solicitud_grupo(grupo: str, pedido: e.PedidoCorte):
+    return servicios.guardar_solicitud_grupo(grupo, pedido.fecha_corte)
 
 
 # ---- archivos generados
@@ -151,6 +170,26 @@ def perfil():
 def configuracion():
     return servicios.configuracion()
 
+
+@app.put("/api/configuracion", response_model=e.ConfiguracionGeneral)
+def guardar_configuracion(pedido: e.PedidoConfiguracion):
+    return servicios.guardar_configuracion(pedido)
+
+
+
+@app.get("/api/notificaciones", response_model=e.Notificaciones)
+def leer_notificaciones():
+    return notificaciones.leer()
+
+
+@app.put("/api/notificaciones", response_model=e.Notificaciones)
+def guardar_notificaciones(pedido: e.PedidoNotificaciones):
+    return notificaciones.guardar(pedido)
+
+
+@app.post("/api/notificaciones/{canal}/prueba", response_model=e.PruebaNotificacion)
+def probar_notificacion(canal: str):
+    return notificaciones.probar(canal)
 
 
 @app.get("/api/servidores", response_model=list[e.Servidor])

@@ -1,5 +1,6 @@
 import { FileSpreadsheet } from "lucide-react";
 import type { ReactNode } from "react";
+import { ModoTema } from "@/components/modo-tema";
 
 /** Marco de las pantallas de acceso (como el OnboardingLayout de Dokploy): panel de marca a la izquierda, formulario centrado. */
 export function LayoutAcceso({ children, lema }: { children: ReactNode; lema?: ReactNode }) {
@@ -12,6 +13,7 @@ export function LayoutAcceso({ children, lema }: { children: ReactNode; lema?: R
         </span>
         <p className="mt-auto text-lg">{lema ?? "Validación, ejecución y entrega de los reportes de Financiera Confianza."}</p>
       </div>
+      <ModoTema className="absolute top-4 right-4" />
       <div className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center gap-6 px-4 py-8">{children}</div>
     </div>
   );

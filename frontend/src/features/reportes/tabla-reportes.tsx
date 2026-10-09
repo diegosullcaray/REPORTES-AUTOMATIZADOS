@@ -93,7 +93,7 @@ export function TablaReportes() {
 
   return (
     <TablaDatos columnas={columnas} datos={filas} cargando={reportes.cargando} error={reportes.error} onRecargar={() => { reportes.recargar(); ejecuciones.recargar(); }}
-      buscar="Buscar reporte o descripción…" porPagina={25} ocultas={{ servidor: false }}
+      buscar="Buscar reporte o descripción…" porPagina={7} ocultas={{ servidor: false }}
       nombres={{ orden: "Nº", reporte: "Reporte", tipo: "Tipo", responsable: "Responsable", servidor: "Servidor", ultima: "Última ejecución" }}
       vacio={{ icono: FileSpreadsheet, titulo: "Sin reportes" }}
       filtros={
