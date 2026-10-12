@@ -208,6 +208,24 @@ export interface PruebaNotificacion {
   detalle: string;
 }
 
+export interface HerramientaMcp {
+  nombre: string;
+  descripcion: string;
+}
+
+/** Servidor MCP local. Sin secretos: el webhook solo se informa como configurado o no. */
+export interface ServidorMcp {
+  id: string;
+  nombre: string;
+  descripcion: string;
+  webhook_configurado: boolean;
+  comando: string;
+  args: string[];
+  python: string;
+  herramientas: HerramientaMcp[];
+  configuracion: Record<string, unknown>;
+}
+
 /** Solo se envían los campos cambiados; texto vacío = quitar la variable del .env. */
 export interface PedidoConfiguracion {
   corte_mensual?: string;
