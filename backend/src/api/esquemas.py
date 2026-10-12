@@ -242,9 +242,9 @@ class HerramientaMcp(BaseModel):
 class ServicioGoogle(BaseModel):
     id: str
     nombre: str
-    descripcion: str
+    url: str                        # servidor MCP oficial de Google
     activo: bool
-    envia: bool                     # su prueba envía de verdad (correo o mensaje)
+    envia: bool                     # además, envío directo por la API (Gmail, Chat)
     scopes: list[str]
     falta_consentimiento: bool      # activo, pero el token no tiene sus permisos: volver a autorizar
 
@@ -257,16 +257,11 @@ class GoogleMcp(BaseModel):
     redirect_uri: str               # vacío = la web usa su propia página /configuracion/mcp
     cuenta: str
     autorizado: bool
-    solo_lectura: bool
-    nivel: str
     correo_prueba: str
     servicios: list[ServicioGoogle]
-    herramientas: list[HerramientaMcp]
-    comando: str
-    args: list[str]
+    herramientas_envio: list[HerramientaMcp]   # las del servidor propio (envío)
     python: str
-    configuracion: dict             # este servidor (usa la autorización de la web)
-    configuracion_workspace_mcp: dict  # alternativa: el servidor comunitario workspace-mcp
+    configuracion: dict             # bloque mcpServers para el cliente MCP (sin el Client secret)
 
 
 class PedidoGoogleMcp(BaseModel):
@@ -277,8 +272,23 @@ class PedidoGoogleMcp(BaseModel):
     redirect_uri: str | None = None
     cuenta: str | None = None
     servicios: list[str] | None = None
-    solo_lectura: bool | None = None
-    nivel: str | None = None
+
+
+class HerramientaRemota(BaseModel):
+    nombre: str
+    descripcion: str
+    esquema: dict                   # inputSchema de la herramienta
+
+
+class PruebaMcp(BaseModel):
+    ok: bool
+    detalle: str
+    herramientas: list[HerramientaRemota] = []
+
+
+class PedidoEjecutarMcp(BaseModel):
+    herramienta: str
+    argumentos: dict = {}
 
 
 class PedidoAutorizacion(BaseModel):

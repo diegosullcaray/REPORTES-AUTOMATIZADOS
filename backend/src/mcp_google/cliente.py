@@ -1,13 +1,11 @@
-"""Cliente de Google Workspace con OAuth de usuario: Gmail, Chat (mensajes directos a contactos), Calendar, Drive, Docs,
-Sheets, Slides, Forms, Tasks y Contactos. Solo biblioteca estándar.
+"""Google Workspace con OAuth de usuario: servidores MCP oficiales de Google (Drive, Gmail, Docs, Sheets, Slides, Chat)
+y envío directo por Gmail y Google Chat (el MCP oficial de Gmail solo crea borradores). Solo biblioteca estándar.
 
 Configuración (solo en el .env; el secreto y el refresh token nunca salen hacia el navegador):
-  GOOGLE_OAUTH_CLIENT_ID / GOOGLE_OAUTH_CLIENT_SECRET   cliente OAuth del proyecto de Google Cloud
+  GOOGLE_OAUTH_CLIENT_ID / GOOGLE_OAUTH_CLIENT_SECRET   cliente OAuth del proyecto de Google Cloud (el mismo para todos)
   GOOGLE_OAUTH_REDIRECT_URI                             opcional; por defecto la página /configuracion/mcp de la web
   USER_GOOGLE_EMAIL                                     cuenta autorizada
-  GOOGLE_MCP_SERVICIOS                                  servicios activos, separados por coma (gmail,chat,…)
-  GOOGLE_MCP_SOLO_LECTURA                               true = el MCP no envía ni modifica nada
-  GOOGLE_MCP_NIVEL                                      core | extended | complete (para workspace-mcp)
+  GOOGLE_MCP_SERVICIOS                                  servidores activos, separados por coma (drive,gmail,…)
   GOOGLE_OAUTH_REFRESH_TOKEN / GOOGLE_OAUTH_SCOPES      los escribe la web al canjear el código de autorización
 """
 
@@ -20,7 +18,6 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from dataclasses import dataclass
-from datetime import datetime, timezone
 from email.message import EmailMessage
 from email.utils import formataddr
 
@@ -30,32 +27,31 @@ URL_REVOCAR = "https://oauth2.googleapis.com/revoke"
 URL_USUARIO = "https://openidconnect.googleapis.com/v1/userinfo"
 G = "https://www.googleapis.com/auth/"
 BASICOS = ["openid", "email"]
+DRIVE = (G + "drive.readonly", G + "drive.file")
+PROTOCOLO_MCP = "2025-06-18"
 
 
 @dataclass(frozen=True)
 class Servicio:
     id: str
     nombre: str
-    descripcion: str
     scopes: tuple[str, ...]
-    envia: bool = False          # su prueba publica o envía algo (la web pide confirmación y destinatario)
+    envia: bool = False          # además del MCP, la web envía directo por la API (correo o mensaje)
+
+    @property
+    def url(self) -> str:
+        return f"https://{self.id}mcp.googleapis.com/mcp/v1"
 
 
 SERVICIOS: dict[str, Servicio] = {s.id: s for s in [
-    Servicio("gmail", "Gmail", "Enviar correos desde tu cuenta y buscar en la bandeja.", (G + "gmail.send", G + "gmail.readonly"), envia=True),
-    Servicio("chat", "Google Chat", "Mensajes directos a tus contactos (no al webhook) y a espacios donde estás.",
-             (G + "chat.messages.create", G + "chat.spaces.create", G + "chat.spaces.readonly"), envia=True),
-    Servicio("contacts", "Contactos", "Buscar contactos por nombre para saber su correo.", (G + "contacts.readonly", G + "directory.readonly")),
-    Servicio("calendar", "Calendar", "Leer y crear eventos.", (G + "calendar.readonly", G + "calendar.events")),
-    Servicio("drive", "Drive", "Buscar y leer archivos.", (G + "drive.readonly",)),
-    Servicio("docs", "Docs", "Leer y editar documentos.", (G + "documents", G + "drive.metadata.readonly")),
-    Servicio("sheets", "Sheets", "Leer y editar hojas de cálculo.", (G + "spreadsheets", G + "drive.metadata.readonly")),
-    Servicio("slides", "Slides", "Leer y editar presentaciones.", (G + "presentations", G + "drive.metadata.readonly")),
-    Servicio("forms", "Forms", "Leer formularios y respuestas.", (G + "forms.body.readonly", G + "forms.responses.readonly", G + "drive.metadata.readonly")),
-    Servicio("tasks", "Tasks", "Leer y crear tareas.", (G + "tasks",)),
+    Servicio("drive", "Drive", DRIVE),
+    Servicio("gmail", "Gmail", (G + "gmail.readonly", G + "gmail.compose", G + "gmail.send"), envia=True),
+    Servicio("docs", "Docs", (*DRIVE, G + "documents.readonly", G + "documents")),
+    Servicio("sheets", "Sheets", (*DRIVE, G + "spreadsheets.readonly", G + "spreadsheets")),
+    Servicio("slides", "Slides", (*DRIVE, G + "presentations.readonly", G + "presentations")),
+    Servicio("chat", "Chat", (G + "chat.spaces.readonly", G + "chat.spaces.create", G + "chat.memberships.readonly",
+                              G + "chat.messages.readonly", G + "chat.messages.create", G + "chat.users.readstate.readonly"), envia=True),
 ]}
-MIME_DRIVE = {"docs": "application/vnd.google-apps.document", "sheets": "application/vnd.google-apps.spreadsheet",
-              "slides": "application/vnd.google-apps.presentation", "forms": "application/vnd.google-apps.form"}
 
 
 class GoogleError(RuntimeError):
@@ -68,11 +64,7 @@ def _env(variable: str) -> str:
 
 def servicios_activos() -> list[str]:
     activos = [s.strip() for s in _env("GOOGLE_MCP_SERVICIOS").split(",") if s.strip() in SERVICIOS]
-    return activos or ["gmail", "chat", "contacts"]
-
-
-def solo_lectura() -> bool:
-    return _env("GOOGLE_MCP_SOLO_LECTURA").lower() in {"1", "true", "si", "sí"}
+    return activos or list(SERVICIOS)
 
 
 def scopes_de(servicios: list[str]) -> list[str]:
@@ -205,71 +197,80 @@ def espacios_chat(token: str, cantidad: int = 20) -> list[dict]:
              "tipo": s.get("spaceType", "")} for s in r.get("spaces", [])]
 
 
-# ---------------------------------------------------------------- Contactos, Calendar, Drive, Tasks
+# ---------------------------------------------------------------- cliente MCP (HTTP «streamable») para probar los servidores de Google
 
-def buscar_contactos(token: str, consulta: str, cantidad: int = 10) -> list[dict]:
-    """Busca en tus contactos y, si no hay, en el directorio de la organización."""
-    campos = "names,emailAddresses"
-    q = urllib.parse.urlencode({"query": consulta, "readMask": campos, "pageSize": cantidad})
-    personas = [x.get("person", {}) for x in _http("GET", f"https://people.googleapis.com/v1/people:searchContacts?{q}", token=token).get("results", [])]
-    if not personas:
-        q = urllib.parse.urlencode({"query": consulta, "readMask": campos, "pageSize": cantidad, "sources": "DIRECTORY_SOURCE_TYPE_DOMAIN_PROFILE"})
-        try:
-            personas = _http("GET", f"https://people.googleapis.com/v1/people:searchDirectoryPeople?{q}", token=token).get("people", [])
-        except GoogleError:
-            personas = []   # cuentas personales no tienen directorio
-    return [{"nombre": (p.get("names") or [{}])[0].get("displayName", ""), "correo": (p.get("emailAddresses") or [{}])[0].get("value", "")} for p in personas]
-
-
-def proximos_eventos(token: str, cantidad: int = 5) -> list[dict]:
-    q = urllib.parse.urlencode({"maxResults": cantidad, "singleEvents": "true", "orderBy": "startTime",
-                                "timeMin": datetime.now(timezone.utc).isoformat()})
-    r = _http("GET", f"https://www.googleapis.com/calendar/v3/calendars/primary/events?{q}", token=token)
-    return [{"titulo": e.get("summary", "(sin título)"), "inicio": (e.get("start") or {}).get("dateTime") or (e.get("start") or {}).get("date")}
-            for e in r.get("items", [])]
-
-
-def buscar_archivos(token: str, consulta: str = "", tipo: str | None = None, cantidad: int = 10) -> list[dict]:
-    filtros = ["trashed = false"]
-    if consulta:
-        filtros.append("name contains '" + consulta.replace("\\", "\\\\").replace("'", "\\'") + "'")
-    if tipo in MIME_DRIVE:
-        filtros.append(f"mimeType = '{MIME_DRIVE[tipo]}'")
-    q = urllib.parse.urlencode({"q": " and ".join(filtros), "pageSize": cantidad, "fields": "files(id,name,mimeType,webViewLink)", "orderBy": "modifiedTime desc"})
-    return [{"nombre": f["name"], "enlace": f.get("webViewLink", ""), "tipo": f.get("mimeType", "")}
-            for f in _http("GET", f"https://www.googleapis.com/drive/v3/files?{q}", token=token).get("files", [])]
+def _mcp(url: str, token: str, mensaje: dict, sesion: str | None = None) -> tuple[dict | None, str | None]:
+    """Envía un mensaje JSON-RPC; devuelve (resultado, id de sesión). Acepta respuesta JSON o text/event-stream."""
+    cabeceras = {"Content-Type": "application/json", "Accept": "application/json, text/event-stream",
+                 "Authorization": f"Bearer {token}", "MCP-Protocol-Version": PROTOCOLO_MCP}
+    if sesion:
+        cabeceras["Mcp-Session-Id"] = sesion
+    req = urllib.request.Request(url, data=json.dumps(mensaje).encode(), headers=cabeceras, method="POST")
+    try:
+        with urllib.request.urlopen(req, timeout=60) as resp:  # noqa: S310 - solo URLs https fijas de Google
+            sesion = resp.headers.get("Mcp-Session-Id") or sesion
+            texto = resp.read().decode("utf-8")
+            tipo = resp.headers.get("Content-Type", "")
+    except urllib.error.HTTPError as exc:
+        raise GoogleError(_mensaje_error(exc)) from exc
+    except (urllib.error.URLError, OSError) as exc:
+        raise GoogleError(f"No se pudo conectar con el MCP de Google ({type(exc).__name__})") from exc
+    if "id" not in mensaje or not texto.strip():
+        return None, sesion
+    if "text/event-stream" in tipo:
+        datos = [json.loads(l[5:]) for l in texto.splitlines() if l.startswith("data:") and l[5:].strip()]
+        respuesta = next((d for d in datos if d.get("id") == mensaje["id"]), {})
+    else:
+        respuesta = json.loads(texto)
+    if respuesta.get("error"):
+        raise GoogleError(f"MCP: {respuesta['error'].get('message')}")
+    return respuesta.get("result", {}), sesion
 
 
-def listas_tareas(token: str) -> list[dict]:
-    return [{"id": x["id"], "titulo": x.get("title", "")} for x in _http("GET", "https://tasks.googleapis.com/tasks/v1/users/@me/lists", token=token).get("items", [])]
+def _sesion_mcp(url: str, token: str) -> str | None:
+    _, sesion = _mcp(url, token, {"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {
+        "protocolVersion": PROTOCOLO_MCP, "capabilities": {}, "clientInfo": {"name": "reportes-automatizados", "version": "1.0"}}})
+    _mcp(url, token, {"jsonrpc": "2.0", "method": "notifications/initialized"}, sesion)
+    return sesion
 
 
-# ---------------------------------------------------------------- pruebas (una por servicio)
+def mcp_herramientas(servicio: str) -> list[dict]:
+    """Conecta con el MCP oficial del servicio y lista sus herramientas (nombre, descripción, esquema de argumentos)."""
+    url, token = SERVICIOS[servicio].url, token_de_acceso()
+    sesion, cursor, salida = _sesion_mcp(url, token), None, []
+    for n in range(2, 12):
+        res, _ = _mcp(url, token, {"jsonrpc": "2.0", "id": n, "method": "tools/list", "params": {"cursor": cursor} if cursor else {}}, sesion)
+        salida += (res or {}).get("tools", [])
+        cursor = (res or {}).get("nextCursor")
+        if not cursor:
+            break
+    return salida
 
-def probar(servicio: str, destinatario: str = "", texto: str = "") -> str:
-    """Ejecuta la prueba del servicio y devuelve un resumen. Gmail y Chat envían de verdad a `destinatario`."""
-    if servicio not in SERVICIOS:
-        raise GoogleError(f"Servicio desconocido: {servicio}")
+
+def mcp_ejecutar(servicio: str, herramienta: str, argumentos: dict) -> tuple[bool, str]:
+    """Ejecuta una herramienta del MCP oficial; devuelve (ok, texto del resultado)."""
+    url, token = SERVICIOS[servicio].url, token_de_acceso()
+    sesion = _sesion_mcp(url, token)
+    res, _ = _mcp(url, token, {"jsonrpc": "2.0", "id": 2, "method": "tools/call", "params": {"name": herramienta, "arguments": argumentos}}, sesion)
+    res = res or {}
+    partes = [c.get("text", "") if c.get("type") == "text" else f"[{c.get('type')}]" for c in res.get("content", [])]
+    if not partes and "structuredContent" in res:
+        partes = [json.dumps(res["structuredContent"], ensure_ascii=False, indent=2)]
+    return not res.get("isError"), "\n".join(partes) or "(sin contenido)"
+
+
+# ---------------------------------------------------------------- envío directo (lo que el MCP oficial no hace)
+
+def enviar(servicio: str, destinatario: str, texto: str) -> str:
+    """Gmail: correo a `destinatario`. Chat: mensaje directo al contacto (correo) o a un espacio `spaces/…`."""
+    if not destinatario:
+        raise GoogleError("Indica el destinatario.")
     token = token_de_acceso()
-    texto = texto or "Prueba del MCP de Google Workspace desde la web de reportes automatizados."
+    texto = texto or "Prueba desde la web de reportes automatizados."
     if servicio == "gmail":
-        if not destinatario:
-            raise GoogleError("Indica el correo que recibirá la prueba.")
-        enviar_correo(token, destinatario, "Prueba del MCP de Google · Reportes automatizados", texto)
+        enviar_correo(token, destinatario, "Prueba · Reportes automatizados", texto)
         return f"Correo enviado por Gmail a {destinatario}"
     if servicio == "chat":
-        if not destinatario:
-            raise GoogleError("Indica el correo del contacto (o el espacio spaces/…) que recibirá el mensaje.")
         enviar_chat(token, destinatario, texto)
         return f"Mensaje de Google Chat enviado a {destinatario}"
-    if servicio == "contacts":
-        encontrados = buscar_contactos(token, destinatario or "a", 5)
-        return f"{len(encontrados)} contacto(s) encontrados" + (f": {', '.join(c['nombre'] or c['correo'] for c in encontrados)}" if encontrados else "")
-    if servicio == "calendar":
-        eventos = proximos_eventos(token)
-        return f"{len(eventos)} evento(s) próximos" + (f"; el siguiente: {eventos[0]['titulo']}" if eventos else "")
-    if servicio == "tasks":
-        listas = listas_tareas(token)
-        return f"{len(listas)} lista(s) de tareas" + (f": {', '.join(x['titulo'] for x in listas)}" if listas else "")
-    archivos = buscar_archivos(token, tipo=None if servicio == "drive" else servicio, cantidad=5)
-    return f"{len(archivos)} archivo(s) visibles" + (f": {', '.join(a['nombre'] for a in archivos)}" if archivos else "")
+    raise GoogleError(f"{servicio} no envía mensajes.")

@@ -216,9 +216,10 @@ export interface HerramientaMcp {
 export interface ServicioGoogle {
   id: string;
   nombre: string;
-  descripcion: string;
+  /** Servidor MCP oficial de Google. */
+  url: string;
   activo: boolean;
-  /** Su prueba envía de verdad (correo o mensaje): pide destinatario y confirmación. */
+  /** Además, envío directo por la API (Gmail, Chat). */
   envia: boolean;
   scopes: string[];
   /** Activo, pero el token no tiene sus permisos: hay que volver a autorizar. */
@@ -232,16 +233,11 @@ export interface GoogleMcp {
   redirect_uri: string;
   cuenta: string;
   autorizado: boolean;
-  solo_lectura: boolean;
-  nivel: string;
   correo_prueba: string;
   servicios: ServicioGoogle[];
-  herramientas: HerramientaMcp[];
-  comando: string;
-  args: string[];
+  herramientas_envio: HerramientaMcp[];
   python: string;
   configuracion: Record<string, unknown>;
-  configuracion_workspace_mcp: Record<string, unknown>;
 }
 
 /** Solo se envían los campos cambiados; texto vacío = quitar la variable del .env. */
@@ -251,8 +247,18 @@ export interface PedidoGoogleMcp {
   redirect_uri?: string;
   cuenta?: string;
   servicios?: string[];
-  solo_lectura?: boolean;
-  nivel?: string;
+}
+
+export interface HerramientaRemota {
+  nombre: string;
+  descripcion: string;
+  esquema: { properties?: Record<string, { type?: string; description?: string }>; required?: string[] };
+}
+
+export interface PruebaMcp {
+  ok: boolean;
+  detalle: string;
+  herramientas: HerramientaRemota[];
 }
 
 /** Solo se envían los campos cambiados; texto vacío = quitar la variable del .env. */

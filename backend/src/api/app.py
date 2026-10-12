@@ -217,9 +217,19 @@ def desconectar_google():
     return mcp.desconectar()
 
 
-@app.post("/api/mcp/google/{servicio}/prueba", response_model=e.PruebaNotificacion)
-def probar_google(servicio: str, pedido: e.PedidoPruebaGoogle):
-    return mcp.probar(servicio, pedido)
+@app.post("/api/mcp/google/{servicio}/herramientas", response_model=e.PruebaMcp)
+def herramientas_google(servicio: str):
+    return mcp.herramientas(servicio)
+
+
+@app.post("/api/mcp/google/{servicio}/ejecutar", response_model=e.PruebaNotificacion)
+def ejecutar_google(servicio: str, pedido: e.PedidoEjecutarMcp):
+    return mcp.ejecutar(servicio, pedido)
+
+
+@app.post("/api/mcp/google/{servicio}/enviar", response_model=e.PruebaNotificacion)
+def enviar_google(servicio: str, pedido: e.PedidoPruebaGoogle):
+    return mcp.enviar(servicio, pedido)
 
 
 @app.get("/api/servidores", response_model=list[e.Servidor])

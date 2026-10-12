@@ -1,346 +1,288 @@
 "use client";
 
-import { Copy, ExternalLink, FlaskConical, KeyRound, LogOut, Plug, Save, Trash2, Undo2 } from "lucide-react";
+import { Copy, ExternalLink, KeyRound, LogOut, Play, Plug, PlugZap, Save, Send, Trash2, Undo2 } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { FilaAjuste, SeccionAjustes } from "@/components/ajustes";
+import { FilaAjuste } from "@/components/ajustes";
 import { Confirmar } from "@/components/confirmar";
-import { Aviso, Chip, EsqueletoFilas, ErrorEnLinea } from "@/components/estados";
+import { Aviso, Chip, EsqueletoFilas, ErrorEnLinea, Punto } from "@/components/estados";
 import { Marco } from "@/components/marco";
 import { Pagina } from "@/components/pagina";
+import { Tarjeta } from "@/components/tarjeta";
+import { Terminal } from "@/components/terminal";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useConsulta } from "@/hooks/use-consulta";
 import { api } from "@/lib/api";
-import type { GoogleMcp, PedidoGoogleMcp, ServicioGoogle } from "@/lib/tipos";
+import type { GoogleMcp, HerramientaRemota, PedidoGoogleMcp, ServicioGoogle } from "@/lib/tipos";
 
-const NIVELES = { core: "Core (lo esencial)", extended: "Extended", complete: "Complete (todas)" };
-const CLASE_TEXTO = "min-h-20 w-full rounded-lg border border-input bg-transparent px-2.5 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
+const CLASE_TEXTO = "w-full rounded-lg border border-input bg-transparent px-2.5 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
+type Cambio = (g: GoogleMcp) => void;
 
-const copiar = (texto: string, aviso: string) => {
+const copiar = (texto: string, aviso = "Copiado") => {
   navigator.clipboard.writeText(texto).then(() => toast.success(aviso), () => toast.error("No se pudo copiar"));
 };
 
 /** URI a la que Google devuelve el código: la del .env o esta misma página. */
-const redireccionDe = (g: GoogleMcp) => g.redirect_uri || (typeof window === "undefined" ? "" : `${window.location.origin}/configuracion/mcp`);
+const redireccionPorDefecto = () => (typeof window === "undefined" ? "" : `${window.location.origin}/configuracion/mcp`);
 
-/** 1. Cliente OAuth de Google Cloud: Client ID, Client secret (solo escritura), cuenta y URI de redirección. */
-function ClienteOAuth({ g, onCambio }: { g: GoogleMcp; onCambio: (g: GoogleMcp) => void }) {
+/** Envuelve una llamada con estado ocupado y toast de error. */
+function useAccion() {
+  const [ocupado, setOcupado] = useState<string | null>(null);
+  const correr = async <T,>(clave: string, fn: () => Promise<T>, error: string): Promise<T | undefined> => {
+    setOcupado(clave);
+    try {
+      return await fn();
+    } catch (e) {
+      toast.error(error, { description: (e as Error).message });
+    } finally {
+      setOcupado(null);
+    }
+  };
+  return { ocupado, correr };
+}
+
+// ---------------------------------------------------------------- pestaña Cuenta
+
+function Credenciales({ g, onCambio }: { g: GoogleMcp; onCambio: Cambio }) {
   const base = { client_id: g.client_id, client_secret: "", cuenta: g.cuenta, redirect_uri: g.redirect_uri };
   const [v, setV] = useState(base);
-  const [quitarSecreto, setQuitarSecreto] = useState(false);
-  const [guardando, setGuardando] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [quitar, setQuitar] = useState(false);
+  const { ocupado, correr } = useAccion();
   const cambios: PedidoGoogleMcp = Object.fromEntries((Object.keys(base) as (keyof typeof base)[])
-    .flatMap((k): [string, string][] => (k === "client_secret" ? (quitarSecreto ? [[k, ""]] : v[k] ? [[k, v[k]]] : []) : v[k] !== base[k] ? [[k, v[k]]] : [])));
+    .flatMap((k): [string, string][] => (k === "client_secret" ? (quitar ? [[k, ""]] : v[k] ? [[k, v[k]]] : []) : v[k] !== base[k] ? [[k, v[k]]] : [])));
   const hay = Object.keys(cambios).length > 0;
-  const campo = (k: keyof typeof base) => ({ id: k, value: v[k], onChange: (ev: React.ChangeEvent<HTMLInputElement>) => setV((x) => ({ ...x, [k]: ev.target.value })) });
+  const campo = (k: keyof typeof base) => ({ id: k, value: v[k], autoComplete: "off", onChange: (ev: React.ChangeEvent<HTMLInputElement>) => { setV((x) => ({ ...x, [k]: ev.target.value })); if (k === "client_secret") setQuitar(false); } });
 
   async function guardar() {
-    setGuardando(true);
-    setError(null);
-    try {
-      onCambio(await api.guardarGoogleMcp(cambios));
-      setQuitarSecreto(false);
-      toast.success("Cliente OAuth guardado en el .env");
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setGuardando(false);
-    }
+    const r = await correr("guardar", () => api.guardarGoogleMcp(cambios), "No se guardó");
+    if (r) { onCambio(r); toast.success("Credenciales guardadas en el .env"); }
   }
 
   return (
-    <form onSubmit={(ev) => { ev.preventDefault(); if (hay) void guardar(); }} className="flex flex-col gap-3">
-      <SeccionAjustes titulo="1. Cliente OAuth de Google Cloud"
-        descripcion="Credenciales del proyecto de Google Cloud (Credenciales › ID de cliente de OAuth, tipo «Aplicación web»). Se guardan en el .env.">
-        <FilaAjuste etiqueta="Client ID"><Input {...campo("client_id")} className="font-mono" placeholder="123…apps.googleusercontent.com" autoComplete="off" /></FilaAjuste>
+    <Tarjeta titulo="Cliente OAuth" descripcion="El mismo Client ID y secret para todos los servidores de Google. Se guardan en el .env; el secret no se vuelve a mostrar."
+      acciones={<>
+        <Button type="button" variant="outline" size="sm" disabled={!hay || !!ocupado} onClick={() => { setV(base); setQuitar(false); }}><Undo2 /> Descartar</Button>
+        <Button type="button" size="sm" disabled={!hay || !!ocupado} onClick={() => void guardar()}><Save /> {ocupado ? "Guardando…" : "Guardar"}</Button>
+      </>}>
+      <div className="divide-y rounded-lg border px-4">
+        <FilaAjuste etiqueta="Client ID"><Input {...campo("client_id")} className="font-mono" placeholder="…apps.googleusercontent.com" /></FilaAjuste>
         <FilaAjuste etiqueta="Client secret">
-          <Input {...campo("client_secret")} type="password" autoComplete="off" className="font-mono"
-            onChange={(ev) => { setV((x) => ({ ...x, client_secret: ev.target.value })); setQuitarSecreto(false); }}
-            placeholder={quitarSecreto ? "Se quitará al guardar" : g.secreto_configurado ? "•••••••• (configurado; escribe para reemplazar)" : "GOCSPX-…"} />
+          <Input {...campo("client_secret")} type="password" className="font-mono"
+            placeholder={quitar ? "Se quitará al guardar" : g.secreto_configurado ? "•••••••• configurado (escribe para reemplazar)" : "GOCSPX-…"} />
           {g.secreto_configurado && (
-            <Button type="button" variant="outline" size="icon" aria-label="Quitar Client secret" aria-pressed={quitarSecreto}
-              onClick={() => { setQuitarSecreto((q) => !q); setV((x) => ({ ...x, client_secret: "" })); }}><Trash2 /></Button>
+            <Button type="button" variant="outline" size="icon" aria-label="Quitar Client secret" aria-pressed={quitar}
+              onClick={() => { setQuitar((q) => !q); setV((x) => ({ ...x, client_secret: "" })); }}><Trash2 /></Button>
           )}
         </FilaAjuste>
-        <FilaAjuste etiqueta="Cuenta de Google">
-          <div className="flex w-full flex-col gap-1">
-            <Input {...campo("cuenta")} type="email" placeholder="tu.cuenta@empresa.pe" autoComplete="off" />
-            <span className="text-xs text-muted-foreground">Se completa sola al autorizar. Los correos y mensajes salen a nombre de esta cuenta.</span>
-          </div>
-        </FilaAjuste>
+        <FilaAjuste etiqueta="Cuenta"><Input {...campo("cuenta")} type="email" placeholder="Se completa al autorizar" /></FilaAjuste>
         <FilaAjuste etiqueta="URI de redirección">
-          <div className="flex w-full flex-col gap-1">
-            <div className="flex gap-2">
-              <Input {...campo("redirect_uri")} className="font-mono" placeholder={redireccionDe({ ...g, redirect_uri: "" })} autoComplete="off" />
-              <Button type="button" variant="outline" size="icon" aria-label="Copiar URI de redirección" onClick={() => copiar(v.redirect_uri || redireccionDe({ ...g, redirect_uri: "" }), "URI copiada")}><Copy /></Button>
-            </div>
-            <span className="text-xs text-muted-foreground">Regístrala tal cual en «URIs de redireccionamiento autorizados» del cliente OAuth. Vacío = esta página.</span>
-          </div>
+          <Input {...campo("redirect_uri")} className="font-mono" placeholder={redireccionPorDefecto()} />
+          <Button type="button" variant="outline" size="icon" aria-label="Copiar URI" onClick={() => copiar(v.redirect_uri || redireccionPorDefecto(), "URI copiada")}><Copy /></Button>
         </FilaAjuste>
-      </SeccionAjustes>
-      {error && <ErrorEnLinea titulo="No se guardó" detalle={error} />}
-      <div className="flex justify-end gap-2">
-        <Button type="button" variant="outline" disabled={!hay || guardando} onClick={() => { setV(base); setQuitarSecreto(false); setError(null); }}><Undo2 /> Descartar</Button>
-        <Button type="submit" disabled={!hay || guardando}><Save /> {guardando ? "Guardando…" : "Guardar"}</Button>
       </div>
-    </form>
+      <p className="text-xs text-muted-foreground">Registra la URI en «URIs de redireccionamiento autorizados» del cliente OAuth (tipo «Aplicación web»). Vacío = esta página.</p>
+    </Tarjeta>
   );
 }
 
-/** 2. Autorización: abre el consentimiento de Google y canjea el código (llega solo por la URL o se pega a mano). */
-function Autorizacion({ g, onCambio }: { g: GoogleMcp; onCambio: (g: GoogleMcp) => void }) {
+function Autorizacion({ g, onCambio }: { g: GoogleMcp; onCambio: Cambio }) {
   const [codigo, setCodigo] = useState("");
-  const [ocupado, setOcupado] = useState<"autorizar" | "codigo" | "salir" | null>(null);
-  const [confirmarSalida, setConfirmarSalida] = useState(false);
+  const [salir, setSalir] = useState(false);
+  const [activos, setActivos] = useState(() => g.servicios.filter((s) => s.activo).map((s) => s.id));
+  const { ocupado, correr } = useAccion();
   const pendientes = g.servicios.filter((s) => s.falta_consentimiento);
+  const listo = !!g.client_id && g.secreto_configurado;
+  const cambioActivos = activos.join() !== g.servicios.filter((s) => s.activo).map((s) => s.id).join();
 
   async function autorizar() {
-    setOcupado("autorizar");
-    try {
-      const r = await api.autorizarGoogle(redireccionDe(g));
-      window.open(r.url, "_blank", "noopener");
-      toast.info("Se abrió Google en otra pestaña", { description: "Acepta los permisos; luego pega aquí el código o la URL a la que te llevó." });
-    } catch (e) {
-      toast.error("No se pudo iniciar la autorización", { description: (e as Error).message });
-    } finally {
-      setOcupado(null);
+    // Primero se guardan los servidores elegidos: de ellos salen los permisos que se piden.
+    if (cambioActivos) {
+      const guardado = await correr("autorizar", () => api.guardarGoogleMcp({ servicios: activos }), "No se guardaron los servidores");
+      if (!guardado) return;
+      onCambio(guardado);
     }
+    const r = await correr("autorizar", () => api.autorizarGoogle(g.redirect_uri || redireccionPorDefecto()), "No se pudo iniciar la autorización");
+    if (r) { window.open(r.url, "_blank", "noopener"); toast.info("Acepta los permisos en Google y pega aquí el código si no vuelve solo."); }
   }
 
-  async function canjear() {
-    setOcupado("codigo");
-    try {
-      onCambio(await api.codigoGoogle(codigo.trim()));
-      setCodigo("");
-      toast.success("Cuenta de Google conectada");
-    } catch (e) {
-      toast.error("No se pudo conectar", { description: (e as Error).message });
-    } finally {
-      setOcupado(null);
-    }
-  }
-
-  async function desconectar() {
-    setOcupado("salir");
-    try {
-      onCambio(await api.desconectarGoogle());
-      toast.success("Cuenta desconectada", { description: "Se revocó el acceso y se quitó el token del .env." });
-    } catch (e) {
-      toast.error("No se pudo desconectar", { description: (e as Error).message });
-    } finally {
-      setOcupado(null);
-    }
-  }
-
-  const listo = !!g.client_id && g.secreto_configurado;
   return (
-    <SeccionAjustes titulo="2. Autorizar la cuenta"
-      descripcion="Google pide tu consentimiento y entrega un código. Si vuelve a esta página se conecta solo; si no, copia el código (o la URL completa) y pégalo aquí."
-      accion={<Chip tono={g.autorizado ? (pendientes.length ? "aviso" : "exito") : "neutro"}>{g.autorizado ? (pendientes.length ? "faltan permisos" : `conectado${g.cuenta ? ` · ${g.cuenta}` : ""}`) : "sin autorizar"}</Chip>}>
-      <div className="flex flex-col gap-3 py-3">
-        {!listo && <Aviso>Guarda primero el Client ID y el Client secret.</Aviso>}
-        {pendientes.length > 0 && <Aviso>Activaste {pendientes.map((s) => s.nombre).join(", ")} después de autorizar: vuelve a autorizar para darle sus permisos.</Aviso>}
-        <div className="flex flex-wrap gap-2">
-          <Button type="button" disabled={!listo || !!ocupado} onClick={() => void autorizar()}><ExternalLink /> {g.autorizado ? "Volver a autorizar" : "Autorizar con Google"}</Button>
-          {g.autorizado && <Button type="button" variant="outline" disabled={!!ocupado} onClick={() => setConfirmarSalida(true)}><LogOut /> Desconectar</Button>}
-        </div>
-        <form className="flex flex-col gap-1.5" onSubmit={(ev) => { ev.preventDefault(); if (codigo.trim()) void canjear(); }}>
-          <Label htmlFor="codigo-google">Código de autorización</Label>
-          <div className="flex gap-2">
-            <Input id="codigo-google" value={codigo} onChange={(ev) => setCodigo(ev.target.value)} className="font-mono" autoComplete="off" placeholder="4/0A… o la URL completa con ?code=…" />
-            <Button type="submit" variant="secondary" disabled={!codigo.trim() || !!ocupado}><KeyRound /> {ocupado === "codigo" ? "Conectando…" : "Conectar"}</Button>
-          </div>
-        </form>
+    <Tarjeta titulo="Autorización"
+      descripcion="Elige los servidores y autoriza: Google devuelve un código que se canjea solo al volver a esta página, o lo pegas aquí."
+      acciones={<Chip tono={g.autorizado ? (pendientes.length ? "aviso" : "exito") : "neutro"}>{g.autorizado ? (pendientes.length ? "faltan permisos" : `conectado · ${g.cuenta}`) : "sin autorizar"}</Chip>}>
+      <div className="flex flex-wrap gap-x-5 gap-y-2">
+        {g.servicios.map((s) => (
+          <label key={s.id} className="flex cursor-pointer items-center gap-2 text-sm">
+            <Checkbox checked={activos.includes(s.id)} onCheckedChange={(x) => setActivos((a) => (x === true ? [...a, s.id] : a.filter((i) => i !== s.id)))} />
+            {s.nombre}
+          </label>
+        ))}
       </div>
-      <Confirmar abierto={confirmarSalida} onAbierto={setConfirmarSalida} titulo="Desconectar Google" accion="Desconectar" peligro
-        descripcion="Se revoca el acceso de la cuenta y se quita el token del .env. El MCP dejará de funcionar hasta que vuelvas a autorizar." onConfirmar={() => { setConfirmarSalida(false); void desconectar(); }} />
-    </SeccionAjustes>
+      {!listo && <Aviso>Guarda primero el Client ID y el Client secret.</Aviso>}
+      {g.autorizado && (cambioActivos || pendientes.length > 0) && (
+        <Aviso>{cambioActivos ? "Cambiaste los servidores" : `Faltan los permisos de ${pendientes.map((s) => s.nombre).join(", ")}`}: vuelve a autorizar.</Aviso>
+      )}
+      <div className="flex flex-wrap gap-2">
+        <Button type="button" disabled={!listo || !!ocupado || !activos.length} onClick={() => void autorizar()}><ExternalLink /> {g.autorizado ? "Volver a autorizar" : "Autorizar con Google"}</Button>
+        {g.autorizado && <Button type="button" variant="outline" disabled={!!ocupado} onClick={() => setSalir(true)}><LogOut /> Desconectar</Button>}
+      </div>
+      <form className="flex gap-2" onSubmit={(ev) => {
+        ev.preventDefault();
+        void correr("codigo", () => api.codigoGoogle(codigo.trim()), "No se pudo conectar").then((r) => { if (r) { onCambio(r); setCodigo(""); toast.success("Cuenta conectada", { description: r.cuenta }); } });
+      }}>
+        <Input value={codigo} onChange={(ev) => setCodigo(ev.target.value)} className="font-mono" autoComplete="off" aria-label="Código de autorización" placeholder="Código 4/0A… o la URL completa con ?code=…" />
+        <Button type="submit" variant="secondary" disabled={!codigo.trim() || !!ocupado}><KeyRound /> Conectar</Button>
+      </form>
+      <Confirmar abierto={salir} onAbierto={setSalir} titulo="Desconectar Google" accion="Desconectar" peligro
+        descripcion="Se revoca el acceso y se quita el token del .env." onConfirmar={() => {
+          setSalir(false);
+          void correr("salir", api.desconectarGoogle, "No se pudo desconectar").then((r) => r && onCambio(r));
+        }} />
+    </Tarjeta>
   );
 }
 
-/** Diálogo de prueba de un servicio. Gmail y Chat envían de verdad: piden destinatario, texto y confirmación. */
-function DialogoPrueba({ s, g, onCerrar }: { s: ServicioGoogle | null; g: GoogleMcp; onCerrar: () => void }) {
-  const [destinatario, setDestinatario] = useState(s?.id === "gmail" ? g.correo_prueba : "");
-  const [texto, setTexto] = useState("");
-  const [confirmar, setConfirmar] = useState(false);
-  const [probando, setProbando] = useState(false);
-  const [resultado, setResultado] = useState<{ ok: boolean; detalle: string } | null>(null);
-  if (!s) return null;
+// ---------------------------------------------------------------- pestaña de cada servidor
 
-  async function probar() {
-    setProbando(true);
-    setResultado(null);
-    try {
-      const r = await api.probarGoogle(s!.id, destinatario.trim(), texto.trim());
-      setResultado(r);
-      if (r.ok) toast.success(`Prueba de ${s!.nombre} correcta`, { description: r.detalle });
-      else toast.error(`La prueba de ${s!.nombre} falló`, { description: r.detalle });
-    } catch (e) {
-      setResultado({ ok: false, detalle: (e as Error).message });
-    } finally {
-      setProbando(false);
-    }
+/** Argumentos de ejemplo a partir del esquema: las propiedades requeridas, vacías. */
+const plantilla = (h: HerramientaRemota) =>
+  JSON.stringify(Object.fromEntries((h.esquema.required ?? []).map((k) => [k, h.esquema.properties?.[k]?.type === "number" || h.esquema.properties?.[k]?.type === "integer" ? 0 : ""])), null, 2);
+
+function ProbarMcp({ s }: { s: ServicioGoogle }) {
+  const [herramientas, setHerramientas] = useState<HerramientaRemota[] | null>(null);
+  const [elegida, setElegida] = useState<HerramientaRemota | null>(null);
+  const [args, setArgs] = useState("{}");
+  const [salida, setSalida] = useState("");
+  const { ocupado, correr } = useAccion();
+
+  async function conectar() {
+    const r = await correr("conectar", () => api.herramientasGoogle(s.id), "No se pudo probar");
+    if (!r) return;
+    setHerramientas(r.ok ? r.herramientas : null);
+    setSalida(`${r.ok ? "✓" : "✗"} ${r.detalle}`);
   }
 
-  const ayudas: Record<string, { etiqueta: string; placeholder: string; ayuda: string }> = {
-    gmail: { etiqueta: "Enviar a", placeholder: "correo@empresa.pe", ayuda: "Recibe un correo de prueba enviado por Gmail desde tu cuenta." },
-    chat: { etiqueta: "Contacto de Google Chat", placeholder: "contacto@empresa.pe o spaces/AAAA…", ayuda: "Mensaje directo a la persona (por su correo) o a un espacio donde estás. No usa el webhook." },
-    contacts: { etiqueta: "Buscar", placeholder: "Nombre o correo", ayuda: "Busca en tus contactos y en el directorio de la organización." },
-  };
-  const campo = ayudas[s.id];
-  const falta = s.envia && !destinatario.trim();
-
-  return (
-    <Dialog open onOpenChange={(a) => !a && onCerrar()}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Probar {s.nombre}</DialogTitle>
-          <DialogDescription>{campo?.ayuda ?? `Hace una consulta de solo lectura a ${s.nombre} con la cuenta autorizada.`}</DialogDescription>
-        </DialogHeader>
-        <div className="flex flex-col gap-4">
-          {campo && (
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="prueba-destino">{campo.etiqueta}</Label>
-              <Input id="prueba-destino" value={destinatario} onChange={(ev) => setDestinatario(ev.target.value)} placeholder={campo.placeholder} autoComplete="off" />
-            </div>
-          )}
-          {s.envia && (
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="prueba-texto">Mensaje (opcional)</Label>
-              <textarea id="prueba-texto" value={texto} onChange={(ev) => setTexto(ev.target.value)} rows={3} maxLength={4000} className={CLASE_TEXTO}
-                placeholder="Prueba del MCP de Google Workspace desde la web de reportes automatizados." />
-            </div>
-          )}
-          {resultado && <Aviso tono={resultado.ok ? "exito" : "peligro"}>{resultado.detalle}</Aviso>}
-        </div>
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={onCerrar}>Cerrar</Button>
-          <Button type="button" disabled={probando || falta} onClick={() => (s.envia ? setConfirmar(true) : void probar())}>
-            <FlaskConical /> {probando ? "Probando…" : s.envia ? "Enviar prueba" : "Probar"}
-          </Button>
-        </DialogFooter>
-        <Confirmar abierto={confirmar} onAbierto={setConfirmar} titulo={`Enviar prueba por ${s.nombre}`} accion="Enviar"
-          descripcion={`Se enviará de verdad ${s.id === "gmail" ? "un correo" : "un mensaje"} a ${destinatario.trim()} desde ${g.cuenta || "la cuenta autorizada"}.`}
-          onConfirmar={() => { setConfirmar(false); void probar(); }} />
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-/** 3. Servicios: cuáles expone el MCP (y qué permisos se piden), solo lectura, nivel y una prueba por servicio. */
-function Servicios({ g, onCambio }: { g: GoogleMcp; onCambio: (g: GoogleMcp) => void }) {
-  const base = { servicios: g.servicios.filter((s) => s.activo).map((s) => s.id), solo_lectura: g.solo_lectura, nivel: g.nivel };
-  const [v, setV] = useState(base);
-  const [guardando, setGuardando] = useState(false);
-  const [probando, setProbando] = useState<ServicioGoogle | null>(null);
-  const hay = JSON.stringify(v) !== JSON.stringify(base);
-
-  async function guardar() {
-    setGuardando(true);
+  async function ejecutar() {
+    let argumentos: Record<string, unknown>;
     try {
-      const nuevo = await api.guardarGoogleMcp(v);
-      onCambio(nuevo);
-      const faltan = nuevo.servicios.filter((s) => s.falta_consentimiento).length;
-      toast.success("Servicios guardados en el .env", { description: faltan ? "Vuelve a autorizar para dar los permisos nuevos." : "El cliente MCP los toma al reiniciarse." });
-    } catch (e) {
-      toast.error("No se guardó", { description: (e as Error).message });
-    } finally {
-      setGuardando(false);
+      argumentos = JSON.parse(args || "{}");
+    } catch {
+      toast.error("Los argumentos no son un JSON válido");
+      return;
     }
+    const r = await correr("ejecutar", () => api.ejecutarGoogle(s.id, elegida!.nombre, argumentos), "No se pudo ejecutar");
+    if (r) setSalida(`${r.ok ? "✓" : "✗"} ${elegida!.nombre}\n${r.detalle}`);
   }
 
-  const alternar = (id: string, si: boolean) => setV((x) => ({ ...x, servicios: si ? [...x.servicios, id] : x.servicios.filter((s) => s !== id) }));
   return (
-    <div className="flex flex-col gap-3">
-      <SeccionAjustes titulo="3. Servicios y pruebas" descripcion="Elige qué puede usar el MCP; cada servicio pide sus permisos al autorizar. «Probar» usa la cuenta ya autorizada.">
-        {g.servicios.map((s) => {
-          const activo = v.servicios.includes(s.id);
-          return (
-            <div key={s.id} className="flex flex-wrap items-center gap-3 py-3">
-              <Checkbox id={`svc-${s.id}`} checked={activo} onCheckedChange={(x) => alternar(s.id, x === true)} />
-              <label htmlFor={`svc-${s.id}`} className="flex min-w-0 flex-1 cursor-pointer flex-col gap-0.5">
-                <span className="flex flex-wrap items-center gap-2 text-sm font-medium">
-                  {s.nombre}
-                  {s.falta_consentimiento ? <Chip tono="aviso">falta autorizar</Chip> : s.activo && g.autorizado ? <Chip tono="exito">listo</Chip> : null}
-                  {s.envia && <Chip tono="neutro">envía</Chip>}
-                </span>
-                <span className="text-xs text-muted-foreground">{s.descripcion}</span>
-              </label>
-              <Button type="button" variant="outline" size="sm" disabled={!g.autorizado || !s.activo || s.falta_consentimiento} onClick={() => setProbando(s)}
-                title={!g.autorizado ? "Autoriza la cuenta primero" : !s.activo ? "Guarda el servicio activo primero" : undefined}><FlaskConical /> Probar</Button>
-            </div>
-          );
-        })}
-        <FilaAjuste etiqueta="Solo lectura">
-          <div className="flex items-center gap-2">
-            <Checkbox id="solo-lectura" checked={v.solo_lectura} onCheckedChange={(x) => setV((y) => ({ ...y, solo_lectura: x === true }))} />
-            <label htmlFor="solo-lectura" className="text-sm">El MCP no envía correos ni mensajes (las pruebas de esta página sí).</label>
-          </div>
-        </FilaAjuste>
-        <FilaAjuste etiqueta="Nivel de herramientas (workspace-mcp)">
-          <Select value={v.nivel} onValueChange={(n) => setV((y) => ({ ...y, nivel: String(n) }))} items={NIVELES}>
-            <SelectTrigger className="w-56"><SelectValue /></SelectTrigger>
-            <SelectContent>{Object.entries(NIVELES).map(([k, t]) => <SelectItem key={k} value={k}>{t}</SelectItem>)}</SelectContent>
-          </Select>
-        </FilaAjuste>
-      </SeccionAjustes>
-      <div className="flex justify-end gap-2">
-        <Button type="button" variant="outline" disabled={!hay || guardando} onClick={() => setV(base)}><Undo2 /> Descartar</Button>
-        <Button type="button" disabled={!hay || guardando || !v.servicios.length} onClick={() => void guardar()}><Save /> {guardando ? "Guardando…" : "Guardar servicios"}</Button>
-      </div>
-      {probando && <DialogoPrueba key={probando.id} s={probando} g={g} onCerrar={() => setProbando(null)} />}
-    </div>
-  );
-}
-
-function Bloque({ titulo, json, extra }: { titulo: string; json: unknown; extra?: ReactNode }) {
-  const texto = JSON.stringify(json, null, 2);
-  return (
-    <div className="flex flex-col gap-2 py-3">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <span className="text-sm font-medium">{titulo}</span>
-        <span className="flex flex-wrap gap-2">{extra}<Button type="button" variant="outline" size="sm" onClick={() => copiar(texto, "JSON copiado")}><Copy /> Copiar JSON</Button></span>
-      </div>
-      <pre className="overflow-x-auto rounded-lg border bg-muted/40 p-3 font-mono text-xs">{texto}</pre>
-    </div>
-  );
-}
-
-/** 4. Conectar el MCP a un cliente (Claude Code, Claude Desktop…): este servidor o el comunitario workspace-mcp. */
-function Conexion({ g }: { g: GoogleMcp }) {
-  const comando = `claude mcp add google-workspace -- ${g.comando} ${g.args.map((a) => (a.includes(" ") ? `"${a}"` : a)).join(" ")}`;
-  return (
-    <SeccionAjustes titulo="4. Conectar con tu cliente MCP" descripcion="Pega la configuración en el .mcp.json del cliente. No lleva secretos: el servidor lee credenciales y token del .env.">
-      <div className="flex flex-col gap-2 py-3">
-        <span className="text-sm font-medium">Herramientas que expone ahora</span>
-        {g.herramientas.length ? (
-          <ul className="divide-y rounded-lg border">
-            {g.herramientas.map((h) => (
-              <li key={h.nombre} className="flex flex-col gap-0.5 px-3 py-2">
-                <code className="text-sm font-medium">{h.nombre}</code>
-                <span className="text-xs text-muted-foreground">{h.descripcion}</span>
+    <Tarjeta titulo="Probar MCP" descripcion="Se conecta al servidor de Google con tu cuenta, lista sus herramientas y puedes ejecutar una."
+      acciones={<Button size="sm" disabled={!!ocupado} onClick={() => void conectar()}><PlugZap className={ocupado === "conectar" ? "animate-pulse" : ""} /> {ocupado === "conectar" ? "Conectando…" : "Probar conexión"}</Button>}>
+      {herramientas && (
+        <div className="grid gap-3 lg:grid-cols-[minmax(0,18rem)_1fr]">
+          <ul className="max-h-80 divide-y overflow-y-auto rounded-lg border">
+            {herramientas.map((h) => (
+              <li key={h.nombre}>
+                <button type="button" onClick={() => { setElegida(h); setArgs(plantilla(h)); }}
+                  className={`flex w-full flex-col gap-0.5 px-3 py-2 text-left transition-colors hover:bg-muted/40 ${elegida?.nombre === h.nombre ? "bg-muted" : ""}`}>
+                  <code className="text-sm font-medium">{h.nombre}</code>
+                  <span className="line-clamp-2 text-xs text-muted-foreground">{h.descripcion}</span>
+                </button>
               </li>
             ))}
           </ul>
-        ) : <span className="text-sm text-muted-foreground">Ninguna: activa algún servicio.</span>}
-      </div>
-      <Bloque titulo="Este servidor (usa la cuenta autorizada aquí)" json={g.configuracion}
-        extra={<Button type="button" variant="outline" size="sm" onClick={() => copiar(comando, "Comando copiado")}><Copy /> Comando de Claude Code</Button>} />
-      <Bloque titulo="Alternativa: workspace-mcp (autoriza por su cuenta en http://localhost:8000/oauth2callback)" json={g.configuracion_workspace_mcp} />
-      <p className="pb-3 text-xs text-muted-foreground">Usa el Python con el que instalaste el backend (aquí: <code>{g.python}</code>). Reinicia el cliente MCP tras cambiar servicios.</p>
-    </SeccionAjustes>
+          {elegida ? (
+            <div className="flex flex-col gap-2">
+              <span className="text-sm"><code className="font-medium">{elegida.nombre}</code> · argumentos (JSON)</span>
+              <textarea value={args} onChange={(ev) => setArgs(ev.target.value)} rows={6} spellCheck={false} className={`${CLASE_TEXTO} font-mono text-xs`} aria-label="Argumentos" />
+              {elegida.esquema.properties && (
+                <span className="text-xs text-muted-foreground">
+                  {Object.entries(elegida.esquema.properties).map(([k, p]) => `${k}${elegida.esquema.required?.includes(k) ? "*" : ""}${p.type ? `: ${p.type}` : ""}`).join(" · ")}
+                </span>
+              )}
+              <div className="flex justify-end"><Button size="sm" disabled={!!ocupado} onClick={() => void ejecutar()}><Play /> {ocupado === "ejecutar" ? "Ejecutando…" : "Ejecutar"}</Button></div>
+            </div>
+          ) : <span className="text-sm text-muted-foreground">Elige una herramienta para ejecutarla.</span>}
+        </div>
+      )}
+      {salida && <Terminal titulo={s.url} texto={salida} />}
+    </Tarjeta>
   );
 }
 
+function EnvioDirecto({ s, g }: { s: ServicioGoogle; g: GoogleMcp }) {
+  const [para, setPara] = useState(s.id === "gmail" ? g.correo_prueba : "");
+  const [texto, setTexto] = useState("");
+  const [confirmar, setConfirmar] = useState(false);
+  const { ocupado, correr } = useAccion();
+  const esChat = s.id === "chat";
+
+  return (
+    <Tarjeta titulo={esChat ? "Mensaje a un contacto" : "Enviar correo"}
+      descripcion={esChat ? "Mensaje directo como tu cuenta (no por el webhook). Lo usa el servidor propio «google-envio»."
+        : "El MCP de Gmail de Google solo crea borradores; el envío lo hace el servidor propio «google-envio»."}>
+      <div className="flex flex-col gap-2">
+        <Input value={para} onChange={(ev) => setPara(ev.target.value)} autoComplete="off" aria-label="Destinatario" placeholder={esChat ? "contacto@empresa.pe o spaces/AAAA…" : "correo@empresa.pe"} />
+        <textarea value={texto} onChange={(ev) => setTexto(ev.target.value)} rows={3} maxLength={4000} className={CLASE_TEXTO} aria-label="Mensaje" placeholder="Prueba desde la web de reportes automatizados." />
+        <div className="flex justify-end">
+          <Button size="sm" disabled={!para.trim() || !!ocupado} onClick={() => setConfirmar(true)}><Send /> {ocupado ? "Enviando…" : "Enviar"}</Button>
+        </div>
+      </div>
+      <Confirmar abierto={confirmar} onAbierto={setConfirmar} titulo={esChat ? "Enviar mensaje de Chat" : "Enviar correo"} accion="Enviar"
+        descripcion={`Se enviará de verdad a ${para.trim()} desde ${g.cuenta || "la cuenta autorizada"}.`}
+        onConfirmar={() => {
+          setConfirmar(false);
+          void correr("enviar", () => api.enviarGoogle(s.id, para.trim(), texto.trim()), "No se pudo enviar").then((r) => {
+            if (!r) return;
+            if (r.ok) toast.success(r.detalle); else toast.error("No se envió", { description: r.detalle });
+          });
+        }} />
+    </Tarjeta>
+  );
+}
+
+function PestanaServidor({ s, g }: { s: ServicioGoogle; g: GoogleMcp }) {
+  const bloqueo = !g.autorizado ? "Autoriza la cuenta en la pestaña Cuenta." : !s.activo ? `${s.nombre} no está activo: márcalo en Cuenta y vuelve a autorizar.`
+    : s.falta_consentimiento ? "Faltan los permisos de este servidor: vuelve a autorizar en Cuenta." : null;
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-wrap items-center gap-2 text-sm">
+        <code className="rounded bg-muted px-2 py-1 text-xs">{s.url}</code>
+        <Button variant="ghost" size="icon-sm" aria-label="Copiar URL" onClick={() => copiar(s.url, "URL copiada")}><Copy /></Button>
+        <span className="text-xs text-muted-foreground" title={s.scopes.join("\n")}>{s.scopes.length} permisos: {s.scopes.map((x) => x.split("/").pop()).join(", ")}</span>
+      </div>
+      {bloqueo ? <Aviso>{bloqueo}</Aviso> : (
+        <>
+          <ProbarMcp key={s.id} s={s} />
+          {s.envia && <EnvioDirecto s={s} g={g} />}
+        </>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------- pestaña Conectar
+
+function Conectar({ g }: { g: GoogleMcp }) {
+  const json = JSON.stringify(g.configuracion, null, 2);
+  return (
+    <Tarjeta titulo="Configuración del cliente MCP" descripcion="Pégala en el .mcp.json (o la configuración MCP) de tu cliente."
+      acciones={<Button size="sm" variant="outline" onClick={() => copiar(json, "JSON copiado")}><Copy /> Copiar JSON</Button>}>
+      <Aviso tono="info">Reemplaza <code>{"<GOOGLE_OAUTH_CLIENT_SECRET del .env>"}</code> por tu Client secret: la web nunca lo muestra. «google-envio» es el servidor propio que envía correos y mensajes de Chat; corre con <code>{g.python}</code>.</Aviso>
+      <pre className="overflow-x-auto rounded-lg border bg-muted/40 p-3 font-mono text-xs">{json}</pre>
+      {g.herramientas_envio.length > 0 && (
+        <span className="text-xs text-muted-foreground">google-envio: {g.herramientas_envio.map((h) => h.nombre).join(", ")}</span>
+      )}
+    </Tarjeta>
+  );
+}
+
+// ---------------------------------------------------------------- página
+
 /** Al volver de Google con ?code=…&state=… se canjea el código y se limpia la URL. */
-function useVueltaDeGoogle(onCambio: (g: GoogleMcp) => void) {
+function useVueltaDeGoogle(onCambio: Cambio) {
   const params = useSearchParams();
   const router = useRouter();
   const ruta = usePathname();
@@ -359,33 +301,49 @@ function useVueltaDeGoogle(onCambio: (g: GoogleMcp) => void) {
   }, [codigo, state, error, router, ruta, onCambio]);
 }
 
-/** MCP de Google Workspace: Gmail y Chat directo a contactos (no el webhook), Contactos, Calendar, Drive, Docs, Sheets, Slides, Forms y Tasks. */
+/** MCP de Google Workspace por pestañas (como el detalle de un reporte): Cuenta, un servidor oficial por pestaña y Conectar. */
 export function PanelMcp() {
   const { datos, error, cargando, recargar } = useConsulta("mcp/google", api.googleMcp);
   const [actual, setActual] = useState<GoogleMcp | null>(null);
   const g = actual ?? datos;
   useVueltaDeGoogle(setActual);
-  // Cada vez que cambia la configuración se remontan los formularios con los valores nuevos.
-  const version = g ? JSON.stringify([g.client_id, g.secreto_configurado, g.cuenta, g.redirect_uri, g.autorizado, g.servicios.map((s) => [s.activo, s.falta_consentimiento]), g.solo_lectura, g.nivel]) : "";
+  const params = useSearchParams();
+  const router = useRouter();
+  const ruta = usePathname();
+  const pestanas = ["cuenta", ...(g?.servicios.map((s) => s.id) ?? []), "conectar"];
+  const pedida = params.get("tab");
+  const pestana = pedida && pestanas.includes(pedida) ? pedida : "cuenta";
+  const irA = (p: string) => router.replace(p === "cuenta" ? ruta : `${ruta}?tab=${p}`, { scroll: false });
+  // Los formularios se remontan cuando cambia lo guardado, para partir de los valores nuevos.
+  const version = g ? JSON.stringify([g.client_id, g.secreto_configurado, g.cuenta, g.redirect_uri, g.autorizado, g.servicios.map((s) => s.activo)]) : "";
 
   return (
     <Pagina>
-      <Marco icono={<Plug />} titulo="MCP · Google Workspace"
-        descripcion="Conecta tu cuenta de Google para que el asistente envíe correos por Gmail y mensajes de Google Chat a tus contactos, y use Calendar, Drive y más. Todo se guarda en el .env.">
+      <Marco icono={<Plug />} titulo="MCP · Google Workspace" descripcion="Servidores MCP oficiales de Google con tu cuenta, y envío por Gmail y Chat.">
         {error ? <ErrorEnLinea titulo="No se pudo leer el MCP de Google" detalle={`${error} Si acabas de actualizar el sistema, reinicia la API.`} onReintentar={recargar} />
-          : cargando && !g ? <EsqueletoFilas filas={6} alto="h-12" />
+          : cargando && !g ? <EsqueletoFilas filas={4} alto="h-12" />
           : g && (
-            <div className="flex flex-col gap-6">
-              <Aviso tono="info">
-                En Google Cloud: habilita las APIs de Gmail, Google Chat, People, Calendar, Drive, Docs, Sheets, Slides, Forms y Tasks que vayas a usar;
-                configura la pantalla de consentimiento y crea un ID de cliente OAuth. Para mensajes de Chat, la API de Google Chat también pide configurar
-                una «app de Chat» en el mismo proyecto (basta con nombre y avatar) y una cuenta de Google Workspace.
-              </Aviso>
-              <ClienteOAuth key={`c-${version}`} g={g} onCambio={setActual} />
-              <Autorizacion key={`a-${version}`} g={g} onCambio={setActual} />
-              <Servicios key={`s-${version}`} g={g} onCambio={setActual} />
-              <Conexion g={g} />
-            </div>
+            <Tabs value={pestana} onValueChange={(v) => irA(String(v))}>
+              <TabsList className="w-full justify-start overflow-x-auto no-scrollbar sm:w-fit">
+                <TabsTrigger value="cuenta">Cuenta</TabsTrigger>
+                {g.servicios.map((s) => (
+                  <TabsTrigger key={s.id} value={s.id} className="gap-1.5">
+                    {s.nombre}
+                    <Punto tono={!s.activo ? "neutro" : !g.autorizado || s.falta_consentimiento ? "aviso" : "exito"}
+                      etiqueta={!s.activo ? "inactivo" : !g.autorizado || s.falta_consentimiento ? "falta autorizar" : "listo"} />
+                  </TabsTrigger>
+                ))}
+                <TabsTrigger value="conectar">Conectar</TabsTrigger>
+              </TabsList>
+              <TabsContent value="cuenta" className="flex flex-col gap-4 pt-3">
+                <Credenciales key={`c-${version}`} g={g} onCambio={setActual} />
+                <Autorizacion key={`a-${version}`} g={g} onCambio={setActual} />
+              </TabsContent>
+              {g.servicios.map((s) => (
+                <TabsContent key={s.id} value={s.id} className="pt-3"><PestanaServidor s={s} g={g} /></TabsContent>
+              ))}
+              <TabsContent value="conectar" className="pt-3"><Conectar g={g} /></TabsContent>
+            </Tabs>
           )}
       </Marco>
     </Pagina>

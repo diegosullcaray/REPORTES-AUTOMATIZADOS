@@ -55,14 +55,6 @@ export function TablaServidores() {
       ),
     },
     {
-      id: "bases", accessorFn: (s) => s.bases.join(" "), header: "Bases", enableSorting: false,
-      cell: ({ row: { original: s } }) => (
-        <span className="line-clamp-2 max-w-md text-xs text-muted-foreground" title={s.bases.join(", ")}>
-          {s.bases.slice(0, 8).join(", ")}{s.bases.length > 8 && ` y ${s.bases.length - 8} más`}
-        </span>
-      ),
-    },
-    {
       id: "estado", enableSorting: false, enableGlobalFilter: false, header: "Última prueba",
       cell: ({ row: { original: s } }) => {
         const r = resultados[s.nombre];
@@ -92,8 +84,8 @@ export function TablaServidores() {
       <Marco icono={<Database />} titulo="Bases de datos" descripcion="Las 3 conexiones de SQL Server. Las credenciales viven solo en el .env de la API; aquí no se muestran ni se editan."
         acciones={<Button size="sm" disabled={probando.size > 0 || !consulta.datos} onClick={() => consulta.datos?.forEach(probar)}><PlugZap /> Probar todas</Button>}>
         <TablaDatos columnas={columnas} datos={consulta.datos} cargando={consulta.cargando} error={consulta.error} onRecargar={consulta.recargar}
-          buscar="Buscar servidor o base…" porPagina={7}
-          nombres={{ nombre: "Servidor", autenticacion: "Autenticación", bases: "Bases", estado: "Última prueba" }}
+          buscar="Buscar servidor…" porPagina={7}
+          nombres={{ nombre: "Servidor", autenticacion: "Autenticación", estado: "Última prueba" }}
           vacio={{ icono: Database, titulo: "Sin servidores" }} />
       </Marco>
     </Pagina>

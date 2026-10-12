@@ -1,7 +1,7 @@
 // Transporte: única puerta hacia la API de Python (proxy /api en next.config.ts). Sin estado ni presentación.
 import type {
   Archivo, ConfiguracionGeneral, Ejecucion, EjecucionDetalle, EstadoEnvio, PedidoEjecucion, Notificaciones, Perfil, PedidoConfiguracion, PedidoCuenta, PedidoNotificaciones, PruebaConexion, PruebaNotificacion, ReporteDetalle, ReporteResumen,
-  GoogleMcp, PedidoGoogleMcp, Servidor, Sesion, Solicitud, Verificacion, VerificacionGrupo, VistaPrevia,
+  GoogleMcp, PedidoGoogleMcp, PruebaMcp, Servidor, Sesion, Solicitud, Verificacion, VerificacionGrupo, VistaPrevia,
 } from "./tipos";
 
 export class ErrorApi extends Error {
@@ -88,7 +88,10 @@ export const api = {
   autorizarGoogle: (redirect_uri: string) => pedir<{ url: string; redirect_uri: string }>("/mcp/google/autorizar", enviar({ redirect_uri })),
   codigoGoogle: (codigo: string, state?: string) => pedir<GoogleMcp>("/mcp/google/codigo", enviar({ codigo, state })),
   desconectarGoogle: () => pedir<GoogleMcp>("/mcp/google/autorizacion", { method: "DELETE" }),
-  probarGoogle: (servicio: string, destinatario = "", texto = "") => pedir<PruebaNotificacion>(`/mcp/google/${encodeURIComponent(servicio)}/prueba`, enviar({ destinatario, texto })),
+  herramientasGoogle: (servicio: string) => pedir<PruebaMcp>(`/mcp/google/${encodeURIComponent(servicio)}/herramientas`, { method: "POST" }),
+  ejecutarGoogle: (servicio: string, herramienta: string, argumentos: Record<string, unknown>) =>
+    pedir<PruebaNotificacion>(`/mcp/google/${encodeURIComponent(servicio)}/ejecutar`, enviar({ herramienta, argumentos })),
+  enviarGoogle: (servicio: string, destinatario: string, texto: string) => pedir<PruebaNotificacion>(`/mcp/google/${encodeURIComponent(servicio)}/enviar`, enviar({ destinatario, texto })),
   probarNotificacion: (canal: "correo" | "chat") => pedir<PruebaNotificacion>(`/notificaciones/${canal}/prueba`, { method: "POST" }),
   servidores: () => pedir<Servidor[]>("/servidores"),
   probarServidor: (nombre: string) => pedir<PruebaConexion>(`/servidores/${encodeURIComponent(nombre)}/prueba`, { method: "POST" }),

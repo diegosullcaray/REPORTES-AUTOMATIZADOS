@@ -1,4 +1,4 @@
-"""MCP de Google Workspace desde la web: configuración del cliente OAuth, autorización con código, servicios y pruebas.
+"""MCP de Google Workspace desde la web: cliente OAuth, autorización con código, servidores MCP oficiales y pruebas.
 
 Todo se guarda en el .env. El Client secret y el refresh token son de solo escritura: nunca vuelven al navegador.
 Autorizar: la web pide la URL de Google, la persona da su consentimiento y Google redirige con `?code=…`; la web
@@ -24,7 +24,7 @@ from . import esquemas as e
 from . import servicios
 
 SERVIDOR = RAIZ / "src" / "mcp_google" / "servidor.py"
-NIVELES = {"core", "extended", "complete"}
+SECRETO = "<GOOGLE_OAUTH_CLIENT_SECRET del .env>"   # el JSON que ve el navegador nunca lleva el secreto
 VARIABLES = {"client_id": "GOOGLE_OAUTH_CLIENT_ID", "client_secret": "GOOGLE_OAUTH_CLIENT_SECRET",
              "redirect_uri": "GOOGLE_OAUTH_REDIRECT_URI", "cuenta": "USER_GOOGLE_EMAIL"}
 _CORREO = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
@@ -48,25 +48,19 @@ def _poner(cambios: dict[str, str]) -> None:
 def leer() -> e.GoogleMcp:
     activos = g.servicios_activos()
     autorizado = bool(_env("GOOGLE_OAUTH_REFRESH_TOKEN"))
-    comando, args = "python", [str(SERVIDOR)]
-    workspace_args = ["workspace-mcp", "--tools", *(s for s in activos), "--tool-tier", _env("GOOGLE_MCP_NIVEL") or "core"]
-    if g.solo_lectura():
-        workspace_args.append("--read-only")
+    oauth = {"clientId": _env("GOOGLE_OAUTH_CLIENT_ID") or "<client-id>", "clientSecret": SECRETO}
+    servidores: dict = {f"gws-{s}": {"serverUrl": g.SERVICIOS[s].url, "oauth": oauth} for s in activos}
+    if servidor.herramientas():
+        servidores["google-envio"] = {"command": "python", "args": [str(SERVIDOR)]}
     return e.GoogleMcp(
         client_id=_env("GOOGLE_OAUTH_CLIENT_ID"), secreto_configurado=bool(_env("GOOGLE_OAUTH_CLIENT_SECRET")),
         redirect_uri=_env("GOOGLE_OAUTH_REDIRECT_URI"), cuenta=_env("USER_GOOGLE_EMAIL"), autorizado=autorizado,
-        solo_lectura=g.solo_lectura(), nivel=_env("GOOGLE_MCP_NIVEL") or "core", correo_prueba=_env("CORREO_PRUEBA"),
-        servicios=[e.ServicioGoogle(id=s.id, nombre=s.nombre, descripcion=s.descripcion, activo=s.id in activos, envia=s.envia,
-                                    scopes=list(s.scopes), falta_consentimiento=autorizado and s.id in activos and g.falta_consentimiento(s.id))
+        correo_prueba=_env("CORREO_PRUEBA"),
+        servicios=[e.ServicioGoogle(id=s.id, nombre=s.nombre, url=s.url, activo=s.id in activos, envia=s.envia, scopes=list(s.scopes),
+                                    falta_consentimiento=autorizado and s.id in activos and g.falta_consentimiento(s.id))
                    for s in g.SERVICIOS.values()],
-        herramientas=[e.HerramientaMcp(nombre=h["name"], descripcion=h["description"]) for h in servidor.herramientas()],
-        comando=comando, args=args, python=sys.executable,
-        configuracion={"mcpServers": {"google-workspace": {"command": comando, "args": args}}},
-        configuracion_workspace_mcp={"mcpServers": {"google_workspace": {"command": "uvx", "args": workspace_args, "env": {
-            "GOOGLE_OAUTH_CLIENT_ID": _env("GOOGLE_OAUTH_CLIENT_ID") or "<client-id>",
-            "GOOGLE_OAUTH_CLIENT_SECRET": "<client-secret del .env>",
-            **({"USER_GOOGLE_EMAIL": _env("USER_GOOGLE_EMAIL")} if _env("USER_GOOGLE_EMAIL") else {}),
-        }}}},
+        herramientas_envio=[e.HerramientaMcp(nombre=h["name"], descripcion=h["description"]) for h in servidor.herramientas()],
+        python=sys.executable, configuracion={"mcpServers": servidores},
     )
 
 
@@ -92,12 +86,6 @@ def guardar(p: e.PedidoGoogleMcp) -> e.GoogleMcp:
         if desconocidos or not p.servicios:
             raise servicios.PeticionInvalida(f"Servicios no válidos: {', '.join(desconocidos)}" if desconocidos else "Activa al menos un servicio.")
         cambios["GOOGLE_MCP_SERVICIOS"] = ",".join(s for s in g.SERVICIOS if s in p.servicios)
-    if "solo_lectura" in p.model_fields_set:
-        cambios["GOOGLE_MCP_SOLO_LECTURA"] = "true" if p.solo_lectura else ""
-    if "nivel" in p.model_fields_set:
-        if p.nivel not in NIVELES:
-            raise servicios.PeticionInvalida("El nivel de herramientas es core, extended o complete.")
-        cambios["GOOGLE_MCP_NIVEL"] = "" if p.nivel == "core" else p.nivel
     if not cambios:
         raise servicios.PeticionInvalida("No hay ningún ajuste que guardar.")
     _poner(cambios)
@@ -163,13 +151,43 @@ def desconectar() -> e.GoogleMcp:
     return leer()
 
 
-def probar(servicio: str, p: e.PedidoPruebaGoogle) -> e.PruebaNotificacion:
+def _servicio(servicio: str) -> None:
     if servicio not in g.SERVICIOS:
-        raise servicios.NoEncontrado(f"Servicio de Google desconocido: {servicio}")
-    destinatario = p.destinatario.strip()
-    if g.SERVICIOS[servicio].envia and destinatario and not (_CORREO.match(destinatario) or destinatario.startswith("spaces/")):
-        raise servicios.PeticionInvalida("Escribe un correo válido (o un espacio spaces/… en Google Chat).")
+        raise servicios.NoEncontrado(f"Servidor MCP de Google desconocido: {servicio}")
+
+
+def herramientas(servicio: str) -> e.PruebaMcp:
+    """Prueba del MCP oficial: conecta, inicia sesión MCP y lista sus herramientas."""
+    _servicio(servicio)
     try:
-        return e.PruebaNotificacion(ok=True, detalle=g.probar(servicio, destinatario, p.texto.strip()[:servidor.MAX_TEXTO]))
+        lista = g.mcp_herramientas(servicio)
+    except g.GoogleError as exc:
+        return e.PruebaMcp(ok=False, detalle=str(exc))
+    return e.PruebaMcp(ok=True, detalle=f"{len(lista)} herramienta(s) en {g.SERVICIOS[servicio].url}",
+                       herramientas=[e.HerramientaRemota(nombre=h.get("name", ""), descripcion=h.get("description", ""),
+                                                         esquema=h.get("inputSchema") or {}) for h in lista])
+
+
+def ejecutar(servicio: str, p: e.PedidoEjecutarMcp) -> e.PruebaNotificacion:
+    _servicio(servicio)
+    if not p.herramienta.strip():
+        raise servicios.PeticionInvalida("Elige una herramienta.")
+    try:
+        ok, texto = g.mcp_ejecutar(servicio, p.herramienta.strip(), p.argumentos)
+    except g.GoogleError as exc:
+        return e.PruebaNotificacion(ok=False, detalle=str(exc))
+    return e.PruebaNotificacion(ok=ok, detalle=texto[:20000])
+
+
+def enviar(servicio: str, p: e.PedidoPruebaGoogle) -> e.PruebaNotificacion:
+    """Envío directo (servidor propio): Gmail a un correo, Chat a un contacto o espacio."""
+    _servicio(servicio)
+    if not g.SERVICIOS[servicio].envia:
+        raise servicios.PeticionInvalida(f"{g.SERVICIOS[servicio].nombre} no envía mensajes.")
+    destinatario = p.destinatario.strip()
+    if not (_CORREO.match(destinatario) or (servicio == "chat" and destinatario.startswith("spaces/"))):
+        raise servicios.PeticionInvalida("Escribe un correo válido" + (" o un espacio spaces/…" if servicio == "chat" else "") + ".")
+    try:
+        return e.PruebaNotificacion(ok=True, detalle=g.enviar(servicio, destinatario, p.texto.strip()[:servidor.MAX_TEXTO]))
     except g.GoogleError as exc:
         return e.PruebaNotificacion(ok=False, detalle=str(exc))
