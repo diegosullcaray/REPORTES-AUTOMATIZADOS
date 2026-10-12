@@ -1,7 +1,7 @@
 // Transporte: única puerta hacia la API de Python (proxy /api en next.config.ts). Sin estado ni presentación.
 import type {
   Archivo, ConfiguracionGeneral, Ejecucion, EjecucionDetalle, EstadoEnvio, PedidoEjecucion, Notificaciones, Perfil, PedidoConfiguracion, PedidoCuenta, PedidoNotificaciones, PruebaConexion, PruebaNotificacion, ReporteDetalle, ReporteResumen,
-  Servidor, ServidorMcp, Sesion, Solicitud, Verificacion, VerificacionGrupo, VistaPrevia,
+  GoogleMcp, PedidoGoogleMcp, Servidor, Sesion, Solicitud, Verificacion, VerificacionGrupo, VistaPrevia,
 } from "./tipos";
 
 export class ErrorApi extends Error {
@@ -83,8 +83,12 @@ export const api = {
   guardarConfiguracion: (cambios: PedidoConfiguracion) => pedir<ConfiguracionGeneral>("/configuracion", { method: "PUT", body: JSON.stringify(cambios) }),
   notificaciones: () => pedir<Notificaciones>("/notificaciones"),
   guardarNotificaciones: (cambios: PedidoNotificaciones) => pedir<Notificaciones>("/notificaciones", { method: "PUT", body: JSON.stringify(cambios) }),
-  mcp: () => pedir<ServidorMcp[]>("/mcp"),
-  enviarMensajeMcp: (servidor: string, texto: string) => pedir<PruebaNotificacion>(`/mcp/${encodeURIComponent(servidor)}/mensaje`, enviar({ texto })),
+  googleMcp: () => pedir<GoogleMcp>("/mcp/google"),
+  guardarGoogleMcp: (cambios: PedidoGoogleMcp) => pedir<GoogleMcp>("/mcp/google", { method: "PUT", body: JSON.stringify(cambios) }),
+  autorizarGoogle: (redirect_uri: string) => pedir<{ url: string; redirect_uri: string }>("/mcp/google/autorizar", enviar({ redirect_uri })),
+  codigoGoogle: (codigo: string, state?: string) => pedir<GoogleMcp>("/mcp/google/codigo", enviar({ codigo, state })),
+  desconectarGoogle: () => pedir<GoogleMcp>("/mcp/google/autorizacion", { method: "DELETE" }),
+  probarGoogle: (servicio: string, destinatario = "", texto = "") => pedir<PruebaNotificacion>(`/mcp/google/${encodeURIComponent(servicio)}/prueba`, enviar({ destinatario, texto })),
   probarNotificacion: (canal: "correo" | "chat") => pedir<PruebaNotificacion>(`/notificaciones/${canal}/prueba`, { method: "POST" }),
   servidores: () => pedir<Servidor[]>("/servidores"),
   probarServidor: (nombre: string) => pedir<PruebaConexion>(`/servidores/${encodeURIComponent(nombre)}/prueba`, { method: "POST" }),

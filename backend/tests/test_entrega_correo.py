@@ -142,4 +142,5 @@ def test_rechazo_de_la_cuenta_se_informa_sin_traza(entorno, monkeypatch, capsys)
 
 def test_el_codigo_no_trae_secretos():
     texto = "\n".join(p.read_text(encoding="utf-8") for p in (Path(__file__).resolve().parents[1] / "src").rglob("*.py"))
-    assert "smtp.gmail.com" in texto and "chat.googleapis.com" not in texto and "AIzaSy" not in texto
+    # La base de la API de Chat (mcp_google) es pública; lo que no debe aparecer es un webhook (…/v1/spaces/<id>/messages?key=…).
+    assert "smtp.gmail.com" in texto and "chat.googleapis.com/v1/spaces/" not in texto and "AIzaSy" not in texto

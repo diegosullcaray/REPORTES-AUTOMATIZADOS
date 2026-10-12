@@ -239,22 +239,65 @@ class HerramientaMcp(BaseModel):
     descripcion: str
 
 
-class ServidorMcp(BaseModel):
-    """Servidor MCP local. Sin secretos: el webhook solo se informa como configurado o no."""
-
+class ServicioGoogle(BaseModel):
     id: str
     nombre: str
     descripcion: str
-    webhook_configurado: bool
+    activo: bool
+    envia: bool                     # su prueba envía de verdad (correo o mensaje)
+    scopes: list[str]
+    falta_consentimiento: bool      # activo, pero el token no tiene sus permisos: volver a autorizar
+
+
+class GoogleMcp(BaseModel):
+    """MCP de Google Workspace. Sin secretos: el Client secret y el token solo se informan como configurados o no."""
+
+    client_id: str
+    secreto_configurado: bool
+    redirect_uri: str               # vacío = la web usa su propia página /configuracion/mcp
+    cuenta: str
+    autorizado: bool
+    solo_lectura: bool
+    nivel: str
+    correo_prueba: str
+    servicios: list[ServicioGoogle]
+    herramientas: list[HerramientaMcp]
     comando: str
     args: list[str]
-    python: str                     # intérprete con el que corre la API (referencia para el comando)
-    herramientas: list[HerramientaMcp]
-    configuracion: dict             # bloque `mcpServers` listo para pegar en .mcp.json
+    python: str
+    configuracion: dict             # este servidor (usa la autorización de la web)
+    configuracion_workspace_mcp: dict  # alternativa: el servidor comunitario workspace-mcp
 
 
-class PedidoMensajeMcp(BaseModel):
-    texto: str
+class PedidoGoogleMcp(BaseModel):
+    """Solo se cambian los campos enviados; texto vacío = quitar la variable del .env."""
+
+    client_id: str | None = None
+    client_secret: str | None = None
+    redirect_uri: str | None = None
+    cuenta: str | None = None
+    servicios: list[str] | None = None
+    solo_lectura: bool | None = None
+    nivel: str | None = None
+
+
+class PedidoAutorizacion(BaseModel):
+    redirect_uri: str = ""
+
+
+class Autorizacion(BaseModel):
+    url: str
+    redirect_uri: str
+
+
+class PedidoCodigo(BaseModel):
+    codigo: str
+    state: str | None = None
+
+
+class PedidoPruebaGoogle(BaseModel):
+    destinatario: str = ""
+    texto: str = ""
 
 
 class PedidoConfiguracion(BaseModel):

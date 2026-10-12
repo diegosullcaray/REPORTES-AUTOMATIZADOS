@@ -192,14 +192,34 @@ def probar_notificacion(canal: str):
     return notificaciones.probar(canal)
 
 
-@app.get("/api/mcp", response_model=list[e.ServidorMcp])
-def servidores_mcp():
-    return mcp.listar()
+@app.get("/api/mcp/google", response_model=e.GoogleMcp)
+def leer_google_mcp():
+    return mcp.leer()
 
 
-@app.post("/api/mcp/{servidor}/mensaje", response_model=e.PruebaNotificacion)
-def mensaje_mcp(servidor: str, pedido: e.PedidoMensajeMcp):
-    return mcp.enviar_mensaje(servidor, pedido.texto)
+@app.put("/api/mcp/google", response_model=e.GoogleMcp)
+def guardar_google_mcp(pedido: e.PedidoGoogleMcp):
+    return mcp.guardar(pedido)
+
+
+@app.post("/api/mcp/google/autorizar", response_model=e.Autorizacion)
+def autorizar_google(pedido: e.PedidoAutorizacion):
+    return mcp.autorizar(pedido)
+
+
+@app.post("/api/mcp/google/codigo", response_model=e.GoogleMcp)
+def codigo_google(pedido: e.PedidoCodigo):
+    return mcp.canjear(pedido)
+
+
+@app.delete("/api/mcp/google/autorizacion", response_model=e.GoogleMcp)
+def desconectar_google():
+    return mcp.desconectar()
+
+
+@app.post("/api/mcp/google/{servicio}/prueba", response_model=e.PruebaNotificacion)
+def probar_google(servicio: str, pedido: e.PedidoPruebaGoogle):
+    return mcp.probar(servicio, pedido)
 
 
 @app.get("/api/servidores", response_model=list[e.Servidor])

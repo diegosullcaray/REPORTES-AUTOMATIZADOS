@@ -24,7 +24,7 @@ function useMigas(): Miga[] {
   if (!seccion) return [{ texto: "Inicio" }];
   const raiz: Miga = { texto: SECCION[seccion] ?? seccion, href: `/${seccion}` };
   if (!id) return [{ texto: raiz.texto }];
-  if (seccion === "configuracion") return [raiz, { texto: id === "notificaciones" ? "Notificaciones" : id }];
+  if (seccion === "configuracion") return [raiz, { texto: id === "notificaciones" ? "Notificaciones" : id === "mcp" ? "MCP · Google Workspace" : id }];
   if (seccion === "reportes") {
     const nombre = decodeURIComponent(id);
     const r = datos?.find((x) => x.nombre === nombre);

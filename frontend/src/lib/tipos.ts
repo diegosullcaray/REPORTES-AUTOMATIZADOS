@@ -213,17 +213,46 @@ export interface HerramientaMcp {
   descripcion: string;
 }
 
-/** Servidor MCP local. Sin secretos: el webhook solo se informa como configurado o no. */
-export interface ServidorMcp {
+export interface ServicioGoogle {
   id: string;
   nombre: string;
   descripcion: string;
-  webhook_configurado: boolean;
+  activo: boolean;
+  /** Su prueba envía de verdad (correo o mensaje): pide destinatario y confirmación. */
+  envia: boolean;
+  scopes: string[];
+  /** Activo, pero el token no tiene sus permisos: hay que volver a autorizar. */
+  falta_consentimiento: boolean;
+}
+
+/** MCP de Google Workspace. El Client secret y el token nunca llegan al navegador: solo si están configurados. */
+export interface GoogleMcp {
+  client_id: string;
+  secreto_configurado: boolean;
+  redirect_uri: string;
+  cuenta: string;
+  autorizado: boolean;
+  solo_lectura: boolean;
+  nivel: string;
+  correo_prueba: string;
+  servicios: ServicioGoogle[];
+  herramientas: HerramientaMcp[];
   comando: string;
   args: string[];
   python: string;
-  herramientas: HerramientaMcp[];
   configuracion: Record<string, unknown>;
+  configuracion_workspace_mcp: Record<string, unknown>;
+}
+
+/** Solo se envían los campos cambiados; texto vacío = quitar la variable del .env. */
+export interface PedidoGoogleMcp {
+  client_id?: string;
+  client_secret?: string;
+  redirect_uri?: string;
+  cuenta?: string;
+  servicios?: string[];
+  solo_lectura?: boolean;
+  nivel?: string;
 }
 
 /** Solo se envían los campos cambiados; texto vacío = quitar la variable del .env. */
