@@ -234,6 +234,29 @@ class PruebaNotificacion(BaseModel):
     detalle: str
 
 
+class HerramientaMcp(BaseModel):
+    nombre: str
+    descripcion: str
+
+
+class ServidorMcp(BaseModel):
+    """Servidor MCP local. Sin secretos: el webhook solo se informa como configurado o no."""
+
+    id: str
+    nombre: str
+    descripcion: str
+    webhook_configurado: bool
+    comando: str
+    args: list[str]
+    python: str                     # intérprete con el que corre la API (referencia para el comando)
+    herramientas: list[HerramientaMcp]
+    configuracion: dict             # bloque `mcpServers` listo para pegar en .mcp.json
+
+
+class PedidoMensajeMcp(BaseModel):
+    texto: str
+
+
 class PedidoConfiguracion(BaseModel):
     """Solo se cambian los campos enviados; texto vacío = quitar la variable del .env."""
 

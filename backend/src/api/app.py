@@ -19,7 +19,7 @@ from datetime import date
 from fastapi import FastAPI, HTTPException, Query, Request, Response
 from fastapi.responses import FileResponse, JSONResponse
 
-from . import ejecuciones, notificaciones, servicios, sesion
+from . import ejecuciones, mcp, notificaciones, servicios, sesion
 from . import esquemas as e
 
 
@@ -190,6 +190,16 @@ def guardar_notificaciones(pedido: e.PedidoNotificaciones):
 @app.post("/api/notificaciones/{canal}/prueba", response_model=e.PruebaNotificacion)
 def probar_notificacion(canal: str):
     return notificaciones.probar(canal)
+
+
+@app.get("/api/mcp", response_model=list[e.ServidorMcp])
+def servidores_mcp():
+    return mcp.listar()
+
+
+@app.post("/api/mcp/{servidor}/mensaje", response_model=e.PruebaNotificacion)
+def mensaje_mcp(servidor: str, pedido: e.PedidoMensajeMcp):
+    return mcp.enviar_mensaje(servidor, pedido.texto)
 
 
 @app.get("/api/servidores", response_model=list[e.Servidor])
