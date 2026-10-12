@@ -6,12 +6,11 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { Chip, ErrorEnLinea } from "@/components/estados";
+import { useCorte } from "@/components/fecha-cierre";
 import { Marco } from "@/components/marco";
 import { Pagina } from "@/components/pagina";
 import { Ordenable, TablaDatos } from "@/components/tabla-datos";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useConsulta } from "@/hooks/use-consulta";
 import { api } from "@/lib/api";
@@ -189,19 +188,12 @@ export function PanelValidacionMasiva() {
   const grupo: Grupo = pedido && pedido in GRUPOS ? pedido : "piero";
   const reportes = useConsulta("reportes", api.reportes);
   const config = useConsulta("configuracion", api.configuracion);
-  const [elegido, setCorte] = useState<string | null>(null); // null = el corte mensual del .env
   const [resultados, setResultados] = useState<Partial<Record<Grupo, VerificacionGrupo | null>>>({});
-  const corte = elegido ?? config.datos?.corte_mensual.fecha ?? "";
-  const origen = elegido ? "Fecha elegida a mano" : config.datos?.corte_mensual.origen ?? "";
+  const corte = useCorte("mensual", config.datos?.corte_mensual.fecha); // se elige en la cabecera (Fecha de cierre)
 
   return (
     <Pagina>
       <Marco icono={<ShieldCheck />} titulo="Validación de tablas" descripcion="¿Llegaron las tablas al corte? Se verifican todas las de los reportes mensuales de cada responsable, sin ejecutar nada (solo lectura).">
-        <div className="flex flex-col gap-1">
-          <Label htmlFor="corte-masivo">Fecha de corte (fin de mes)</Label>
-          <Input id="corte-masivo" type="date" value={corte} onChange={(ev) => setCorte(ev.target.value)} className="w-48" aria-invalid={!!errorDeCorte("mensual", corte)} />
-          <span className="text-xs text-muted-foreground">{errorDeCorte("mensual", corte) ?? origen}</span>
-        </div>
         {reportes.error ? <ErrorEnLinea titulo="No se pudo cargar el catálogo" detalle={reportes.error} onReintentar={reportes.recargar} /> : (
           <Tabs value={grupo} onValueChange={(v) => router.replace(`/validacion?grupo=${v}`, { scroll: false })}>
             <TabsList className="w-full justify-start overflow-x-auto no-scrollbar sm:w-fit">

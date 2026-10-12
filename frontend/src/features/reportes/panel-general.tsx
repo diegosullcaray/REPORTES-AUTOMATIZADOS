@@ -67,7 +67,7 @@ export function PanelGeneral({ reporte, corte }: { reporte: ReporteDetalle; cort
 
   return (
     <div className="flex flex-col gap-4">
-      <Tarjeta titulo="Ejecución" descripcion="Ejecuta el reporte con el corte elegido arriba.">
+      <Tarjeta titulo="Ejecución" descripcion={`Corte ${corte ? fecha(corte) : "—"}: se cambia en «Fecha de cierre» de la cabecera.`}>
         <div className="flex flex-wrap gap-3">
           <Button onClick={() => setConfirmando(true)} disabled={!!motivo || enviando || corriendo} title={motivo ?? undefined}>
             <Play /> {corriendo ? "Ejecutando…" : "Ejecutar"}

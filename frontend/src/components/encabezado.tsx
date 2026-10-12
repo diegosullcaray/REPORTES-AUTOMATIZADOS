@@ -6,6 +6,7 @@ import { Fragment } from "react";
 import {
   Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { FiltroCierre } from "@/components/fecha-cierre";
 import { Hora } from "@/components/hace";
 import { ModoTema } from "@/components/modo-tema";
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -56,6 +57,7 @@ export function Encabezado() {
           ))}
         </BreadcrumbList>
       </Breadcrumb>
+      <FiltroCierre />
       <Hora />
       <ModoTema />
     </header>
