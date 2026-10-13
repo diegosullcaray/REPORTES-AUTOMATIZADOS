@@ -6,7 +6,7 @@ import { TablaEjecuciones } from "@/features/ejecuciones/tabla-ejecuciones";
 export default function PaginaEjecuciones() {
   return (
     <Pagina>
-      <Marco icono={<History />} titulo="Ejecuciones" descripcion="Todas las ejecuciones de reportes en un solo lugar; se actualiza sola mientras hay algo en curso.">
+      <Marco icono={<History />} titulo="Ejecuciones" descripcion="Agrupadas por reporte y fecha de corte: abre un proceso para ver sus pasos. Se actualiza sola.">
         <TablaEjecuciones />
       </Marco>
     </Pagina>
