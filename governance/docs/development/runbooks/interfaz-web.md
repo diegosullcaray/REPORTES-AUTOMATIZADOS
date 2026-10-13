@@ -54,6 +54,7 @@ insignias (tipo, servidor, responsable · Nº). La pestaña abierta queda en la 
 | Pestaña | Qué hace | Equivale a |
 |---|---|---|
 | General | Tarjeta **Ejecución** (Ejecutar, Copiar comando y el **log en vivo**) y tarjeta **Parámetros** (correo, confirmaciones y estado de las tablas) | `python main.py <r> --fecha-corte …` |
+| General (CMG Mora) | Bloque **Google Chat**: casilla «Enviar el archivo generado por Chat» (marcada si hay destinatario) y a quién (`ENTREGA_CHAT_CMG_MORA` en el `.env`, editable aquí). Ejecuta con `--chat`: tras el TXT, mensaje directo con el archivo adjunto usando la cuenta de Google autorizada en MCP. Si el envío falla, el TXT queda en Archivos y la ejecución termina en error | `python main.py cmg-mora --fecha-corte … --chat` |
 | Ejecuciones | Agrupadas por fecha de corte; la más reciente abierta con su proceso paso a paso (✓ / X falta / falla resaltada) y **Ver log** por paso | — |
 | Archivos | Excel, imagen y textos de la carpeta del reporte, agrupados **por ejecución** (se abre cada una para ver sus archivos; los que no son de ninguna van en «Sin ejecución registrada»), con **vista previa** (200 filas por hoja) y descarga | `data/outputs/<…>/` |
 | Correo (solo `cartera-sin-asignar`) | Estado de la prueba; **Enviar a toda la lista** exige marcar «Revisé el correo de prueba» | `--correo todos --conforme` |

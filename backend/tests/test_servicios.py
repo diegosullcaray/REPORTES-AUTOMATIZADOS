@@ -76,3 +76,30 @@ def test_archivos_solo_muestra_lo_generado(tmp_path, monkeypatch):
         (tmp_path / nombre).write_bytes(b"x")
     assert sorted(a.nombre for a in servicios.archivos("cartera-sin-asignar")) == ["cartera.xlsx", "resumen.png"]
     assert sorted(ejecuciones._foto(tmp_path)) == ["cartera.xlsx", "resumen.png"]
+
+
+def test_cmg_mora_con_chat_exige_destinatario(monkeypatch):
+    pedido = PedidoEjecucion(reporte="cmg-mora", fecha_corte=date(2026, 10, 7), chat=True)
+    monkeypatch.delenv("ENTREGA_CHAT_CMG_MORA", raising=False)
+    with pytest.raises(servicios.PeticionInvalida, match="Google Chat"):
+        servicios.argumentos(pedido)
+    monkeypatch.setenv("ENTREGA_CHAT_CMG_MORA", "oscar.sanchez@confianza.pe")
+    assert servicios.argumentos(pedido) == ["cmg-mora", "--fecha-corte", "2026-10-07", "--chat"]
+    with pytest.raises(servicios.PeticionInvalida, match="no envía"):
+        servicios.argumentos(PedidoEjecucion(reporte="saca-tu-garra", fecha_corte=date(2026, 6, 30), chat=True))
+
+
+def test_guardar_destinatarios_de_chat(tmp_path, monkeypatch):
+    from api.esquemas import PedidoChat
+
+    env = tmp_path / ".env"
+    env.write_text("RCC_PASSWORD=x\n", encoding="utf-8")
+    monkeypatch.setattr(servicios, "ENV", env)
+    monkeypatch.delenv("ENTREGA_CHAT_CMG_MORA", raising=False)
+    d = servicios.guardar_chat("cmg-mora", PedidoChat(destinatarios=" oscar.sanchez@confianza.pe , oscar.sanchez@confianza.pe"))
+    assert d.envia_chat and d.chat_destinatarios == ["oscar.sanchez@confianza.pe"]
+    assert "ENTREGA_CHAT_CMG_MORA=oscar.sanchez@confianza.pe" in env.read_text(encoding="utf-8")
+    with pytest.raises(servicios.PeticionInvalida, match="no válido"):
+        servicios.guardar_chat("cmg-mora", PedidoChat(destinatarios="oscar"))
+    assert servicios.guardar_chat("cmg-mora", PedidoChat(destinatarios="")).chat_destinatarios == []
+    monkeypatch.delenv("ENTREGA_CHAT_CMG_MORA", raising=False)

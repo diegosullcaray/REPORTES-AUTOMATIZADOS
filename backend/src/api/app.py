@@ -96,6 +96,11 @@ def detalle_reporte(nombre: str):
     return servicios.detalle(nombre)
 
 
+@app.put("/api/reportes/{nombre}/chat", response_model=e.ReporteDetalle)
+def guardar_chat_reporte(nombre: str, pedido: e.PedidoChat):
+    return servicios.guardar_chat(nombre, pedido)
+
+
 # ---- validación de tablas y solicitud a Producción (solo SELECT)
 @app.post("/api/reportes/{nombre}/verificacion", response_model=e.Verificacion)
 def verificar(nombre: str, pedido: e.PedidoCorte):

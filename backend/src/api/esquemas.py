@@ -20,6 +20,7 @@ class ReporteResumen(BaseModel):
     escribe_en_bd: bool           # exige confirmar escritura
     vacio_valido: bool
     envia_correo: bool            # flujo prueba -> conforme -> todos
+    envia_chat: bool = False      # puede enviar el archivo generado por Google Chat (--chat)
     avisos: list[str]
 
 
@@ -41,6 +42,11 @@ class TablaReporte(BaseModel):
 class ReporteDetalle(ReporteResumen):
     corte: Corte
     tablas: list[TablaReporte]
+    chat_destinatarios: list[str] = []   # a quién se envía por Google Chat (ENTREGA_CHAT_<REPORTE> del .env)
+
+
+class PedidoChat(BaseModel):
+    destinatarios: str            # correos separados por coma; vacío = no enviar a nadie
 
 
 class PedidoCorte(BaseModel):
@@ -108,6 +114,7 @@ class PedidoEjecucion(BaseModel):
     confirmar_escritura: bool = False
     correo: Literal["no", "prueba", "todos"] = "prueba"   # solo reportes con envío de correo
     conforme: bool = False                                 # obligatorio con correo = todos
+    chat: bool = False                                     # enviar el archivo generado por Google Chat (reportes con envia_chat)
 
 
 class Ejecucion(BaseModel):

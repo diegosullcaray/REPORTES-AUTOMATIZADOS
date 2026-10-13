@@ -147,3 +147,21 @@ def test_mensaje_de_error_de_google(env):
     import urllib.error
     exc = urllib.error.HTTPError("u", 403, "x", {}, io.BytesIO(json.dumps({"error": {"message": "Chat app not found"}}).encode()))
     assert g._mensaje_error(exc) == "Google respondió 403: Chat app not found"
+
+
+def test_chat_con_adjunto_sube_y_lo_referencia(env, http, monkeypatch, tmp_path):
+    llamadas, respuestas = http
+    respuestas["findDirectMessage"] = {"name": "spaces/DM"}
+    archivo = tmp_path / "inserts.txt"
+    archivo.write_text("INSERT;", encoding="utf-8")
+    subidas = []
+
+    def urlopen(req, timeout):
+        subidas.append((req.full_url, req.get_header("Content-type"), req.data))
+        return Resp(json.dumps({"attachmentDataRef": {"resourceName": "R", "attachmentUploadToken": "T"}}))
+    monkeypatch.setattr(g.urllib.request, "urlopen", urlopen)
+    g.enviar_chat("tok", "oscar@x.pe", "hola", [archivo])
+    url, tipo, cuerpo = subidas[0]
+    assert url == "https://chat.googleapis.com/upload/v1/spaces/DM/attachments:upload?uploadType=multipart"
+    assert tipo.startswith("multipart/related; boundary=") and b'"filename": "inserts.txt"' in cuerpo and b"INSERT;" in cuerpo
+    assert llamadas[-1][2] == {"text": "hola", "attachment": [{"attachmentDataRef": {"resourceName": "R", "attachmentUploadToken": "T"}}]}

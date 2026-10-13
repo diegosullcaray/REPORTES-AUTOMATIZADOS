@@ -50,9 +50,17 @@ const PASOS_CORREO: { id: string; nombre: string; efecto: Efecto }[] = [
 ];
 const PASOS_SIMPLES: { id: string; nombre: string; efecto: Efecto }[] = [{ id: "generacion", nombre: "Generación", efecto: resultado }];
 
+/** Reportes que envían su archivo por Google Chat (--chat): generación → envío por Chat. */
+const conChat = (x: Ejecucion) => x.argumentos.includes("--chat");
+const PASOS_CHAT: { id: string; nombre: string; efecto: Efecto }[] = [
+  { id: "generacion", nombre: "Archivo generado", efecto: (x) => (resultado(x) === "fallo" && x.archivos.length > 0 ? "hecho" : resultado(x)) },
+  { id: "chat", nombre: "Enviado por Chat", efecto: (x) => (!conChat(x) || (resultado(x) === "fallo" && !x.archivos.length) ? null : resultado(x)) },
+];
+
 function armar(reporte: string, corte: string | null, ejecuciones: Ejecucion[]): Proceso {
   const recientes = [...ejecuciones].sort((a, b) => b.inicio.localeCompare(a.inicio));
-  const definicion = recientes.some((x) => correoDe(x.argumentos) !== null) ? PASOS_CORREO : PASOS_SIMPLES;
+  const definicion = recientes.some((x) => correoDe(x.argumentos) !== null) ? PASOS_CORREO
+    : recientes.some(conChat) ? PASOS_CHAT : PASOS_SIMPLES;
   const pasos = definicion.map(({ id, nombre, efecto }): Paso => {
     const tocan = recientes.filter((x) => efecto(x) !== null);
     const ultima = tocan[0] ?? null;

@@ -18,7 +18,7 @@ from functools import lru_cache
 from importlib import import_module
 from pathlib import Path
 
-from reportes.comun import correo
+from reportes.comun import correo, entrega_chat
 from reportes.comun.ejecutor import ReporteLote
 from reportes.comun.fechas import Cortes, fecha_iso, resolver_corte
 from dotenv import dotenv_values
@@ -73,13 +73,17 @@ AVISOS_PROPIOS = {
 }
 
 
+# Reportes que envían su archivo por Google Chat (opción --chat).
+ENVIAN_CHAT = {"cmg-mora"}
+
+
 def _resumen(r: Reporte) -> dict:
     lt = lote(r.nombre)
     return dict(
         nombre=r.nombre, grupo=r.grupo, orden=r.orden, frecuencia=r.frecuencia, servidores=list(r.servidores),
         descripcion=r.descripcion, carpeta=r.carpeta, es_lote=lt is not None,
         escribe_en_bd=bool(lt and lt.escribe_en_bd), vacio_valido=bool(lt and lt.vacio_valido),
-        envia_correo=bool(lt and lt.entrega is not None), avisos=list(lt.avisos) if lt else AVISOS_PROPIOS.get(r.nombre, []),
+        envia_correo=bool(lt and lt.entrega is not None), envia_chat=r.nombre in ENVIAN_CHAT, avisos=list(lt.avisos) if lt else AVISOS_PROPIOS.get(r.nombre, []),
     )
 
 
@@ -105,7 +109,26 @@ def detalle(nombre: str) -> e.ReporteDetalle:
                        confianza=t.confianza, verificable=t.verificable, condicion=regla_de(nombre, t.nombre))
         for t in tablas_de(nombre)
     ]
-    return e.ReporteDetalle(**_resumen(r), corte=corte, tablas=tablas)
+    destinos = entrega_chat.destinatarios(nombre) if nombre in ENVIAN_CHAT else []
+    return e.ReporteDetalle(**_resumen(r), corte=corte, tablas=tablas, chat_destinatarios=destinos)
+
+
+def guardar_chat(nombre: str, p: e.PedidoChat) -> e.ReporteDetalle:
+    """Guarda en el .env a quién se envía el archivo del reporte por Google Chat."""
+    reporte(nombre)
+    if nombre not in ENVIAN_CHAT:
+        raise PeticionInvalida(f"«{nombre}» no envía su archivo por Google Chat.")
+    correos = [c.strip() for c in p.destinatarios.split(",") if c.strip()]
+    malos = [c for c in correos if not entrega_chat.CORREO.match(c)]
+    if malos:
+        raise PeticionInvalida(f"Correo no válido: {', '.join(malos)}")
+    variable, valor = entrega_chat.variable(nombre), ",".join(dict.fromkeys(correos))
+    entorno.escribir(ENV, {variable: valor})
+    if valor:
+        os.environ[variable] = valor
+    else:
+        os.environ.pop(variable, None)
+    return detalle(nombre)
 
 
 # ---------------------------------------------------------------- validación de la fecha de corte
@@ -374,11 +397,18 @@ def argumentos(p: e.PedidoEjecucion) -> list[str]:
     """Valida el pedido con las reglas del reporte y devuelve los argumentos de `main.py`."""
     nombre = p.reporte
     corte = validar_corte(nombre, p.fecha_corte)
+    if p.chat and nombre not in ENVIAN_CHAT:
+        raise PeticionInvalida(f"«{nombre}» no envía su archivo por Google Chat.")
     lt = lote(nombre)
     if lt is None:
         if p.forzar or p.confirmar_escritura or p.correo == "todos":
             raise PeticionInvalida(f"«{nombre}» tiene lógica propia: no admite forzar, confirmar escritura ni envío de correo.")
-        return [nombre, "--mes", f"{corte:%Y-%m}"] if nombre in USAN_MES else [nombre, "--fecha-corte", f"{corte:%Y-%m-%d}"]
+        args = [nombre, "--mes", f"{corte:%Y-%m}"] if nombre in USAN_MES else [nombre, "--fecha-corte", f"{corte:%Y-%m-%d}"]
+        if p.chat:
+            if not entrega_chat.destinatarios(nombre):
+                raise PeticionInvalida("Indica a quién enviar por Google Chat (pestaña General) o desmarca el envío.")
+            args.append("--chat")
+        return args
     if lt.escribe_en_bd and not p.confirmar_escritura:
         raise PeticionInvalida(f"«{nombre}» crea/borra tablas permanentes: confirma la escritura en la base de datos.")
     args = [nombre, "--fecha-corte", f"{corte:%Y-%m-%d}"]

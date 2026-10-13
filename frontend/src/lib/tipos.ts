@@ -15,6 +15,8 @@ export interface ReporteResumen {
   escribe_en_bd: boolean;
   vacio_valido: boolean;
   envia_correo: boolean;
+  /** Puede enviar su archivo por Google Chat (--chat). */
+  envia_chat: boolean;
   avisos: string[];
 }
 
@@ -36,6 +38,8 @@ export interface TablaReporte {
 export interface ReporteDetalle extends ReporteResumen {
   corte: Corte;
   tablas: TablaReporte[];
+  /** A quién se envía el archivo por Google Chat (ENTREGA_CHAT_<REPORTE> del .env). */
+  chat_destinatarios: string[];
 }
 
 export type EstadoTabla = "OK" | "DESACTUALIZADA" | "NO EXISTE" | "ERROR" | "SIN CONTROL";
@@ -101,6 +105,7 @@ export interface PedidoEjecucion {
   confirmar_escritura?: boolean;
   correo?: Correo;
   conforme?: boolean;
+  chat?: boolean;
 }
 
 export type EstadoEjecucion = "en_cola" | "ejecutando" | "ok" | "error" | "configuracion" | "tablas_desactualizadas";

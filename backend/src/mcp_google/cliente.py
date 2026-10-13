@@ -13,13 +13,16 @@ from __future__ import annotations
 
 import base64
 import json
+import mimetypes
 import os
+import secrets
 import urllib.error
 import urllib.parse
 import urllib.request
 from dataclasses import dataclass
 from email.message import EmailMessage
 from email.utils import formataddr
+from pathlib import Path
 
 URL_AUTORIZACION = "https://accounts.google.com/o/oauth2/v2/auth"
 URL_TOKEN = "https://oauth2.googleapis.com/token"
@@ -185,10 +188,36 @@ def espacio_directo(token: str, correo: str) -> str:
     return _http("POST", f"{CHAT}/spaces:setup", datos=datos, token=token)["name"]
 
 
-def enviar_chat(token: str, para: str, texto: str) -> str:
-    """`para` es el correo de un contacto (mensaje directo) o un espacio `spaces/…`."""
+MAX_ADJUNTO = 200 * 1024 * 1024   # límite de Google Chat por archivo
+
+
+def subir_adjunto(token: str, espacio: str, ruta: Path) -> dict:
+    """Sube un archivo al espacio (media.upload, subida multipart) y devuelve su `attachmentDataRef`."""
+    if ruta.stat().st_size > MAX_ADJUNTO:
+        raise GoogleError(f"{ruta.name} supera los 200 MB que admite Google Chat.")
+    limite = f"limite_{secrets.token_hex(8)}"
+    tipo = mimetypes.guess_type(ruta.name)[0] or "application/octet-stream"
+    cuerpo = (f"--{limite}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n{json.dumps({'filename': ruta.name})}\r\n"
+              f"--{limite}\r\nContent-Type: {tipo}\r\n\r\n").encode() + ruta.read_bytes() + f"\r\n--{limite}--\r\n".encode()
+    url = f"https://chat.googleapis.com/upload/v1/{espacio}/attachments:upload?uploadType=multipart"
+    req = urllib.request.Request(url, data=cuerpo, method="POST", headers={
+        "Authorization": f"Bearer {token}", "Content-Type": f"multipart/related; boundary={limite}"})
+    try:
+        with urllib.request.urlopen(req, timeout=120) as resp:  # noqa: S310 - URL https fija de Google
+            return json.loads(resp.read().decode("utf-8"))["attachmentDataRef"]
+    except urllib.error.HTTPError as exc:
+        raise GoogleError(_mensaje_error(exc)) from exc
+    except (urllib.error.URLError, OSError, KeyError, ValueError) as exc:
+        raise GoogleError(f"No se pudo subir {ruta.name} a Google Chat ({type(exc).__name__})") from exc
+
+
+def enviar_chat(token: str, para: str, texto: str, adjuntos: list[Path] | None = None) -> str:
+    """`para` es el correo de un contacto (mensaje directo) o un espacio `spaces/…`; `adjuntos` van en el mismo mensaje."""
     espacio = para if para.startswith("spaces/") else espacio_directo(token, para)
-    return _http("POST", f"{CHAT}/{espacio}/messages", datos={"text": texto}, token=token).get("name", "")
+    mensaje: dict = {"text": texto}
+    if adjuntos:
+        mensaje["attachment"] = [{"attachmentDataRef": subir_adjunto(token, espacio, r)} for r in adjuntos]
+    return _http("POST", f"{CHAT}/{espacio}/messages", datos=mensaje, token=token).get("name", "")
 
 
 def espacios_chat(token: str, cantidad: int = 20) -> list[dict]:

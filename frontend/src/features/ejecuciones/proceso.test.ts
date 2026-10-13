@@ -52,3 +52,12 @@ test("reporte sin correo: un solo paso; en curso manda", () => {
   assert.deepEqual(estados(p), ["generacion:en_curso:2"]);
   assert.equal(p.estado, "en_curso");
 });
+
+test("reporte con envío por Chat: archivo generado y luego enviado; si el envío falla, el TXT queda hecho", () => {
+  const ok = agruparProcesos([ej("cmg-mora", "ok", "2026-10-13T08:00", [...C, "--chat"], ["inserts_2026-10-12.txt"])])[0];
+  assert.deepEqual(estados(ok), ["generacion:hecho:1", "chat:hecho:1"]);
+  const falla = agruparProcesos([ej("cmg-mora", "error", "2026-10-13T08:00", [...C, "--chat"], ["inserts_2026-10-12.txt"])])[0];
+  assert.deepEqual(estados(falla), ["generacion:hecho:1", "chat:fallo:1"]);
+  const sinTxt = agruparProcesos([ej("cmg-mora", "error", "2026-10-13T08:00", [...C, "--chat"])])[0];
+  assert.deepEqual(estados(sinTxt), ["generacion:fallo:1", "chat:falta:0"]);
+});
