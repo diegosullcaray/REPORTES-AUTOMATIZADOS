@@ -45,7 +45,9 @@ def _leer(id_: str) -> e.Ejecucion:
     ruta = _ruta(id_, "json")
     if not ruta.exists():
         raise KeyError(id_)
-    return e.Ejecucion.model_validate_json(ruta.read_text(encoding="utf-8"))
+    x = e.Ejecucion.model_validate_json(ruta.read_text(encoding="utf-8"))
+    x.archivos = [n for n in x.archivos if es_generado(n)]   # las ejecuciones antiguas pudieron registrar .json internos
+    return x
 
 
 def _guardar(x: e.Ejecucion) -> None:
@@ -81,8 +83,13 @@ def _anotar(id_: str, texto: str) -> None:
         log.write(texto)
 
 
+def es_generado(nombre: str) -> bool:
+    """Archivo entregable del reporte. Fuera: los .json internos (p. ej. estado_envio_*.json del correo) y los temporales de Excel."""
+    return not nombre.startswith("~$") and not nombre.lower().endswith(".json")
+
+
 def _foto(carpeta: Path) -> dict[str, float]:
-    return {f.name: f.stat().st_mtime for f in carpeta.iterdir() if f.is_file()} if carpeta.is_dir() else {}
+    return {f.name: f.stat().st_mtime for f in carpeta.iterdir() if f.is_file() and es_generado(f.name)} if carpeta.is_dir() else {}
 
 
 def _correr(id_: str) -> None:

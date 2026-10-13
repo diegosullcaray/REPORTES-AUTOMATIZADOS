@@ -31,13 +31,14 @@ from reportes.tablas import tablas_de
 from reportes.verificacion import Estado, mensaje_solicitud, mensaje_solicitud_grupo, nombre_resuelto, Resultado, verificar_reporte, verificar_tabla
 
 from . import entorno, sesion
+from .ejecuciones import es_generado
 from . import esquemas as e
 
 FILAS_VISTA_PREVIA = 200
 MAX_TEXTO = 200_000
 # Reportes de Erick que reciben el mes (AAAA-MM) en lugar de la fecha de corte.
 USAN_MES = frozenset({"bancarizados-producto", "indicadores-clientes"})
-TIPOS = {".xlsx": "excel", ".xlsm": "excel", ".jpg": "imagen", ".jpeg": "imagen", ".png": "imagen", ".txt": "texto", ".csv": "texto", ".json": "texto"}
+TIPOS = {".xlsx": "excel", ".xlsm": "excel", ".jpg": "imagen", ".jpeg": "imagen", ".png": "imagen", ".txt": "texto", ".csv": "texto"}
 
 
 class PeticionInvalida(ValueError):
@@ -424,7 +425,7 @@ def archivos(nombre: str) -> list[e.Archivo]:
     salida = [
         e.Archivo(nombre=f.name, tipo=TIPOS.get(f.suffix.lower(), "otro"), tamano=f.stat().st_size,
                   modificado=datetime.fromtimestamp(f.stat().st_mtime).isoformat(timespec="seconds"))
-        for f in carpeta.iterdir() if f.is_file() and not f.name.startswith("~$")
+        for f in carpeta.iterdir() if f.is_file() and es_generado(f.name)
     ]
     return sorted(salida, key=lambda a: a.modificado, reverse=True)
 

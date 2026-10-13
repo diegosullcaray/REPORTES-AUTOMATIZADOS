@@ -65,3 +65,14 @@ def test_vista_previa_de_excel(tmp_path, monkeypatch):
     v = servicios.vista_previa("saca-tu-garra", "r.xlsx")
     hoja = v.hojas[0]
     assert (hoja.nombre, hoja.columnas, hoja.total_filas, len(hoja.filas)) == ("Datos", ["A", "B"], 250, servicios.FILAS_VISTA_PREVIA)
+
+
+def test_archivos_solo_muestra_lo_generado(tmp_path, monkeypatch):
+    """El estado_envio_*.json del correo es interno: no aparece entre los archivos ni en las ejecuciones."""
+    from api import ejecuciones
+
+    monkeypatch.setattr(servicios, "carpeta_salida", lambda _: tmp_path)
+    for nombre in ("cartera.xlsx", "resumen.png", "estado_envio_20261012.json", "~$cartera.xlsx"):
+        (tmp_path / nombre).write_bytes(b"x")
+    assert sorted(a.nombre for a in servicios.archivos("cartera-sin-asignar")) == ["cartera.xlsx", "resumen.png"]
+    assert sorted(ejecuciones._foto(tmp_path)) == ["cartera.xlsx", "resumen.png"]
