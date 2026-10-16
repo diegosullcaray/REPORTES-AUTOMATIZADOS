@@ -46,5 +46,5 @@ def test_una_interfaz_solo_llega_a_la_infraestructura_por_composicion(tmp_path, 
 def test_los_reportes_y_la_composicion_pueden_usar_la_infraestructura(tmp_path, monkeypatch):
     _fuente(tmp_path, monkeypatch, "reportes/x.py", "from infraestructura.bd import leer_sql\nfrom aplicacion.ejecucion import correr\n")
     assert list(vg.r_capas()) == []
-    _fuente(tmp_path, monkeypatch, "composicion.py", "from infraestructura import bd\nfrom interfaces.http import app\n")
+    _fuente(tmp_path, monkeypatch, "composicion.py", "from infraestructura import bd\nfrom interfaces.web import settings\n")
     assert list(vg.r_capas()) == []

@@ -4,15 +4,14 @@ import os
 from urllib.parse import parse_qs, urlparse
 
 import pytest
-from fastapi.testclient import TestClient
+from tests.cliente_web import TestClient
 
 from aplicacion.casos_uso import google as mcp
 from aplicacion.casos_uso import sesion
 from infraestructura import entorno
 from infraestructura.google import cliente as g
-from interfaces.http.app import app
 
-cliente = TestClient(app)
+cliente = TestClient()
 cliente.cookies.set(sesion.COOKIE, sesion.emitir("tester"))
 ID = "123-abc.apps.googleusercontent.com"
 VARS = ("GOOGLE_OAUTH_CLIENT_ID", "GOOGLE_OAUTH_CLIENT_SECRET", "GOOGLE_OAUTH_REDIRECT_URI", "USER_GOOGLE_EMAIL", "GOOGLE_MCP_SERVICIOS",

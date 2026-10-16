@@ -24,7 +24,7 @@ CAPAS = [
     ("dominio", "Reglas puras del negocio: reportes, tablas, fechas de corte, verificación. Sin I/O ni frameworks."),
     ("aplicacion", "Casos de uso, puertos (interfaces hacia afuera) y contratos (`dto.py`). Depende solo del dominio."),
     ("infraestructura", "Adaptadores de los puertos: bases de datos, Excel, correo, Google, `.env`, cola de ejecuciones."),
-    ("interfaces", "Entradas: API HTTP (FastAPI), consola (`main.py`) y servidor MCP. Solo traducen al caso de uso."),
+    ("interfaces", "Entradas: API HTTP (Django, una app por tema), consola (`main.py`) y servidor MCP. Solo traducen al caso de uso."),
     ("reportes", "Un módulo por reporte del legado (T-SQL y formato de salida); se ejecutan con el ejecutor común."),
 ]
 

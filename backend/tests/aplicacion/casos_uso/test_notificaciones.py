@@ -3,14 +3,13 @@
 import os
 
 import pytest
-from fastapi.testclient import TestClient
+from tests.cliente_web import TestClient
 
 from aplicacion.casos_uso import sesion
 from infraestructura import correo_smtp as correo
 from infraestructura import entorno
-from interfaces.http.app import app
 
-cliente = TestClient(app)
+cliente = TestClient()
 cliente.cookies.set(sesion.COOKIE, sesion.emitir("tester"))
 WEBHOOK = "https://chat.googleapis.com/v1/spaces/AAA/messages?key=K&token=T"
 
@@ -86,4 +85,4 @@ def test_prueba_de_chat_usa_el_webhook(env, monkeypatch):
 
 def test_canal_desconocido_y_exige_sesion(env):
     assert cliente.post("/api/notificaciones/sms/prueba").status_code == 404
-    assert TestClient(app).get("/api/notificaciones").status_code == 401
+    assert TestClient().get("/api/notificaciones").status_code == 401

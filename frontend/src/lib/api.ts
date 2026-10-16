@@ -10,12 +10,12 @@ export class ErrorApi extends Error {
   }
 }
 
-const SIN_API = "No hay conexión con la API de reportes. Arráncala con: python -m uvicorn interfaces.http.app:app --app-dir src";
+const SIN_API = "No hay conexión con la API de reportes. Arráncala con: python manage.py runserver 127.0.0.1:8000 --noreload";
 
 function mensajeDe(cuerpo: unknown): string | null {
   const detalle = (cuerpo as { detail?: unknown } | null)?.detail;
   if (typeof detalle === "string") return detalle;
-  // 422 de validación de FastAPI: lista de { loc, msg }
+  // 422 de validación: lista de { loc, msg, type } (la devuelve interfaces/web/http.py)
   if (Array.isArray(detalle)) return detalle.map((d) => `${(d.loc ?? []).slice(1).join(".")}: ${d.msg}`).join(" · ");
   return null;
 }

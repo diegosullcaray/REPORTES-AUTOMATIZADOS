@@ -1,3 +1,4 @@
+import os
 import sys
 from pathlib import Path
 
@@ -6,6 +7,11 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 import composicion  # noqa: E402,F401 - conecta los adaptadores reales a los puertos
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "interfaces.web.settings")
+import django  # noqa: E402
+
+django.setup()
 
 
 @pytest.fixture(autouse=True)

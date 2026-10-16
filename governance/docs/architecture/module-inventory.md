@@ -99,27 +99,43 @@ La dependencia apunta solo hacia adentro (`dominio` ← `aplicacion` ← `infrae
 | `infraestructura/imagen.py` | Imagen JPG del resumen jerárquico (el `Reporte_Temporal.jpg` que el legado pegaba en el cuerpo del correo) |
 | `infraestructura/lector_archivos.py` | Lectura de archivos generados para la vista previa (Excel con openpyxl) |
 
-### `interfaces/` — Entradas: API HTTP (FastAPI), consola (`main.py`) y servidor MCP. Solo traducen al caso de uso.
+### `interfaces/` — Entradas: API HTTP (Django, una app por tema), consola (`main.py`) y servidor MCP. Solo traducen al caso de uso.
 
 | Módulo | Qué hace |
 |---|---|
 | `interfaces/cli/principal.py` | Consola: `python main.py <comando>`. Traduce la línea de comandos a casos de uso y reportes |
 | `interfaces/cli/tablas.py` | Subcomandos de `main.py`: tablas, solicitud-actualizacion |
-| `interfaces/http/app.py` | API HTTP de la interfaz web de reportes (capa de interfaces: solo traduce HTTP a casos de uso) |
-| `interfaces/http/rutas/configuracion.py` | Configuración editable desde la web: perfil, ajustes generales, bases de datos y notificaciones (correo y Google Chat) |
-| `interfaces/http/rutas/ejecuciones.py` | Ejecuciones: encolar un reporte, ver el historial y eliminar ejecuciones |
-| `interfaces/http/rutas/google.py` | MCP de Google Workspace: cliente OAuth, autorización, servidores MCP oficiales y envío directo |
-| `interfaces/http/rutas/reportes.py` | Catálogo de reportes, su detalle, verificación de tablas, archivos generados y envío por correo o Chat |
-| `interfaces/http/rutas/sesion.py` | Inicio y cierre de sesión, y cambio de usuario o contraseña (credenciales en el .env) |
-| `interfaces/http/rutas/validacion.py` | Validación masiva de las tablas de los reportes mensuales de un responsable (Piero / Erick): verificar, historial y mensaje por Chat |
 | `interfaces/mcp/servidor.py` | Servidor MCP propio (stdio) para ENVIAR: correo por Gmail y mensajes de Google Chat a contactos o espacios |
+| `interfaces/web/apps/configuracion/apps.py` | — |
+| `interfaces/web/apps/configuracion/urls.py` | — |
+| `interfaces/web/apps/configuracion/views.py` | Configuración editable desde la web: perfil, ajustes generales, bases de datos y notificaciones (correo y Google Chat) |
+| `interfaces/web/apps/ejecuciones/apps.py` | — |
+| `interfaces/web/apps/ejecuciones/urls.py` | — |
+| `interfaces/web/apps/ejecuciones/views.py` | Ejecuciones: encolar un reporte, ver el historial y eliminar ejecuciones |
+| `interfaces/web/apps/google/apps.py` | — |
+| `interfaces/web/apps/google/urls.py` | — |
+| `interfaces/web/apps/google/views.py` | MCP de Google Workspace: cliente OAuth, autorización, servidores MCP oficiales, envío directo y firma de Gmail |
+| `interfaces/web/apps/reportes/apps.py` | — |
+| `interfaces/web/apps/reportes/urls.py` | — |
+| `interfaces/web/apps/reportes/views.py` | Catálogo de reportes, su detalle, verificación de tablas, archivos generados y envío por correo o Chat |
+| `interfaces/web/apps/sesion/apps.py` | — |
+| `interfaces/web/apps/sesion/urls.py` | — |
+| `interfaces/web/apps/sesion/views.py` | Inicio y cierre de sesión, y cambio de usuario o contraseña (credenciales en el .env) |
+| `interfaces/web/apps/validacion/apps.py` | — |
+| `interfaces/web/apps/validacion/urls.py` | — |
+| `interfaces/web/apps/validacion/views.py` | Validación masiva de las tablas de los reportes mensuales de un responsable (Piero / Erick): verificar, historial y mensaje por Chat |
+| `interfaces/web/http.py` | Utilidades HTTP de la interfaz web: respuestas JSON, lectura validada del cuerpo y de la consulta, y errores con su código |
+| `interfaces/web/middleware.py` | Middleware de la API: sesión obligatoria y traducción de errores de los casos de uso a códigos HTTP |
+| `interfaces/web/settings.py` | Ajustes de Django para la API de la web: sin base de datos, sin sesiones de Django (la sesión es nuestra cookie firmada) y sin plantillas |
+| `interfaces/web/urls.py` | Rutas de la API: cada app de `apps/` aporta las suyas bajo /api |
+| `interfaces/web/wsgi.py` | Punto de entrada WSGI de la API: conecta los adaptadores, crea la aplicación de Django y arranca la cola de ejecuciones |
 
 ### `reportes/` — Un módulo por reporte del legado (T-SQL y formato de salida); se ejecutan con el ejecutor común.
 
 21 módulos (ver «Reportes ejecutables»).
 
 
-## Pruebas (49 archivos)
+## Pruebas (51 archivos)
 
 Reflejan las capas: `tests/dominio`, `tests/aplicacion`, `tests/infraestructura`, `tests/interfaces` y `tests/reportes`.
 
@@ -165,8 +181,10 @@ Reflejan las capas: `tests/dominio`, `tests/aplicacion`, `tests/infraestructura`
 - `tests/infraestructura/test_lector_archivos.py`
 - `tests/interfaces/cli/test_principal.py`
 - `tests/interfaces/cli/test_tablas.py`
-- `tests/interfaces/http/test_app.py`
 - `tests/interfaces/mcp/test_servidor.py`
+- `tests/interfaces/web/test_api.py`
+- `tests/interfaces/web/test_http.py`
+- `tests/interfaces/web/test_middleware.py`
 - `tests/reportes/test_formatos_reportes.py`
 - `tests/reportes/test_r04_1_cmg_mora.py`
 - `tests/reportes/test_reportes_lote.py`

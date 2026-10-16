@@ -34,7 +34,7 @@ backend/src/
                       validacion · google · notificaciones · herramientas_envio · sesion
   infraestructura/    adaptadores de los puertos: bd, excel, imagen, correo_smtp, google/, entorno, cola_ejecuciones, …
   interfaces/
-    http/             FastAPI: app.py + rutas/ (una por tema)
+    web/              Django: proyecto + una app por tema (ADR-0015)
     cli/              consola (`main.py`)
     mcp/              servidor MCP de envío (stdio)
   reportes/           un módulo por reporte del legado (mismas rutas r<NN>_<nombre>.py)
@@ -46,7 +46,7 @@ backend/src/
 | Capa | Puede importar | No puede importar |
 |---|---|---|
 | `dominio` | `dominio` | cualquier otra capa; I/O, `os`, `sys`, red, `pandas`, `pydantic`, frameworks |
-| `aplicacion` | `dominio` | `infraestructura`, `interfaces`; librerías de I/O (`smtplib`, `urllib.request`, `sqlalchemy`, `openpyxl`, `fastapi`…) |
+| `aplicacion` | `dominio` | `infraestructura`, `interfaces`; librerías de I/O (`smtplib`, `urllib.request`, `sqlalchemy`, `openpyxl`, `django`…) |
 | `infraestructura` | `aplicacion`, `dominio` | `interfaces` |
 | `interfaces` | `aplicacion`, `dominio`, `composicion` | `infraestructura` (la cablea `composicion`) |
 | `reportes` (plugins) | `dominio`, `aplicacion`, `infraestructura` | `interfaces` |
@@ -85,7 +85,7 @@ Un adaptador puede ser un **módulo** (un módulo con las funciones correctas cu
 | `api/servicios.py` | `aplicacion/casos_uso/{catalogo,verificacion,ejecuciones,archivos,configuracion}.py` |
 | `api/{mcp,notificaciones,validacion,envio_correo,sesion}.py` | `aplicacion/casos_uso/{google,notificaciones,validacion,correo_reporte,sesion}.py` |
 | `api/esquemas.py` | `aplicacion/dto.py` |
-| `api/app.py` | `interfaces/http/app.py` + `interfaces/http/rutas/*.py` |
+| `api/app.py` | `interfaces/web/` (Django, una app por tema; antes `interfaces/http/`) |
 | `api/ejecuciones.py`, `api/entorno.py` | `infraestructura/cola_ejecuciones.py`, `infraestructura/entorno.py` |
 | `mcp_google/cliente.py` / `servidor.py` | `infraestructura/google/cliente.py` / `interfaces/mcp/servidor.py` (+ `aplicacion/casos_uso/herramientas_envio.py`) |
 | `reportes/cli_tablas.py` | `interfaces/cli/tablas.py` |
@@ -101,15 +101,15 @@ Un adaptador puede ser un **módulo** (un módulo con las funciones correctas cu
 
 - **Reporte nuevo**: módulo en `reportes/…` con `ReporteLote`; se registra en `dominio/reportes.py`, sus tablas en `dominio/tablas.py`. Importa `aplicacion.ejecucion` y, si lo necesita, `infraestructura.bd`. Ver la [guía](../../development/report-creation-guide.md).
 - **Integración nueva** (otro canal de entrega, otra base): define el `Protocol` en `aplicacion/puertos.py`, implementa el adaptador en `infraestructura/`, regístralo en `composicion.py` y llámalo desde un caso de uso.
-- **Caso de uso nuevo**: función en `aplicacion/casos_uso/<tema>.py` que usa `puertos()`; contrato en `dto.py`; ruta en `interfaces/http/rutas/<tema>.py`; prueba en `tests/aplicacion/casos_uso/`.
+- **Caso de uso nuevo**: función en `aplicacion/casos_uso/<tema>.py` que usa `puertos()`; contrato en `dto.py`; vista en `interfaces/web/apps/<tema>/views.py`; prueba en `tests/aplicacion/casos_uso/`.
 
 ## Consecuencias
 
 - **Pruebas por capa**: `tests/dominio`, `tests/aplicacion`, `tests/infraestructura`, `tests/interfaces`, `tests/reportes` (cada carpeta es un paquete, así dos `test_verificacion.py` de capas distintas no chocan).
 - **Compuerta nueva** `arquitectura-capas` en `validar_gobernanza.py`: una importación hacia afuera o una librería de I/O en una capa interior es un error. Es una *función de aptitud* de la arquitectura: protege la decisión sin depender de la disciplina.
-- **`prueba-vecina`** exime a `interfaces/http/rutas/` (se prueban por HTTP en `test_app.py`).
+- **`prueba-vecina`** exime a `interfaces/web/apps/` y a `settings`/`urls`/`wsgi` (se prueban por HTTP en `tests/interfaces/web/test_api.py`).
 - Se podaron de la línea base las entradas que ya no producía ningún hallazgo (`tabla-fecha-por-validar`, y `fechas.py`, que ahora tiene prueba); no se congeló nada nuevo (ADR-0003).
-- Los registros de la web que guardaban rutas de código cambian: la API arranca con `python -m uvicorn interfaces.http.app:app --app-dir src` y el servidor MCP de envío es `backend/src/interfaces/mcp/servidor.py` (**quien lo haya pegado en su cliente MCP debe copiar de nuevo la configuración desde la pestaña Conectar**).
+- Los registros de la web que guardaban rutas de código cambian: la API arranca con `python manage.py runserver 127.0.0.1:8000 --noreload` y el servidor MCP de envío es `backend/src/interfaces/mcp/servidor.py` (**quien lo haya pegado en su cliente MCP debe copiar de nuevo la configuración desde la pestaña Conectar**).
 
 ## Riesgos y reversibilidad
 

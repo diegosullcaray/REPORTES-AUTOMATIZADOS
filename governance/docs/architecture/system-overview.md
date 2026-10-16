@@ -41,7 +41,7 @@ backend/
       google/cliente.py            Gmail, Chat y servidores MCP oficiales
       entregas/                    correo del resumen diario (cuenta MIS) y entrega por Chat
     interfaces/
-      http/app.py + rutas/         API de la web (una ruta por tema)
+      web/                         API de la web (Django): settings, urls, middleware, http.py y apps/ (una por tema)
       cli/principal.py · tablas.py comandos de `main.py`
       mcp/servidor.py              servidor MCP de envío (stdio)
     reportes/                      un módulo por reporte del legado
@@ -60,8 +60,8 @@ docs/LEGADO/                       archivo histórico, solo lectura
 
 | Capa | Puede importar | Nunca |
 |---|---|---|
-| `dominio` | `dominio` | otra capa · `os`, `sys`, red, `pandas`, `pydantic`, frameworks |
-| `aplicacion` | `dominio` | `infraestructura`, `interfaces` · `smtplib`, `urllib.request`, `sqlalchemy`, `openpyxl`, `fastapi`… |
+| `dominio` | `dominio` | otra capa · `os`, `sys`, red, `pandas`, `pydantic`, frameworks (`django`) |
+| `aplicacion` | `dominio` | `infraestructura`, `interfaces` · `smtplib`, `urllib.request`, `sqlalchemy`, `openpyxl`, `django`… |
 | `infraestructura` | `aplicacion`, `dominio` | `interfaces` |
 | `interfaces` | `aplicacion`, `dominio`, `composicion` | `infraestructura` (la cablea `composicion`) |
 | `reportes` | `dominio`, `aplicacion`, `infraestructura` | `interfaces`; otros reportes entre sí |

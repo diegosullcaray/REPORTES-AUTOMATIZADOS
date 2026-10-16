@@ -3,13 +3,12 @@
 import os
 
 import pytest
-from fastapi.testclient import TestClient
+from tests.cliente_web import TestClient
 
 from aplicacion.casos_uso import sesion
 from infraestructura import entorno
-from interfaces.http.app import app
 
-cliente = TestClient(app)
+cliente = TestClient()
 cliente.cookies.set(sesion.COOKIE, sesion.emitir("tester"))
 
 
@@ -69,4 +68,4 @@ def test_carpetas_y_driver_quedan_pendientes_de_reinicio(env):
 
 
 def test_la_edicion_exige_sesion():
-    assert TestClient(app).put("/api/configuracion", json={"corte_diario": ""}).status_code == 401
+    assert TestClient().put("/api/configuracion", json={"corte_diario": ""}).status_code == 401

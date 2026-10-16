@@ -160,14 +160,14 @@ python ..\governance\scripts\verificar.py   :: compuertas del repo (no se conect
 
 > Para levantar la API **y** la web juntas: `python iniciar.py` desde la raíz del repositorio ([README principal](../README.md#arranque-rápido)).
 
-La [interfaz web](../frontend/README.md) consume una API (FastAPI, `src/api/`) que vive en este backend. Se arranca desde `backend/`, con el entorno activado y el `.env` completo (si cambias el `.env`, reinicia la API):
+La [interfaz web](../frontend/README.md) consume una API (Django, `src/interfaces/web/`) que vive en este backend. Se arranca desde `backend/`, con el entorno activado y el `.env` completo (si cambias el `.env`, reinicia la API):
 
 ```bat
 env\Scripts\activate
-python -m uvicorn interfaces.http.app:app --app-dir src --host 127.0.0.1 --port 8000
+python manage.py runserver 127.0.0.1:8000 --noreload
 ```
 
-Escucha solo en `127.0.0.1`. Toda la API exige sesión; las credenciales están en el `.env`:
+`runserver` se lanza con `--noreload`: la cola de ejecuciones arranca una vez por proceso. Escucha solo en `127.0.0.1`. Toda la API exige sesión; las credenciales están en el `.env`:
 
 | Variable | Efecto |
 |---|---|
@@ -175,7 +175,7 @@ Escucha solo en `127.0.0.1`. Toda la API exige sesión; las credenciales están 
 | `WEB_CLAVE` | clave de la web. Si falta alguna de las dos, **nadie puede entrar** |
 | `SESION_SECRETO` | firma de la cookie. Vacío = se genera en cada arranque y las sesiones caen al reiniciar la API |
 
-La sesión dura 8 horas; tras 5 intentos fallidos el usuario queda bloqueado 5 minutos. Rutas: `src/interfaces/http/rutas/`; reglas de cada pantalla: `src/aplicacion/casos_uso/`.
+La sesión dura 8 horas; tras 5 intentos fallidos el usuario queda bloqueado 5 minutos. Rutas: una app de Django por tema en `src/interfaces/web/apps/`; reglas de cada pantalla: `src/aplicacion/casos_uso/`.
 
 ---
 
@@ -344,7 +344,7 @@ src/                          Clean Architecture por capas (ADR-0014): la depend
                               validacion · google · notificaciones · sesion
   infraestructura/            adaptadores: configuracion.py (.env y conexión), bd.py (ÚNICO acceso a SQL Server), excel.py,
                               imagen.py, correo_smtp.py, entorno.py, cola_ejecuciones.py, google/, entregas/
-  interfaces/                 http/ (FastAPI: app.py + rutas/), cli/ (comandos de main.py), mcp/ (servidor de envío)
+  interfaces/                 web/ (Django: apps/ por tema, middleware, http.py), cli/ (comandos de main.py), mcp/ (servidor de envío)
   reportes/                   un módulo por reporte del legado
     diarios/                  r02_cartera_sin_asignar.py, r04_1_cmg_mora.py … (número del legado)
     mensuales/piero/          r01_desembolsos_por_canal.py … r09_2_michael_castigos.py

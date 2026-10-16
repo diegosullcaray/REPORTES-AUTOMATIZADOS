@@ -11,7 +11,7 @@ Lo más rápido: **`python iniciar.py`** desde la raíz del repo (API + web, Ctr
 cd backend
 env\Scripts\activate
 pip install -r requirements.txt
-python -m uvicorn interfaces.http.app:app --app-dir src --host 127.0.0.1 --port 8000
+python manage.py runserver 127.0.0.1:8000 --noreload
 
 :: 2) Web (Node 20+, desde la raíz del repo)
 cd frontend
@@ -83,7 +83,7 @@ Si la API se reinicia con una ejecución en curso, queda en **Error** con la not
 ## Estructura
 
 ```text
-src/interfaces/http/  app.py · rutas/ (una por tema) — traducen HTTP a casos de uso
+src/interfaces/web/   Django: apps/ (sesion · reportes · validacion · ejecuciones · configuracion · google), http.py, middleware.py
 src/aplicacion/       casos_uso/ (reglas de cada pantalla) · dto.py (contratos) · puertos.py
 src/infraestructura/  cola_ejecuciones.py · entorno.py · google/ · …
 frontend/src/app/        rutas: / · /reportes · /reportes/[nombre] · /ejecuciones · /ejecuciones/[id] · /perfil; tokens.css (copia de MIS)

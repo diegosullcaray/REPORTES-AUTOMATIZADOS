@@ -3,16 +3,15 @@
 from datetime import date
 
 import pytest
-from fastapi.testclient import TestClient
+from tests.cliente_web import TestClient
 
 from aplicacion.casos_uso import sesion
 from aplicacion.casos_uso import verificacion as servicios
 from infraestructura import configuracion
-from interfaces.http.app import app
 from dominio.verificacion import Estado, Resultado, mensaje_solicitud_grupo
 
 CORTE = date(2026, 6, 30)
-cliente = TestClient(app)
+cliente = TestClient()
 cliente.cookies.set(sesion.COOKIE, sesion.emitir("tester"))
 
 
@@ -79,7 +78,7 @@ def test_mensaje_sin_pendientes_dice_que_no_hace_falta_pedir():
 
 
 def test_la_validacion_masiva_exige_sesion():
-    assert TestClient(app).post("/api/validacion/piero", json={}).status_code == 401
+    assert TestClient().post("/api/validacion/piero", json={}).status_code == 401
 
 
 def test_un_servidor_caido_no_se_reintenta_y_la_causa_sale_agrupada(monkeypatch):

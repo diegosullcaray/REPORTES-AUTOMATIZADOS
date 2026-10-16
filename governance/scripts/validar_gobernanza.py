@@ -26,7 +26,7 @@ sys.path.insert(0, str(BACK / "src"))
 import composicion  # noqa: E402,F401 - conecta los adaptadores: los reportes leen sus rutas por los puertos
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 LINEA_BASE = RAIZ / "governance" / "gobernanza.linea-base.json"
-FUENTES = [p for p in (BACK / "src").rglob("*.py") if "__pycache__" not in p.parts] + [BACK / "main.py"]
+FUENTES = [p for p in (BACK / "src").rglob("*.py") if "__pycache__" not in p.parts] + [BACK / "main.py", BACK / "manage.py"]
 
 
 @dataclass(frozen=True)
@@ -140,7 +140,7 @@ def r_fechas_fijas():
 def r_prueba():
     tests = {p.name for p in (BACK / "tests").rglob("test_*.py")} if (BACK / "tests").exists() else set()
     for p in FUENTES:
-        if p.stem in {"__init__", "main"} or "rutas" in p.parts:  # las rutas HTTP se prueban por HTTP en test_app.py
+        if p.stem in {"__init__", "main", "manage"} or "apps" in p.parts or p.name in {"settings.py", "urls.py", "wsgi.py"}:  # las apps de Django, sus ajustes y rutas se prueban por HTTP (tests/interfaces/web/test_api.py)
             continue
         if f"test_{p.stem}.py" not in tests:
             yield Hallazgo("prueba-vecina", "aviso", rel(p), "sin tests/test_<modulo>.py")
@@ -229,7 +229,7 @@ CAPAS = {
 }
 # librerías que una capa interior no puede importar (I/O, frameworks y proveedores); pandas y pydantic son tipos de datos y se admiten en `aplicacion`
 SIN_TERCEROS_DOMINIO = {"os", "sys", "subprocess", "smtplib", "urllib.request", "urllib.error", "http.client", "socket", "sqlite3", "requests", "pandas", "pydantic", "fastapi",
-                        "starlette", "uvicorn", "sqlalchemy", "pyodbc", "openpyxl", "PIL", "dotenv", "argparse", "logging", "json"}
+                        "starlette", "uvicorn", "django", "sqlalchemy", "pyodbc", "openpyxl", "PIL", "dotenv", "argparse", "logging", "json"}
 SIN_TERCEROS_APLICACION = SIN_TERCEROS_DOMINIO - {"pandas", "pydantic", "argparse", "logging", "json", "sys"}
 SIN_TERCEROS = {"dominio": SIN_TERCEROS_DOMINIO, "aplicacion": SIN_TERCEROS_APLICACION}
 
@@ -242,7 +242,7 @@ def _capa(p: Path) -> str | None:
 
 def r_capas():
     for p in FUENTES:
-        if BACK / "src" not in p.parents or p == BACK / "src" / "__init__.py":
+        if BACK / "src" not in p.parents:
             continue
         capa = _capa(p)
         if capa is None:

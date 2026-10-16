@@ -39,4 +39,4 @@ tablas, ejecución, vista previa de las salidas y envío de correo) con el estil
 - La vista previa lee las primeras 200 filas de cada hoja; el Excel completo se descarga.
 - Si cambia un contrato de `esquemas.py`, se actualiza `frontend/src/lib/tipos.ts`.
 
-> **Actualización 2026-10-16 ([ADR-0014](./ADR-0014-clean-architecture-backend.md))**: la API vive en `interfaces/http/` (`app.py` + `rutas/`), los casos de uso en `aplicacion/casos_uso/`, los contratos en `aplicacion/dto.py` y la cola en `infraestructura/cola_ejecuciones.py`. Arranque: `python -m uvicorn interfaces.http.app:app --app-dir src`.
+> **Actualización 2026-10-16 ([ADR-0014](./ADR-0014-clean-architecture-backend.md))**: la API vive en `interfaces/web/` (Django, una app por módulo; [ADR-0015](./ADR-0015-django-como-interfaz-http.md)), los casos de uso en `aplicacion/casos_uso/`, los contratos en `aplicacion/dto.py` y la cola en `infraestructura/cola_ejecuciones.py`. Arranque: `python manage.py runserver 127.0.0.1:8000 --noreload`.

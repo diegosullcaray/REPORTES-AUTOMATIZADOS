@@ -13,7 +13,7 @@ Necesita **Node 20+** y dos terminales. La web no hace nada sin la API: la consu
 :: Terminal 1 — API (detalle en backend/README.md, sección 5)
 cd ..\backend
 env\Scripts\activate
-python -m uvicorn interfaces.http.app:app --app-dir src --host 127.0.0.1 --port 8000
+python manage.py runserver 127.0.0.1:8000 --noreload
 
 :: Terminal 2 — Web (desde frontend\)
 cd ..\frontend

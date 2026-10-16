@@ -1,12 +1,11 @@
 """Capa HTTP de la web: rutas y traducción de errores (no toca las bases reales)."""
 
-from fastapi.testclient import TestClient
+from tests.cliente_web import TestClient
 
 from aplicacion.casos_uso import sesion
-from interfaces.http.app import app
 from dominio.reportes import REPORTES
 
-cliente = TestClient(app)
+cliente = TestClient()
 cliente.cookies.set(sesion.COOKIE, sesion.emitir("tester"))
 
 
@@ -64,4 +63,4 @@ def test_archivo_fuera_de_la_carpeta_es_404():
 
 
 def test_sin_sesion_la_api_responde_401():
-    assert TestClient(app).get("/api/reportes").status_code == 401
+    assert TestClient().get("/api/reportes").status_code == 401

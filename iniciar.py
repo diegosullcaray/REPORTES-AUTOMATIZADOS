@@ -144,11 +144,11 @@ def main() -> int:
         if subprocess.run([npm, "run", "build"], cwd=FRONTEND, env={**os.environ, "REPORTES_API_URL": url_api}).returncode != 0:
             return 1
     procesos = {
-        "api": lanzar("api", [python_del_backend(), "-m", "uvicorn", "interfaces.http.app:app", "--app-dir", "src", "--host", "127.0.0.1", "--port", str(args.puerto_api)], BACKEND),
+        "api": lanzar("api", [python_del_backend(), "manage.py", "runserver", f"127.0.0.1:{args.puerto_api}", "--noreload"], BACKEND),
         "web": lanzar("web", [npm, "run", "start" if args.prod else "dev", "--", "-p", str(args.puerto_web)], FRONTEND, {"REPORTES_API_URL": url_api}),
     }
     try:
-        if esperar(f"{url_api}/openapi.json", procesos["api"]) and esperar(f"{url_web}/login", procesos["web"]):
+        if esperar(f"{url_api}/api/sesion", procesos["api"]) and esperar(f"{url_web}/login", procesos["web"]):
             decir("iniciar", f"Listo → web {url_web}  ·  API {url_api}  ·  Ctrl+C para detener los dos")
             if not args.sin_navegador:
                 webbrowser.open(url_web)
