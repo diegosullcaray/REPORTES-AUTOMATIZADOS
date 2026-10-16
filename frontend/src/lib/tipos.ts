@@ -94,6 +94,27 @@ export interface VerificacionGrupo {
   solicitud: string | null;
 }
 
+/** Una verificación del grupo guardada en el historial (resumen por reporte; sin el detalle por tabla). */
+export interface EntradaValidacion {
+  id: string;
+  grupo: string;
+  ejecutada: string;
+  corte: string;
+  listo: boolean;
+  reportes: ResumenValidacion[];
+  tablas_total: number;
+  tablas_ok: number;
+  tablas_pendientes: number;
+  tablas_dudosas: number;
+  solicitud: string | null;
+  chat_enviado: string | null;
+  chat_a: string[];
+}
+
+export interface DestinosChat {
+  destinatarios: string[];
+}
+
 export interface Solicitud {
   archivo: string;
   texto: string;

@@ -3,23 +3,16 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { Database, FileSpreadsheet, ShieldCheck } from "lucide-react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
 import { useState, type ReactNode } from "react";
-import { Chip, ErrorEnLinea } from "@/components/estados";
-import { useCorte } from "@/components/fecha-cierre";
-import { Marco } from "@/components/marco";
-import { Pagina } from "@/components/pagina";
+import { Aviso, Chip, ErrorEnLinea } from "@/components/estados";
 import { Ordenable, TablaDatos } from "@/components/tabla-datos";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useConsulta } from "@/hooks/use-consulta";
 import { api } from "@/lib/api";
 import { ESTADO_TABLA, errorDeCorte, fecha, titulo } from "@/lib/formato";
+import type { Grupo } from "./grupos";
 import type { ResumenValidacion, ReporteResumen, TablaValidada, VerificacionGrupo } from "@/lib/tipos";
-import { SolicitudProduccion } from "./solicitud-produccion";
 
-const GRUPOS = { piero: "Heredados de Piero", erick: "Heredados de Erick" } as const;
-type Grupo = keyof typeof GRUPOS;
 
 const COLUMNAS_TABLAS: ColumnDef<TablaValidada, unknown>[] = [
   {
@@ -81,7 +74,7 @@ function Bloque({ icono, titulo: t, children }: { icono: ReactNode; titulo: stri
   );
 }
 
-function Resultado({ v, grupo, corte, onRecargar }: { v: VerificacionGrupo; grupo: Grupo; corte: string; onRecargar: () => void }) {
+function Resultado({ v, grupo, onRecargar }: { v: VerificacionGrupo; grupo: Grupo; onRecargar: () => void }) {
   const alDia = v.reportes.filter((r) => r.listo).length;
   const esperando = v.reportes.filter((r) => r.pendientes > 0).length;
   const sinVerificar = v.reportes.filter((r) => r.pendientes === 0 && r.dudosas > 0).length;
@@ -118,13 +111,14 @@ function Resultado({ v, grupo, corte, onRecargar }: { v: VerificacionGrupo; grup
         </Tabs>
       </Bloque>
 
-      {v.solicitud && <SolicitudProduccion texto={v.solicitud} guardar={() => api.guardarSolicitudGrupo(grupo, corte || null)} />}
+      {v.solicitud && <Aviso>Faltan tablas por actualizar: el mensaje para pedirlo está en la pestaña <Link href={`/validacion/${grupo}?tab=mensaje`} className="font-medium underline">Mensaje</Link>.</Aviso>}
     </div>
   );
 }
 
-function SeccionGrupo({ grupo, corte, reportes, resultado, onResultado }: {
-  grupo: Grupo; corte: string; reportes: ReporteResumen[]; resultado: VerificacionGrupo | null; onResultado: (v: VerificacionGrupo | null) => void;
+/** Verificar las tablas del responsable al corte elegido y ver el resultado por reporte y por tabla. */
+export function PanelVerificacion({ grupo, corte, reportes, resultado, onResultado, onVerificado }: {
+  grupo: Grupo; corte: string; reportes: ReporteResumen[]; resultado: VerificacionGrupo | null; onResultado: (v: VerificacionGrupo | null) => void; onVerificado: () => void;
 }) {
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -137,6 +131,7 @@ function SeccionGrupo({ grupo, corte, reportes, resultado, onResultado }: {
     setError(null);
     try {
       onResultado(await api.verificarGrupo(grupo, corte || null));
+      onVerificado(); // la verificación quedó en el historial
     } catch (e) {
       onResultado(null);
       setError((e as Error).message);
@@ -160,40 +155,8 @@ function SeccionGrupo({ grupo, corte, reportes, resultado, onResultado }: {
       {cargando && <p className="-mt-3 text-sm text-muted-foreground">Consultando los servidores a la vez (solo lectura). Si alguno no responde puede tardar hasta un minuto.</p>}
 
       {error ? <ErrorEnLinea titulo="No se pudo verificar" detalle={error} onReintentar={verificar} />
-        : vigente ? <Resultado v={vigente} grupo={grupo} corte={corte} onRecargar={verificar} />
+        : vigente ? <Resultado v={vigente} grupo={grupo} onRecargar={verificar} />
         : !cargando && <p className="text-sm text-muted-foreground">Cada tabla se consulta una sola vez aunque la usen varios reportes y, si falta alguna, obtienes un único mensaje para Producción.</p>}
     </div>
-  );
-}
-
-/** Validación masiva de tablas: una sección por responsable (Piero / Erick) con todos sus reportes mensuales. */
-export function PanelValidacionMasiva() {
-  const params = useSearchParams();
-  const router = useRouter();
-  const pedido = params.get("grupo") as Grupo | null;
-  const grupo: Grupo = pedido && pedido in GRUPOS ? pedido : "piero";
-  const reportes = useConsulta("reportes", api.reportes);
-  const config = useConsulta("configuracion", api.configuracion);
-  const [resultados, setResultados] = useState<Partial<Record<Grupo, VerificacionGrupo | null>>>({});
-  const corte = useCorte("mensual", config.datos?.corte_mensual.fecha); // se elige en la cabecera (Fecha de cierre)
-
-  return (
-    <Pagina>
-      <Marco icono={<ShieldCheck />} titulo="Validación de tablas" descripcion="¿Llegaron las tablas al corte? Se verifican todas las de los reportes mensuales de cada responsable, sin ejecutar nada (solo lectura).">
-        {reportes.error ? <ErrorEnLinea titulo="No se pudo cargar el catálogo" detalle={reportes.error} onReintentar={reportes.recargar} /> : (
-          <Tabs value={grupo} onValueChange={(v) => router.replace(`/validacion?grupo=${v}`, { scroll: false })}>
-            <TabsList className="w-full justify-start overflow-x-auto no-scrollbar sm:w-fit">
-              {(Object.keys(GRUPOS) as Grupo[]).map((g) => <TabsTrigger key={g} value={g}>{GRUPOS[g]}</TabsTrigger>)}
-            </TabsList>
-            {(Object.keys(GRUPOS) as Grupo[]).map((g) => (
-              <TabsContent key={g} value={g} className="pt-4">
-                <SeccionGrupo grupo={g} corte={corte} reportes={reportes.datos ?? []} resultado={resultados[g] ?? null}
-                  onResultado={(v) => setResultados((r) => ({ ...r, [g]: v }))} />
-              </TabsContent>
-            ))}
-          </Tabs>
-        )}
-      </Marco>
-    </Pagina>
   );
 }

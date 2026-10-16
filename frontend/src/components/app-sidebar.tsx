@@ -89,6 +89,33 @@ function MenuReportes({ ruta }: { ruta: string }) {
   );
 }
 
+/** «Validación de tablas» como menú plegable: la tabla general y una pantalla por responsable. */
+function MenuValidacion({ ruta }: { ruta: string }) {
+  const [elegido, setElegido] = useState<boolean | null>(null); // null = abierto mientras estés en Validación
+  return (
+    <Collapsible open={elegido ?? ruta.startsWith("/validacion")} onOpenChange={setElegido} className="group/validacion" render={<SidebarMenuItem />}>
+      <SidebarMenuButton isActive={ruta === "/validacion"} tooltip="Validación de tablas" render={<Link href="/validacion" />}>
+        <ShieldCheck />
+        <span>Validación de tablas</span>
+      </SidebarMenuButton>
+      <CollapsibleTrigger render={<SidebarMenuAction aria-label="Mostrar u ocultar los responsables" />}>
+        <ChevronRight className="transition-transform duration-150 group-data-[open]/validacion:rotate-90" />
+      </CollapsibleTrigger>
+      <CollapsibleContent>
+        <SidebarMenuSub>
+          {([["piero", "Heredados de Piero"], ["erick", "Heredados de Erick"]] as const).map(([grupo, texto]) => (
+            <SidebarMenuSubItem key={grupo}>
+              <SidebarMenuSubButton isActive={ruta.startsWith(`/validacion/${grupo}`)} render={<Link href={`/validacion/${grupo}`} prefetch={false} />}>
+                <span className="truncate">{texto}</span>
+              </SidebarMenuSubButton>
+            </SidebarMenuSubItem>
+          ))}
+        </SidebarMenuSub>
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
+
 /** Páginas de ajustes, cada una con su ruta (como los ítems de Settings en Dokploy). */
 const AJUSTES = [
   { ruta: "/configuracion", texto: "General", icono: SlidersHorizontal },
@@ -164,9 +191,7 @@ export function AppSidebar() {
               <SidebarMenuButton isActive={ruta === "/"} tooltip="Inicio" render={<Link href="/" />}><House /><span>Inicio</span></SidebarMenuButton>
             </SidebarMenuItem>
             <MenuReportes ruta={ruta} />
-            <SidebarMenuItem>
-              <SidebarMenuButton isActive={ruta.startsWith("/validacion")} tooltip="Validación de tablas" render={<Link href="/validacion" />}><ShieldCheck /><span>Validación de tablas</span></SidebarMenuButton>
-            </SidebarMenuItem>
+            <MenuValidacion ruta={ruta} />
             <SidebarMenuItem>
               <SidebarMenuButton isActive={ruta.startsWith("/ejecuciones")} tooltip="Ejecuciones" render={<Link href="/ejecuciones" />}><History /><span>Ejecuciones</span></SidebarMenuButton>
               {enMarcha > 0 && <SidebarMenuBadge>{enMarcha}</SidebarMenuBadge>}

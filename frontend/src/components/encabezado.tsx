@@ -25,6 +25,7 @@ function useMigas(): Miga[] {
   if (!seccion) return [{ texto: "Inicio" }];
   const raiz: Miga = { texto: SECCION[seccion] ?? seccion, href: `/${seccion}` };
   if (!id) return [{ texto: raiz.texto }];
+  if (seccion === "validacion") return [raiz, { texto: id === "piero" ? "Heredados de Piero" : id === "erick" ? "Heredados de Erick" : id }];
   if (seccion === "configuracion" && id === "mcp") return detalle ? [raiz, { texto: "MCP", href: "/configuracion/mcp" }, { texto: "Google Workspace" }] : [raiz, { texto: "MCP" }];
   if (seccion === "configuracion") return [raiz, { texto: id === "notificaciones" ? "Notificaciones" : id }];
   if (seccion === "reportes") {

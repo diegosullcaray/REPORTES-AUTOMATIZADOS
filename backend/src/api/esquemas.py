@@ -123,6 +123,28 @@ class VerificacionGrupo(BaseModel):
     solicitud: str | None         # un solo mensaje para Producción si falta alguna
 
 
+class EntradaValidacion(BaseModel):
+    """Una verificación del grupo guardada en el historial (resumen por reporte; el detalle por tabla no se conserva)."""
+
+    id: str
+    grupo: str
+    ejecutada: str                # cuándo se verificó (ISO)
+    corte: date
+    listo: bool
+    reportes: list[ResumenValidacion]
+    tablas_total: int
+    tablas_ok: int
+    tablas_pendientes: int
+    tablas_dudosas: int
+    solicitud: str | None = None  # mensaje para Producción de esa verificación
+    chat_enviado: str | None = None
+    chat_a: list[str] = Field(default_factory=list)
+
+
+class DestinosChat(BaseModel):
+    destinatarios: list[str]
+
+
 class Solicitud(BaseModel):
     archivo: str
     texto: str

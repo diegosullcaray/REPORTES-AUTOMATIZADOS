@@ -1,6 +1,6 @@
 // Transporte: única puerta hacia la API de Python (proxy /api en next.config.ts). Sin estado ni presentación.
 import type {
-  Archivo, ConfiguracionGeneral, FirmaGmail, PedidoEnvioArchivos, Ejecucion, EjecucionDetalle, EstadoEnvio, PedidoEjecucion, Notificaciones, Perfil, PedidoConfiguracion, PedidoCuenta, PedidoNotificaciones, PruebaConexion, PruebaNotificacion, ReporteDetalle, ReporteResumen,
+  Archivo, ConfiguracionGeneral, DestinosChat, EntradaValidacion, FirmaGmail, PedidoEnvioArchivos, Ejecucion, EjecucionDetalle, EstadoEnvio, PedidoEjecucion, Notificaciones, Perfil, PedidoConfiguracion, PedidoCuenta, PedidoNotificaciones, PruebaConexion, PruebaNotificacion, ReporteDetalle, ReporteResumen,
   GoogleMcp, PedidoGoogleMcp, PruebaMcp, Servidor, Sesion, Solicitud, Verificacion, VerificacionGrupo, VistaPrevia,
 } from "./tipos";
 
@@ -72,6 +72,10 @@ export const api = {
   firmaGmail: () => pedir<FirmaGmail>("/google/firma"),
   verificar: (nombre: string, fecha_corte: string | null) => pedir<Verificacion>(`${r(nombre)}/verificacion`, enviar({ fecha_corte })),
   verificarGrupo: (grupo: string, fecha_corte: string | null) => pedir<VerificacionGrupo>(`/validacion/${grupo}`, enviar({ fecha_corte })),
+  historialValidacion: (grupo: string, limite = 50) => pedir<EntradaValidacion[]>(`/validacion/${grupo}/historial?limite=${limite}`),
+  destinosChatValidacion: (grupo: string) => pedir<DestinosChat>(`/validacion/${grupo}/chat`),
+  guardarDestinosChatValidacion: (grupo: string, destinatarios: string) => pedir<DestinosChat>(`/validacion/${grupo}/chat`, { method: "PUT", body: JSON.stringify({ destinatarios }) }),
+  enviarChatValidacion: (grupo: string) => pedir<PruebaNotificacion>(`/validacion/${grupo}/chat/enviar`, { method: "POST" }),
   guardarSolicitudGrupo: (grupo: string, fecha_corte: string | null) => pedir<Solicitud>(`/validacion/${grupo}/solicitud`, enviar({ fecha_corte })),
   guardarSolicitud: (nombre: string, fecha_corte: string | null) => pedir<Solicitud>(`${r(nombre)}/solicitud`, enviar({ fecha_corte })),
   archivos: (nombre: string) => pedir<Archivo[]>(`${r(nombre)}/archivos`),

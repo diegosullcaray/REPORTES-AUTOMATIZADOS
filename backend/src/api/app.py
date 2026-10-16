@@ -19,7 +19,7 @@ from datetime import date
 from fastapi import FastAPI, HTTPException, Query, Request, Response
 from fastapi.responses import FileResponse, JSONResponse
 
-from . import ejecuciones, envio_correo, mcp, notificaciones, servicios, sesion
+from . import ejecuciones, envio_correo, mcp, notificaciones, servicios, sesion, validacion
 from . import esquemas as e
 
 
@@ -130,7 +130,32 @@ def solicitud(nombre: str, pedido: e.PedidoCorte):
 # ---- validación masiva de tablas de los reportes mensuales de un responsable (Piero / Erick)
 @app.post("/api/validacion/{grupo}", response_model=e.VerificacionGrupo)
 def verificar_grupo(grupo: str, pedido: e.PedidoCorte):
-    return servicios.verificar_grupo(grupo, pedido.fecha_corte)
+    resultado = servicios.verificar_grupo(grupo, pedido.fecha_corte)
+    try:
+        validacion.registrar(resultado)
+    except OSError:
+        pass  # el historial es secundario: si no se puede escribir, el resultado de la verificación igual se devuelve
+    return resultado
+
+
+@app.get("/api/validacion/{grupo}/historial", response_model=list[e.EntradaValidacion])
+def historial_validacion(grupo: str, limite: int = Query(20, ge=1, le=200)):
+    return validacion.historial(grupo, limite)
+
+
+@app.get("/api/validacion/{grupo}/chat", response_model=e.DestinosChat)
+def destinos_chat_validacion(grupo: str):
+    return validacion.destinos(grupo)
+
+
+@app.put("/api/validacion/{grupo}/chat", response_model=e.DestinosChat)
+def guardar_destinos_chat_validacion(grupo: str, pedido: e.PedidoChat):
+    return validacion.guardar_destinos(grupo, pedido)
+
+
+@app.post("/api/validacion/{grupo}/chat/enviar", response_model=e.PruebaNotificacion)
+def enviar_chat_validacion(grupo: str):
+    return validacion.enviar_chat(grupo)
 
 
 @app.post("/api/validacion/{grupo}/solicitud", response_model=e.Solicitud)
