@@ -256,8 +256,8 @@ function PestanaServidor({ s, g }: { s: ServicioGoogle; g: GoogleMcp }) {
       </div>
       {bloqueo ? <Aviso>{bloqueo}</Aviso> : (
         <>
-          <ProbarMcp key={s.id} s={s} />
-          {s.envia && <EnvioDirecto s={s} g={g} />}
+          {/* Gmail y Chat se usan solo para enviar (API directa): su MCP oficial no envía, así que no se prueba. */}
+          {s.envia ? <EnvioDirecto s={s} g={g} /> : <ProbarMcp key={s.id} s={s} />}
         </>
       )}
     </div>
