@@ -49,9 +49,9 @@ backend/
       mensuales/piero/r<NN>_…      reportes heredados de Piero (01…09)
       mensuales/erick/r<NN>_…      reportes heredados de Erick (01…03)
     composicion.py                 raíz de composición
-  data/inputs/                     archivos que entran (Excel/CSV, formatos base) — no versionado
-  data/outputs/<mensuales/piero|mensuales/erick|diarias>/<NN_nombre>/   salidas con el orden del legado — no versionado
   tests/                           pytest, por capa: dominio · aplicacion · infraestructura · interfaces · reportes
+data/inputs/                       archivos que entran (Excel/CSV, formatos base) — no versionado
+data/outputs/<mensuales/piero|mensuales/erick|diarias>/<NN_nombre>/   salidas con el orden del legado — no versionado
 governance/                        este marco
 docs/LEGADO/                       archivo histórico, solo lectura
 ```

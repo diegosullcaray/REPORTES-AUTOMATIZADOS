@@ -157,8 +157,8 @@ def r_env():
 
 
 def r_gitignore():
-    g = (BACK / ".gitignore").read_text(encoding="utf-8").splitlines()
-    for req in (".env", "data/*", "*.pkl"):
+    g = (RAIZ / ".gitignore").read_text(encoding="utf-8").splitlines()
+    for req in (".env", "/data/*", "*.pkl"):
         if req not in g:
             yield Hallazgo("gitignore-protege-datos", "error", ".gitignore", f"falta '{req}'")
 

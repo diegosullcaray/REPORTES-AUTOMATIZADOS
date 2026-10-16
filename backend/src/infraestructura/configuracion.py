@@ -14,11 +14,12 @@ from dotenv import load_dotenv
 
 from dominio.errores import ConfiguracionError
 
-RAIZ = Path(__file__).resolve().parents[2]
+RAIZ = Path(__file__).resolve().parents[2]       # backend/: .env, src, tests
+RAIZ_REPO = RAIZ.parent                           # raíz del repositorio: data/
 load_dotenv(RAIZ / ".env")  # antes de leer REPORTES_DIR_*
-# data/ no se versiona: inputs = archivos que entran (Excel, CSV, plantillas base); outputs = lo que generan los reportes
-DIR_INPUTS = Path(os.getenv("REPORTES_DIR_INPUTS", RAIZ / "data" / "inputs"))
-DIR_OUTPUTS = Path(os.getenv("REPORTES_DIR_OUTPUTS", RAIZ / "data" / "outputs"))
+# data/ (en la raíz del repo) no se versiona: inputs = archivos que entran (Excel, CSV, plantillas base); outputs = lo que generan los reportes
+DIR_INPUTS = Path(os.getenv("REPORTES_DIR_INPUTS", RAIZ_REPO / "data" / "inputs"))
+DIR_OUTPUTS = Path(os.getenv("REPORTES_DIR_OUTPUTS", RAIZ_REPO / "data" / "outputs"))
 
 DRIVER_ODBC = os.getenv("DB_ODBC_DRIVER", "ODBC Driver 17 for SQL Server")
 # Si el configurado no está instalado se usa el mejor disponible (la cadena de conexión solo lleva opciones comunes a todos).

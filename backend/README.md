@@ -350,7 +350,7 @@ src/                          Clean Architecture por capas (ADR-0014): la depend
     mensuales/piero/          r01_desembolsos_por_canal.py … r09_2_michael_castigos.py
     mensuales/erick/          r01_productos_verdes.py … r03_4_indicadores_clientes.py
   composicion.py              raíz de composición: conecta los adaptadores a los puertos
-data/inputs/  data/outputs/   entradas y salidas locales (no versionadas)
+(data/ vive en la raíz del repo: inputs/ y outputs/, entradas y salidas locales no versionadas)
 tests/                        pytest por capa (dominio · aplicacion · infraestructura · interfaces · reportes); no tocan las bases reales
 ```
 

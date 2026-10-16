@@ -19,9 +19,9 @@ from pathlib import Path
 from dominio.entregas import CORREO_PRUEBA_DEFECTO, REMITENTE_DEFECTO
 from dominio.errores import ConfiguracionError, ErrorIntegracion
 
-from .configuracion import RAIZ
+from .configuracion import RAIZ_REPO
 
-DESTINATARIOS_DEFECTO = RAIZ / "data" / "inputs" / "correos_cartera_sin_asignar.txt"
+DESTINATARIOS_DEFECTO = RAIZ_REPO / "data" / "inputs" / "correos_cartera_sin_asignar.txt"
 HOST_DEFECTO, PUERTO_DEFECTO = "smtp.gmail.com", 465
 
 

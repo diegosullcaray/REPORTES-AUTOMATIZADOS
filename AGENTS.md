@@ -8,10 +8,10 @@ Python + 3 servidores SQL Server (`mish`, `slc`, `rcc`); **la base de datos la e
 2. **Conexiones**: solo vía `backend/src/infraestructura/bd.py` indicando servidor y base. Nunca `pyodbc.connect`/`create_engine` en otro sitio.
    **Capas** ([ADR-0014](governance/docs/architecture/adr/ADR-0014-clean-architecture-backend.md)): `dominio ← aplicacion ← infraestructura / interfaces`; la compuerta `arquitectura-capas` falla si una capa importa hacia afuera.
 3. **Secretos**: solo `.env`. Jamás en código, SQL ni docs. Si aparecen en `docs/LEGADO`, no se copian; se reportan en `governance/docs/security/findings.md`.
-4. **`docs/LEGADO` es solo lectura**; el código vivo está en `backend/src/` (el T-SQL va incrustado en cada reporte; **no hay carpeta `sql/`**); datos locales en `backend/data/inputs/` (entradas) y `backend/data/outputs/` (salidas), no versionados.
+4. **`docs/LEGADO` es solo lectura**; el código vivo está en `backend/src/` (el T-SQL va incrustado en cada reporte; **no hay carpeta `sql/`**); datos locales en `data/inputs/` (entradas) y `data/outputs/` (salidas), no versionados.
 5. **Reporte = módulo `.py`** con `ReporteLote`: fechas solo por tokens (`@@F@@`…), nunca literales; el ejecutor valida tablas al corte y datos, y exporta a Excel; **entradas** en `backend/data/inputs/`, **salidas** en `backend/data/outputs/`.
 6. **Los reportes los ejecuta una persona bajo demanda** (sin tareas programadas). La fecha de corte sale de `--fecha-corte` o del `.env` (`FECHA_CORTE_MENSUAL` / `FECHA_CORTE_DIARIA`), nunca de una constante en el código.
-7. **Orden del legado**: cada reporte conserva el número y el responsable (Piero/Erick) de su carpeta en `docs/LEGADO`: módulo `r<NN>_<nombre>.py` y salida `backend/data/outputs/<mensuales/piero|mensuales/erick|diarias>/<NN_nombre>/`.
+7. **Orden del legado**: cada reporte conserva el número y el responsable (Piero/Erick) de su carpeta en `docs/LEGADO`: módulo `r<NN>_<nombre>.py` y salida `data/outputs/<mensuales/piero|mensuales/erick|diarias>/<NN_nombre>/`.
 8. **Correo**: la cuenta MIS, su contraseña y el webhook solo en `.env`. Antes de enviar a la lista siempre se envía una prueba a `CORREO_PRUEBA` y se espera el conforme del usuario.
 9. **Vacío ≠ error**; variable crítica en 0 ⇒ abortar.
 10. Cada reporte: `main(argv) -> int`, registrado en `dominio/reportes.py`, con `backend/tests/<capa>/test_<modulo>.py`.

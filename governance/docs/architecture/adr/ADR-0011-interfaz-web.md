@@ -14,7 +14,7 @@ tablas, ejecución, vista previa de las salidas y envío de correo) con el estil
    `servicios.py` (casos de uso que llaman a `reportes.*`) → `ejecuciones.py` (cola). El dominio `backend/src/reportes/` no cambia.
 2. **Las ejecuciones son subprocesos de `main.py`**, en una cola de **un solo trabajador**. Así la web y la consola dan
    los mismos códigos de salida (0/1/2/3), mensajes y archivos, y dos reportes que escriben en BD no se pisan.
-   Estado y log quedan en `backend/data/outputs/ejecuciones/` (no versionado).
+   Estado y log quedan en `data/outputs/ejecuciones/` (no versionado).
 3. **Las reglas se validan en el servidor antes de encolar** (fin de mes, corte no futuro, `--confirmar-escritura`,
    prueba previa + conforme para enviar a todos). La web solo anticipa los mensajes; la API decide.
 4. **Web Next.js + shadcn/ui en `frontend/`**, que consume la API por proxy (`/api`, mismo origen, sin CORS).

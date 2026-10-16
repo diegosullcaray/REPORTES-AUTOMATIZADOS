@@ -5,6 +5,7 @@
     python iniciar.py --sin-navegador no abre el navegador
     python iniciar.py --puerto-api 8100 --puerto-web 3100
 
+Antes de arrancar instala lo que falte del backend (`pip install -r requirements.txt`) y de la web (`npm install`).
 Ctrl+C detiene los dos procesos. Solo usa la biblioteca estándar: se puede lanzar con cualquier Python 3.11+.
 """
 
@@ -108,6 +109,17 @@ def esperar(url: str, proceso: subprocess.Popen, segundos: int = 90) -> bool:
     return False
 
 
+def asegurar_dependencias_backend() -> None:
+    """Instala `backend/requirements.txt` si al entorno le falta algo (p. ej. Django tras actualizar), y comprueba que la API arranque (`manage.py check`)."""
+    py = python_del_backend()
+    if subprocess.run([py, "-c", "import django, pydantic, pandas, pyodbc, openpyxl"], capture_output=True).returncode != 0:
+        decir("iniciar", "Instalando dependencias del backend (pip install -r requirements.txt)…")
+        if subprocess.run([py, "-m", "pip", "install", "-q", "-r", "requirements.txt"], cwd=BACKEND).returncode != 0:
+            sys.exit("pip install falló: revisa la salida de arriba.")
+    if subprocess.run([py, "manage.py", "check"], cwd=BACKEND).returncode != 0:
+        sys.exit("La API no pasa `manage.py check`: revisa la salida de arriba.")
+
+
 def asegurar_dependencias_web(npm: str) -> None:
     if (FRONTEND / "node_modules").exists():
         return
@@ -136,6 +148,7 @@ def main() -> int:
     if not credenciales_web_definidas():
         decir("iniciar", "AVISO: faltan WEB_USUARIO y/o WEB_CLAVE en backend/.env; sin ellas nadie podrá iniciar sesión en la web.")
 
+    asegurar_dependencias_backend()
     asegurar_dependencias_web(npm)
     url_api, url_web = f"http://127.0.0.1:{args.puerto_api}", f"http://localhost:{args.puerto_web}"
     if args.prod:

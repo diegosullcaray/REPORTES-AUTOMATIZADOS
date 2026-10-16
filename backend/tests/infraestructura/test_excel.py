@@ -14,7 +14,7 @@ from dominio.fechas import nombre_de_archivo
 
 NIVELES = ("NIVEL", "Grupo", "Territorio", "Corredor", "Agencia_Cli")
 RESUMEN = Resumen("RESUMEN_v2", NIVELES, "Saldo_Capital", "TERRITORIO POR CLIENTE", "SALDO CARTERA - MIS")
-LEGADO = Path(__file__).resolve().parents[2] / "data" / "inputs" / "cartera_sin_asignar_base.xlsm"
+LEGADO = Path(__file__).resolve().parents[3] / "data" / "inputs" / "cartera_sin_asignar_base.xlsm"
 
 
 def _df():
