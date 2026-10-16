@@ -19,7 +19,7 @@ from datetime import date
 from fastapi import FastAPI, HTTPException, Query, Request, Response
 from fastapi.responses import FileResponse, JSONResponse
 
-from . import ejecuciones, notificaciones, servicios, sesion
+from . import ejecuciones, mcp, notificaciones, servicios, sesion
 from . import esquemas as e
 
 
@@ -94,6 +94,11 @@ def listar_reportes():
 @app.get("/api/reportes/{nombre}", response_model=e.ReporteDetalle)
 def detalle_reporte(nombre: str):
     return servicios.detalle(nombre)
+
+
+@app.put("/api/reportes/{nombre}/chat", response_model=e.ReporteDetalle)
+def guardar_chat_reporte(nombre: str, pedido: e.PedidoChat):
+    return servicios.guardar_chat(nombre, pedido)
 
 
 # ---- validación de tablas y solicitud a Producción (solo SELECT)
@@ -190,6 +195,46 @@ def guardar_notificaciones(pedido: e.PedidoNotificaciones):
 @app.post("/api/notificaciones/{canal}/prueba", response_model=e.PruebaNotificacion)
 def probar_notificacion(canal: str):
     return notificaciones.probar(canal)
+
+
+@app.get("/api/mcp/google", response_model=e.GoogleMcp)
+def leer_google_mcp():
+    return mcp.leer()
+
+
+@app.put("/api/mcp/google", response_model=e.GoogleMcp)
+def guardar_google_mcp(pedido: e.PedidoGoogleMcp):
+    return mcp.guardar(pedido)
+
+
+@app.post("/api/mcp/google/autorizar", response_model=e.Autorizacion)
+def autorizar_google(pedido: e.PedidoAutorizacion):
+    return mcp.autorizar(pedido)
+
+
+@app.post("/api/mcp/google/codigo", response_model=e.GoogleMcp)
+def codigo_google(pedido: e.PedidoCodigo):
+    return mcp.canjear(pedido)
+
+
+@app.delete("/api/mcp/google/autorizacion", response_model=e.GoogleMcp)
+def desconectar_google():
+    return mcp.desconectar()
+
+
+@app.post("/api/mcp/google/{servicio}/herramientas", response_model=e.PruebaMcp)
+def herramientas_google(servicio: str):
+    return mcp.herramientas(servicio)
+
+
+@app.post("/api/mcp/google/{servicio}/ejecutar", response_model=e.PruebaNotificacion)
+def ejecutar_google(servicio: str, pedido: e.PedidoEjecutarMcp):
+    return mcp.ejecutar(servicio, pedido)
+
+
+@app.post("/api/mcp/google/{servicio}/enviar", response_model=e.PruebaNotificacion)
+def enviar_google(servicio: str, pedido: e.PedidoPruebaGoogle):
+    return mcp.enviar(servicio, pedido)
 
 
 @app.get("/api/servidores", response_model=list[e.Servidor])

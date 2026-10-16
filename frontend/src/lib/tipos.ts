@@ -15,6 +15,8 @@ export interface ReporteResumen {
   escribe_en_bd: boolean;
   vacio_valido: boolean;
   envia_correo: boolean;
+  /** Puede enviar su archivo por Google Chat (--chat). */
+  envia_chat: boolean;
   avisos: string[];
 }
 
@@ -36,6 +38,8 @@ export interface TablaReporte {
 export interface ReporteDetalle extends ReporteResumen {
   corte: Corte;
   tablas: TablaReporte[];
+  /** A quién se envía el archivo por Google Chat (ENTREGA_CHAT_<REPORTE> del .env). */
+  chat_destinatarios: string[];
 }
 
 export type EstadoTabla = "OK" | "DESACTUALIZADA" | "NO EXISTE" | "ERROR" | "SIN CONTROL";
@@ -101,6 +105,7 @@ export interface PedidoEjecucion {
   confirmar_escritura?: boolean;
   correo?: Correo;
   conforme?: boolean;
+  chat?: boolean;
 }
 
 export type EstadoEjecucion = "en_cola" | "ejecutando" | "ok" | "error" | "configuracion" | "tablas_desactualizadas";
@@ -206,6 +211,59 @@ export interface PedidoNotificaciones {
 export interface PruebaNotificacion {
   ok: boolean;
   detalle: string;
+}
+
+export interface HerramientaMcp {
+  nombre: string;
+  descripcion: string;
+}
+
+export interface ServicioGoogle {
+  id: string;
+  nombre: string;
+  /** Servidor MCP oficial de Google. */
+  url: string;
+  activo: boolean;
+  /** Además, envío directo por la API (Gmail, Chat). */
+  envia: boolean;
+  scopes: string[];
+  /** Activo, pero el token no tiene sus permisos: hay que volver a autorizar. */
+  falta_consentimiento: boolean;
+}
+
+/** MCP de Google Workspace. El Client secret y el token nunca llegan al navegador: solo si están configurados. */
+export interface GoogleMcp {
+  client_id: string;
+  secreto_configurado: boolean;
+  redirect_uri: string;
+  cuenta: string;
+  autorizado: boolean;
+  correo_prueba: string;
+  servicios: ServicioGoogle[];
+  herramientas_envio: HerramientaMcp[];
+  python: string;
+  configuracion: Record<string, unknown>;
+}
+
+/** Solo se envían los campos cambiados; texto vacío = quitar la variable del .env. */
+export interface PedidoGoogleMcp {
+  client_id?: string;
+  client_secret?: string;
+  redirect_uri?: string;
+  cuenta?: string;
+  servicios?: string[];
+}
+
+export interface HerramientaRemota {
+  nombre: string;
+  descripcion: string;
+  esquema: { properties?: Record<string, { type?: string; description?: string }>; required?: string[] };
+}
+
+export interface PruebaMcp {
+  ok: boolean;
+  detalle: string;
+  herramientas: HerramientaRemota[];
 }
 
 /** Solo se envían los campos cambiados; texto vacío = quitar la variable del .env. */

@@ -4,7 +4,9 @@ Conexión: servidor rcc (172.20.0.70), base DW_Raw_v2 (dbriesgos por nombre de 3
 """
 import datetime
 import os
+from pathlib import Path
 
+from ..comun import entrega_chat
 from ..comun.fechas import fecha_iso, resolver_corte
 from ..config import ConfiguracionError
 from ..registro import carpeta_salida
@@ -192,14 +194,27 @@ def generar_inserts_sql(fecha_corte: datetime.date | None = None) -> int:
             conn_ctx.__exit__(None, None, None)
             print("-> Conexión a la base de datos cerrada de manera segura.")
 
+def enviar_por_chat(fecha_corte: datetime.date | None) -> int:
+    """Envía el TXT del día por Google Chat a los destinatarios de ENTREGA_CHAT_CMG_MORA. 0 = enviado; 1 = no se pudo."""
+    fecha_ejec, _ = resolver_corte("diaria", fecha_corte)
+    archivo = Path(carpeta_salida("cmg-mora")) / f"inserts_{fecha_ejec:%Y-%m-%d}.txt"
+    texto = f"*CMG Mora* · corte {fecha_ejec:%d/%m/%Y}\nAdjunto los INSERT de SBTVRIE001 ({archivo.name})."
+    if entrega_chat.enviar("cmg-mora", [archivo], texto):
+        return 0
+    print("✗ El TXT se generó, pero no se envió por Google Chat (descárgalo desde la pestaña Archivos o reintenta el envío).")
+    return 1
+
+
 def main(argv=None) -> int:
     import argparse
 
     parser = argparse.ArgumentParser(prog="main.py cmg-mora", description="CMG Mora: recaudo + provisiones -> INSERTs.")
     parser.add_argument("--fecha-corte", type=lambda v: fecha_iso(v), help="AAAA-MM-DD (defecto: FECHA_CORTE_DIARIA del .env; sin ninguna: día anterior, lunes = sábado)")
+    parser.add_argument("--chat", action="store_true", help="tras generar el TXT, enviarlo por Google Chat a ENTREGA_CHAT_CMG_MORA del .env")
     args = parser.parse_args(argv)
     try:
-        return generar_inserts_sql(args.fecha_corte)
+        rc = generar_inserts_sql(args.fecha_corte)
+        return enviar_por_chat(args.fecha_corte) if rc == 0 and args.chat else rc
     except (ConfiguracionError, ValueError) as exc:
         print(f"✗ {exc}")
         return 2

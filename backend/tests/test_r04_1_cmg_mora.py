@@ -62,3 +62,31 @@ def test_tabla_de_provisiones_ausente_aborta_con_error(monkeypatch, tmp_path):
 
 def test_un_error_sql_es_error_y_no_exito(monkeypatch, tmp_path):
     assert correr(monkeypatch, tmp_path, [], falla=True) == 1
+
+
+def test_con_chat_envia_el_txt_del_dia(monkeypatch, tmp_path):
+    monkeypatch.setattr(mora, "conexion_pyodbc", lambda *_a, **_k: Conexion([(5,), (1,), (10.0, 20.0)]))
+    monkeypatch.setattr(mora, "carpeta_salida", lambda _n: str(tmp_path))
+    enviados = []
+    monkeypatch.setattr(mora.entrega_chat, "enviar", lambda reporte, archivos, texto: enviados.append((reporte, [a.name for a in archivos])) or True)
+    assert mora.main(["--fecha-corte", "2026-10-07", "--chat"]) == 0
+    assert enviados == [("cmg-mora", ["inserts_2026-10-07.txt"])]
+
+
+def test_chat_que_falla_deja_el_txt_y_termina_en_error(monkeypatch, tmp_path):
+    monkeypatch.setattr(mora, "conexion_pyodbc", lambda *_a, **_k: Conexion([(5,), (1,), (10.0, 20.0)]))
+    monkeypatch.setattr(mora, "carpeta_salida", lambda _n: str(tmp_path))
+    monkeypatch.setattr(mora.entrega_chat, "enviar", lambda *a: False)
+    assert mora.main(["--fecha-corte", "2026-10-07", "--chat"]) == 1
+    assert (tmp_path / "inserts_2026-10-07.txt").exists()
+
+
+def test_sin_chat_no_envia_y_si_falla_la_generacion_tampoco(monkeypatch, tmp_path):
+    enviados = []
+    monkeypatch.setattr(mora.entrega_chat, "enviar", lambda *a: enviados.append(a) or True)
+    monkeypatch.setattr(mora, "carpeta_salida", lambda _n: str(tmp_path))
+    monkeypatch.setattr(mora, "conexion_pyodbc", lambda *_a, **_k: Conexion([(5,), (1,), (10.0, 20.0)]))
+    assert mora.main(["--fecha-corte", "2026-10-07"]) == 0
+    monkeypatch.setattr(mora, "conexion_pyodbc", lambda *_a, **_k: Conexion([(0,)]))
+    assert mora.main(["--fecha-corte", "2026-10-07", "--chat"]) == 1
+    assert enviados == []

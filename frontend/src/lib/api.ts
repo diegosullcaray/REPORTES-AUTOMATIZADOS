@@ -1,7 +1,7 @@
 // Transporte: única puerta hacia la API de Python (proxy /api en next.config.ts). Sin estado ni presentación.
 import type {
   Archivo, ConfiguracionGeneral, Ejecucion, EjecucionDetalle, EstadoEnvio, PedidoEjecucion, Notificaciones, Perfil, PedidoConfiguracion, PedidoCuenta, PedidoNotificaciones, PruebaConexion, PruebaNotificacion, ReporteDetalle, ReporteResumen,
-  Servidor, Sesion, Solicitud, Verificacion, VerificacionGrupo, VistaPrevia,
+  GoogleMcp, PedidoGoogleMcp, PruebaMcp, Servidor, Sesion, Solicitud, Verificacion, VerificacionGrupo, VistaPrevia,
 } from "./tipos";
 
 export class ErrorApi extends Error {
@@ -66,6 +66,7 @@ export const api = {
   cerrarSesion: () => fetch("/api/sesion", { method: "DELETE" }),
   reportes: () => (catalogo ??= pedir<ReporteResumen[]>("/reportes").catch((e) => { catalogo = null; throw e; })),
   reporte: (nombre: string) => pedir<ReporteDetalle>(r(nombre)),
+  guardarChatReporte: (nombre: string, destinatarios: string) => pedir<ReporteDetalle>(`${r(nombre)}/chat`, { method: "PUT", body: JSON.stringify({ destinatarios }) }),
   verificar: (nombre: string, fecha_corte: string | null) => pedir<Verificacion>(`${r(nombre)}/verificacion`, enviar({ fecha_corte })),
   verificarGrupo: (grupo: string, fecha_corte: string | null) => pedir<VerificacionGrupo>(`/validacion/${grupo}`, enviar({ fecha_corte })),
   guardarSolicitudGrupo: (grupo: string, fecha_corte: string | null) => pedir<Solicitud>(`/validacion/${grupo}/solicitud`, enviar({ fecha_corte })),
@@ -83,6 +84,15 @@ export const api = {
   guardarConfiguracion: (cambios: PedidoConfiguracion) => pedir<ConfiguracionGeneral>("/configuracion", { method: "PUT", body: JSON.stringify(cambios) }),
   notificaciones: () => pedir<Notificaciones>("/notificaciones"),
   guardarNotificaciones: (cambios: PedidoNotificaciones) => pedir<Notificaciones>("/notificaciones", { method: "PUT", body: JSON.stringify(cambios) }),
+  googleMcp: () => pedir<GoogleMcp>("/mcp/google"),
+  guardarGoogleMcp: (cambios: PedidoGoogleMcp) => pedir<GoogleMcp>("/mcp/google", { method: "PUT", body: JSON.stringify(cambios) }),
+  autorizarGoogle: (redirect_uri: string) => pedir<{ url: string; redirect_uri: string }>("/mcp/google/autorizar", enviar({ redirect_uri })),
+  codigoGoogle: (codigo: string, state?: string) => pedir<GoogleMcp>("/mcp/google/codigo", enviar({ codigo, state })),
+  desconectarGoogle: () => pedir<GoogleMcp>("/mcp/google/autorizacion", { method: "DELETE" }),
+  herramientasGoogle: (servicio: string) => pedir<PruebaMcp>(`/mcp/google/${encodeURIComponent(servicio)}/herramientas`, { method: "POST" }),
+  ejecutarGoogle: (servicio: string, herramienta: string, argumentos: Record<string, unknown>) =>
+    pedir<PruebaNotificacion>(`/mcp/google/${encodeURIComponent(servicio)}/ejecutar`, enviar({ herramienta, argumentos })),
+  enviarGoogle: (servicio: string, destinatario: string, texto: string) => pedir<PruebaNotificacion>(`/mcp/google/${encodeURIComponent(servicio)}/enviar`, enviar({ destinatario, texto })),
   probarNotificacion: (canal: "correo" | "chat") => pedir<PruebaNotificacion>(`/notificaciones/${canal}/prueba`, { method: "POST" }),
   servidores: () => pedir<Servidor[]>("/servidores"),
   probarServidor: (nombre: string) => pedir<PruebaConexion>(`/servidores/${encodeURIComponent(nombre)}/prueba`, { method: "POST" }),

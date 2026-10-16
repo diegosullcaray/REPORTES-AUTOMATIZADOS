@@ -6,6 +6,7 @@ import { Fragment } from "react";
 import {
   Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { FiltroCierre } from "@/components/fecha-cierre";
 import { Hora } from "@/components/hace";
 import { ModoTema } from "@/components/modo-tema";
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -24,7 +25,7 @@ function useMigas(): Miga[] {
   if (!seccion) return [{ texto: "Inicio" }];
   const raiz: Miga = { texto: SECCION[seccion] ?? seccion, href: `/${seccion}` };
   if (!id) return [{ texto: raiz.texto }];
-  if (seccion === "configuracion") return [raiz, { texto: id === "notificaciones" ? "Notificaciones" : id }];
+  if (seccion === "configuracion") return [raiz, { texto: id === "notificaciones" ? "Notificaciones" : id === "mcp" ? "MCP · Google Workspace" : id }];
   if (seccion === "reportes") {
     const nombre = decodeURIComponent(id);
     const r = datos?.find((x) => x.nombre === nombre);
@@ -56,6 +57,7 @@ export function Encabezado() {
           ))}
         </BreadcrumbList>
       </Breadcrumb>
+      <FiltroCierre />
       <Hora />
       <ModoTema />
     </header>

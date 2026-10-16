@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, ChevronRight, ChevronsUpDown, Database, FileSpreadsheet, History, House, LogOut, Mail, ShieldCheck, SlidersHorizontal, UserRound } from "lucide-react";
+import { Bell, ChevronRight, ChevronsUpDown, Database, FileSpreadsheet, History, House, LogOut, Mail, Plug, ShieldCheck, SlidersHorizontal, UserRound } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -92,6 +92,7 @@ function MenuReportes({ ruta }: { ruta: string }) {
 const AJUSTES = [
   { ruta: "/configuracion", texto: "General", icono: SlidersHorizontal },
   { ruta: "/configuracion/notificaciones", texto: "Notificaciones", icono: Bell },
+  { ruta: "/configuracion/mcp", texto: "MCP", icono: Plug },
   { ruta: "/servidores", texto: "Bases de datos", icono: Database },
 ] as const;
 

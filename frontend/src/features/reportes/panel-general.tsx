@@ -1,6 +1,6 @@
 "use client";
 
-import { Copy, Play } from "lucide-react";
+import { Copy, MessageSquare, PenBox, Play, Save } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -10,6 +10,7 @@ import { Tarjeta } from "@/components/tarjeta";
 import { Terminal } from "@/components/terminal";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useConsulta } from "@/hooks/use-consulta";
 import { api } from "@/lib/api";
@@ -28,6 +29,52 @@ function Opcion({ id, marcado, onCambio, titulo, detalle }: { id: string; marcad
   );
 }
 
+/** Envío del archivo generado por Google Chat: casilla y a quién (se guarda en el .env). */
+function EntregaChat({ reporte, marcado, onMarcado, destinatarios, onDestinatarios }: {
+  reporte: string; marcado: boolean; onMarcado: (v: boolean) => void; destinatarios: string[]; onDestinatarios: (d: string[]) => void;
+}) {
+  const [editando, setEditando] = useState(!destinatarios.length);
+  const [valor, setValor] = useState(destinatarios.join(", "));
+  const [guardando, setGuardando] = useState(false);
+
+  async function guardar() {
+    setGuardando(true);
+    try {
+      const r = await api.guardarChatReporte(reporte, valor);
+      onDestinatarios(r.chat_destinatarios);
+      onMarcado(r.chat_destinatarios.length > 0);
+      setEditando(!r.chat_destinatarios.length);
+      toast.success("Destinatario guardado en el .env");
+    } catch (e) {
+      toast.error("No se guardó", { description: (e as Error).message });
+    } finally {
+      setGuardando(false);
+    }
+  }
+
+  return (
+    <fieldset className="flex flex-col gap-2 rounded-lg border p-3">
+      <legend className="px-1 text-sm font-medium">Google Chat</legend>
+      <label className="flex items-start gap-3 text-sm">
+        <Checkbox checked={marcado} disabled={!destinatarios.length} onCheckedChange={(v) => onMarcado(v === true)} className="mt-0.5" />
+        <span className="flex flex-col gap-0.5">
+          <span className="flex items-center gap-1.5 font-medium"><MessageSquare className="size-4 text-muted-foreground" /> Enviar el archivo generado por Chat</span>
+          <span className="text-xs text-muted-foreground">
+            {destinatarios.length ? <>Mensaje directo con el archivo adjunto a <b>{destinatarios.join(", ")}</b>, con tu cuenta de Google (MCP).</> : "Indica a quién enviarlo."}
+          </span>
+        </span>
+        {!editando && <Button type="button" variant="ghost" size="sm" className="ml-auto" onClick={() => setEditando(true)}><PenBox /> Cambiar</Button>}
+      </label>
+      {editando && (
+        <form className="flex gap-2" onSubmit={(ev) => { ev.preventDefault(); void guardar(); }}>
+          <Input value={valor} onChange={(ev) => setValor(ev.target.value)} type="text" autoComplete="off" aria-label="Destinatarios de Google Chat" placeholder="compañero@confianza.pe (varios separados por coma)" />
+          <Button type="submit" variant="secondary" disabled={guardando}><Save /> {guardando ? "Guardando…" : "Guardar"}</Button>
+        </form>
+      )}
+    </fieldset>
+  );
+}
+
 /**
  * Pestaña General (como «Deploy Settings» de Dokploy): Ejecutar y log en vivo,
  * y los parámetros de la ejecución. Lo demás (tipo, servidor, responsable) vive en el encabezado y en las pestañas. La API vuelve a validar todo antes de encolar.
@@ -36,6 +83,8 @@ export function PanelGeneral({ reporte, corte }: { reporte: ReporteDetalle; cort
   const [forzar, setForzar] = useState(false);
   const [escritura, setEscritura] = useState(false);
   const [correo, setCorreo] = useState<Correo>("prueba");
+  const [destinatariosChat, setDestinatariosChat] = useState(reporte.chat_destinatarios ?? []);
+  const [chat, setChat] = useState(reporte.envia_chat && (reporte.chat_destinatarios ?? []).length > 0);
   const [confirmando, setConfirmando] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,7 +101,7 @@ export function PanelGeneral({ reporte, corte }: { reporte: ReporteDetalle; cort
     try {
       const nueva = await api.ejecutar({
         reporte: reporte.nombre, fecha_corte: corte || null, forzar, confirmar_escritura: escritura,
-        correo: reporte.envia_correo ? correo : "no",
+        correo: reporte.envia_correo ? correo : "no", chat: reporte.envia_chat && chat,
       });
       setId(nueva.id);
       toast.success("Ejecución encolada", { description: `Corte ${fecha(corte)}` });
@@ -67,12 +116,12 @@ export function PanelGeneral({ reporte, corte }: { reporte: ReporteDetalle; cort
 
   return (
     <div className="flex flex-col gap-4">
-      <Tarjeta titulo="Ejecución" descripcion="Ejecuta el reporte con el corte elegido arriba.">
+      <Tarjeta titulo="Ejecución" descripcion={`Corte ${corte ? fecha(corte) : "—"}: se cambia en «Fecha de cierre» de la cabecera.`}>
         <div className="flex flex-wrap gap-3">
           <Button onClick={() => setConfirmando(true)} disabled={!!motivo || enviando || corriendo} title={motivo ?? undefined}>
             <Play /> {corriendo ? "Ejecutando…" : "Ejecutar"}
           </Button>
-          <Button variant="outline" onClick={() => { navigator.clipboard.writeText(`python main.py ${reporte.nombre}${corte ? ` --fecha-corte ${corte}` : ""}`); toast.success("Comando copiado"); }}>
+          <Button variant="outline" onClick={() => { navigator.clipboard.writeText(`python main.py ${reporte.nombre}${corte ? ` --fecha-corte ${corte}` : ""}${reporte.envia_chat && chat ? " --chat" : ""}`); toast.success("Comando copiado"); }}>
             <Copy /> Copiar comando
           </Button>
         </div>
@@ -95,6 +144,9 @@ export function PanelGeneral({ reporte, corte }: { reporte: ReporteDetalle; cort
                 </label>
               ))}
             </fieldset>
+          )}
+          {reporte.envia_chat && (
+            <EntregaChat reporte={reporte.nombre} marcado={chat} onMarcado={setChat} destinatarios={destinatariosChat} onDestinatarios={setDestinatariosChat} />
           )}
           {reporte.avisos.map((a) => <Aviso key={a}>{a}</Aviso>)}
           {reporte.escribe_en_bd && (
@@ -122,6 +174,7 @@ export function PanelGeneral({ reporte, corte }: { reporte: ReporteDetalle; cort
             {forzar && <li>Con <b>--forzar</b>: hay tablas desactualizadas.</li>}
             {escritura && <li>Escribe en la base de datos.</li>}
             {reporte.envia_correo && <li>{correo === "prueba" ? "Enviará la prueba a tu correo." : "Sin correo."}</li>}
+            {reporte.envia_chat && <li>{chat ? <>Enviará el archivo por Google Chat a <b>{destinatariosChat.join(", ")}</b>.</> : "Sin envío por Google Chat."}</li>}
             <li>Se ejecuta en cola: uno a la vez.</li>
           </ul>
         } />

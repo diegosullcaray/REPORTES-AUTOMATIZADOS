@@ -3,8 +3,8 @@
 import { ArrowLeft, Database, FileSpreadsheet, Mail, Server, UserRound } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
 import { EsqueletoFilas, ErrorEnLinea, Punto } from "@/components/estados";
+import { useCorte } from "@/components/fecha-cierre";
 import { Hace } from "@/components/hace";
 import { Pagina } from "@/components/pagina";
 import { Tarjeta } from "@/components/tarjeta";
@@ -15,7 +15,6 @@ import { ListaEjecuciones } from "@/features/ejecuciones/lista-ejecuciones";
 import { useConsulta } from "@/hooks/use-consulta";
 import { api } from "@/lib/api";
 import { ESTADO_EJECUCION, TIPO, enCurso, titulo } from "@/lib/formato";
-import { CampoCorte } from "./campo-corte";
 import { PanelArchivos } from "./panel-archivos";
 import { PanelCorreo } from "./panel-correo";
 import { PanelGeneral } from "./panel-general";
@@ -34,8 +33,7 @@ export function DetalleReporte({ nombre }: { nombre: string }) {
   const pestana: Pestana = pedida && PESTANAS.includes(pedida) && (pedida !== "correo" || r?.envia_correo) ? pedida : "general";
   const irA = (p: Pestana) => router.replace(p === "general" ? ruta : `${ruta}?tab=${p}`, { scroll: false });
 
-  const [elegido, setCorte] = useState<string | null>(null); // null = la fecha por defecto del reporte
-  const corte = elegido ?? r?.corte.fecha ?? "";
+  const corte = useCorte(r?.frecuencia ?? "mensual", r?.corte.fecha); // se elige en la cabecera (Fecha de cierre)
   const ultima = ultimas?.[0];
   const estado = ultima ? ESTADO_EJECUCION[ultima.estado] : null;
 
@@ -81,8 +79,6 @@ export function DetalleReporte({ nombre }: { nombre: string }) {
             ) : cargando && !r ? (
               <EsqueletoFilas filas={5} />
             ) : r && (
-              <div className="flex flex-col gap-4">
-              <CampoCorte reporte={r} valor={corte} onCambio={setCorte} />
               <Tabs value={pestana} onValueChange={(v) => irA(v as Pestana)}>
                 <TabsList className="w-full justify-start overflow-x-auto no-scrollbar sm:w-fit">
                   <TabsTrigger value="general">General</TabsTrigger>
@@ -107,7 +103,6 @@ export function DetalleReporte({ nombre }: { nombre: string }) {
                   </TabsContent>
                 )}
               </Tabs>
-              </div>
             )}
           </div>
         </div>
