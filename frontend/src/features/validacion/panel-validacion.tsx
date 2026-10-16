@@ -65,7 +65,7 @@ function Cifra({ etiqueta, valor, total, tono }: { etiqueta: string; valor: numb
   return (
     <div className="flex flex-col gap-1 rounded-lg border bg-card p-4">
       <span className="text-xs text-muted-foreground">{etiqueta}</span>
-      <span className="text-2xl font-semibold tabular-nums" style={{ color: valor ? color : undefined }}>
+      <span className="text-xl font-semibold tabular-nums" style={{ color: valor ? color : undefined }}>
         {valor}{total !== undefined && <span className="text-sm font-normal text-muted-foreground"> / {total}</span>}
       </span>
     </div>

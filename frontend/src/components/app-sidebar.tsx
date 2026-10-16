@@ -26,7 +26,7 @@ function Hoja({ r, ruta, num }: { r: ReporteResumen; ruta: string; num?: string 
   return (
     <SidebarMenuSubItem>
       <SidebarMenuSubButton isActive={ruta === rutaDe(r)} render={enlace(r)}>
-        <span className="w-7 shrink-0 text-[11px] text-muted-foreground tabular-nums">{num ?? r.orden}</span>
+        <span className="w-7 shrink-0 text-[11px] text-sidebar-foreground/60 tabular-nums">{num ?? r.orden}</span>
         <span className="min-w-0 flex-1 truncate">{titulo(r.nombre)}</span>
         {r.escribe_en_bd && <Database aria-label="escribe en BD" className="size-3.5 shrink-0 text-[var(--mis-warning)]!" />}
         {r.envia_correo && <Mail aria-label="envía correo" className="size-3.5 shrink-0" />}
@@ -43,7 +43,7 @@ function Carpeta({ etiqueta, orden, reportes, ruta, abierta, numerar }: { etique
     <Collapsible open={elegido ?? (!!abierta || contieneActivo)} onOpenChange={setElegido} className="group/carpeta" render={<SidebarMenuSubItem />}>
       {/* SidebarMenuSubButton es un <a> por defecto; para plegar hace falta un <button> real (teclado y lectores de pantalla). */}
       <CollapsibleTrigger render={<SidebarMenuSubButton className="w-full text-left" render={<button type="button" />} />} title={etiqueta}>
-        {orden && <span className="w-7 shrink-0 text-[11px] text-muted-foreground tabular-nums">{orden}</span>}
+        {orden && <span className="w-7 shrink-0 text-[11px] text-sidebar-foreground/60 tabular-nums">{orden}</span>}
         <span className="min-w-0 flex-1 truncate">{etiqueta}</span>
         <ChevronRight className="size-3.5 shrink-0 transition-transform duration-150 group-data-[open]/carpeta:rotate-90" />
       </CollapsibleTrigger>
@@ -113,7 +113,7 @@ function MenuUsuario({ enMarcha, apiCaida }: { enMarcha: number; apiCaida: boole
         </span>
         <span className="grid flex-1 text-left text-sm leading-tight">
           <span className="truncate font-semibold">{usuario}</span>
-          <span className="truncate text-xs text-muted-foreground">{apiCaida ? "API sin conexión" : enMarcha ? `${enMarcha} en curso` : "API conectada"}</span>
+          <span className="truncate text-xs text-sidebar-foreground/60">{apiCaida ? "API sin conexión" : enMarcha ? `${enMarcha} en curso` : "API conectada"}</span>
         </span>
         <ChevronsUpDown className="ml-auto size-4" />
       </DropdownMenuTrigger>
@@ -150,7 +150,7 @@ export function AppSidebar() {
               <span className="flex aspect-square size-8 items-center justify-center rounded-md bg-sidebar-primary text-xs font-bold text-sidebar-primary-foreground">MIS</span>
               <span className="flex flex-col leading-tight">
                 <span className="font-semibold">Reportes automatizados</span>
-                <span className="text-xs text-muted-foreground">Financiera Confianza</span>
+                <span className="text-xs text-sidebar-foreground/60">Financiera Confianza</span>
               </span>
             </SidebarMenuButton>
           </SidebarMenuItem>

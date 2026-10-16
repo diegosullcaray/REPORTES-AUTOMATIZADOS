@@ -39,18 +39,18 @@ export function DetalleReporte({ nombre }: { nombre: string }) {
 
   return (
     <Pagina>
-      <section className="flex flex-1 flex-col rounded-xl bg-sidebar p-2 sm:p-2.5">
+      <section className="flex flex-1 flex-col rounded-xl bg-muted p-1.5">
         <div className="flex flex-1 flex-col rounded-xl border bg-background shadow-sm">
-          <header className="flex flex-col gap-4 p-4 sm:flex-row sm:items-start sm:justify-between sm:p-6">
-            <div className="flex min-w-0 items-start gap-4">
-              <span className="relative flex size-12 shrink-0 items-center justify-center rounded-xl border bg-muted">
-                <FileSpreadsheet className="size-6 text-muted-foreground" />
+          <header className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex min-w-0 items-start gap-3">
+              <span className="relative flex size-10 shrink-0 items-center justify-center rounded-xl border bg-muted">
+                <FileSpreadsheet className="size-5 text-muted-foreground" />
                 <span className="absolute -top-1 -right-1">
                   <Punto tono={estado?.tono ?? "neutro"} etiqueta={estado?.texto ?? "Sin ejecuciones"} latido={!!ultima && enCurso(ultima.estado)} />
                 </span>
               </span>
-              <div className="flex min-w-0 flex-col gap-1">
-                <h1 className="flex flex-wrap items-center gap-2 text-xl font-semibold tracking-tight">
+              <div className="flex min-w-0 flex-col gap-0.5">
+                <h1 className="flex flex-wrap items-center gap-2 text-lg font-semibold tracking-tight">
                   {titulo(nombre)}
                   {r?.escribe_en_bd && <Database aria-label="escribe en BD" className="size-4 text-[var(--mis-warning)]" />}
                   {r?.envia_correo && <Mail aria-label="envía correo" className="size-4 text-muted-foreground" />}

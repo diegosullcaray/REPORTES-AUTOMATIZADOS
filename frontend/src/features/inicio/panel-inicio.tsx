@@ -20,7 +20,7 @@ function Tarjeta({ etiqueta, valor, detalle }: { etiqueta: string; valor: ReactN
     <div className="flex min-h-32 flex-col justify-between rounded-xl border bg-background p-5">
       <span className="text-xs tracking-wider text-muted-foreground uppercase">{etiqueta}</span>
       <div className="flex flex-col gap-1">
-        <span className="text-3xl font-semibold tracking-tight tabular-nums">{valor}</span>
+        <span className="text-2xl font-semibold tracking-tight tabular-nums">{valor}</span>
         {detalle && <span className="text-xs text-muted-foreground">{detalle}</span>}
       </div>
     </div>
@@ -61,7 +61,7 @@ function Cierre({ reportes, ejecuciones, corte }: { reportes: ReporteResumen[]; 
   return (
     <div className="flex flex-col gap-4 p-5">
       <div className="flex items-end justify-between gap-2">
-        <span className="text-sm"><b className="text-2xl tabular-nums">{listos}</b> <span className="text-muted-foreground">de {total} mensuales listos</span></span>
+        <span className="text-sm"><b className="text-xl tabular-nums">{listos}</b> <span className="text-muted-foreground">de {total} mensuales listos</span></span>
         <span className="text-sm font-medium tabular-nums">{avance}%</span>
       </div>
       <div className="h-2 overflow-hidden rounded-full bg-muted" role="progressbar" aria-valuenow={avance} aria-valuemin={0} aria-valuemax={100}>
@@ -99,11 +99,11 @@ export function PanelInicio() {
 
   return (
     <Pagina>
-      <section className="rounded-xl bg-sidebar p-2 sm:p-2.5">
-        <div className="flex flex-col gap-6 rounded-xl border bg-background p-4 shadow-sm sm:p-6">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div className="flex flex-col gap-1">
-              <h1 className="text-3xl font-semibold tracking-tight">{saludo()}</h1>
+      <section className="rounded-xl bg-muted p-1.5">
+        <div className="flex flex-col gap-4 rounded-xl border bg-background p-4 shadow-sm">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div className="flex flex-col gap-0.5">
+              <h1 className="text-2xl font-semibold tracking-tight">{saludo()}</h1>
               <p className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                 <CalendarCheck className="size-4" /> Corte mensual {corte ? fecha(corte) : "sin definir"}
                 {config.datos?.corte_diario.fecha && <> · diario {fecha(config.datos.corte_diario.fecha)}</>}
