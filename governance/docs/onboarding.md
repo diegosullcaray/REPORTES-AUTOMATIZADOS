@@ -8,4 +8,4 @@
 6. Practica el [proceso estándar de ejecución](./development/runbooks/ejecutar-un-reporte.md): `python main.py tablas <reporte> --fecha-corte <corte> --verificar`.
 7. Elige un reporte del [catálogo](./business/domain-catalog.md) (o un procedimiento manual del legado) y sigue la [guía de nuevo reporte](./development/report-creation-guide.md).
 
-Regla de oro: **nunca** pongas credenciales en el código; **nunca** abras conexiones fuera de `backend/src/reportes/db.py`.
+Regla de oro: **nunca** pongas credenciales en el código; **nunca** abras conexiones fuera de `backend/src/infraestructura/bd.py`.

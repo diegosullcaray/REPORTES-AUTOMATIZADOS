@@ -30,3 +30,5 @@ docs/LEGADO/ archivo histórico, solo lectura                        ← en la r
 - Los documentos de `governance/` citan rutas del código como `src/…`, `tests/…` y `data/…`: son relativas a `backend/`.
 - El entorno virtual se recrea en `backend/env` (un venv movido deja de funcionar).
 - Se retiró una copia desactualizada de `governance/` que había quedado dentro de la web.
+
+> **Actualización 2026-10-16 ([ADR-0014](./ADR-0014-clean-architecture-backend.md))**: dentro de `backend/src/` el código se organiza ahora por capas (`dominio`, `aplicacion`, `infraestructura`, `interfaces`, `reportes`); `RAIZ` lo define `infraestructura/configuracion.py`.

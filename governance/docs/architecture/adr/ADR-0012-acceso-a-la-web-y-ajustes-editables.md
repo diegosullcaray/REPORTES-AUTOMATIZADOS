@@ -40,3 +40,5 @@ el `.env` a mano y reiniciar.
 - Cambiar el `.env` por la web no actualiza otros procesos ya iniciados (p. ej. una consola abierta).
 - Los reportes diarios ya no tienen verificación de tablas en la web (siguen con `tablas <reporte> --verificar` y con la
   que hace el propio reporte al ejecutar).
+
+> **Actualización 2026-10-16 ([ADR-0014](./ADR-0014-clean-architecture-backend.md))**: la edición acotada del `.env` es `infraestructura/entorno.py` (puerto `Entorno`) y la sesión es el caso de uso `aplicacion/casos_uso/sesion.py`.

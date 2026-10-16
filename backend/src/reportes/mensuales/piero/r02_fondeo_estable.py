@@ -7,8 +7,8 @@ tablas al corte, ejecuta, valida datos y exporta a data/outputs/fondeo_estable/.
 
 from __future__ import annotations
 
-from ...comun.ejecutor import Hoja, ReporteLote, correr
-from ...comun.excel import Columna
+from aplicacion.ejecucion import Hoja, ReporteLote, correr
+from dominio.formato_excel import Columna
 
 SQL = r"""
 --Reportes Mensual Fondeo Estable

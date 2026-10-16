@@ -1,6 +1,6 @@
 # Ficha de reporte: <nombre>
 
-- **Comando** (`registro.py`):
+- **Comando** (`dominio/reportes.py`):
 - **Frecuencia / hora límite**:
 - **Solicitante / destinatarios**:
 - **Servidor** (`mish|slc|rcc`), **base de datos** y tablas:

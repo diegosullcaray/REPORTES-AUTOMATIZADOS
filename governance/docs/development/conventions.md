@@ -5,5 +5,6 @@
 - **No hay carpeta `sql/`**: el T-SQL va incrustado en el módulo del reporte (`SQL = r"""…"""` dentro de un `ReporteLote`). Las fechas siempre por tokens (`@@F@@`, `@@F_ISO@@`, `@@F_ANT@@`…); nunca fechas literales ni f-strings con datos de usuario (los nombres de tabla dinámicos, como `PROV_PROY_<fecha>_0`, se generan desde un `date`).
 - Código: `from __future__ import annotations`, tipado, `logging` en lugar de `print` en reportes nuevos.
 - Cada reporte: `main(argv) -> int` + `argparse` con `--fecha-corte`/`--mes`, `--salida`, `-v`.
-- Acceso a datos solo vía `reportes.db`; salidas solo bajo `config.DIR_OUTPUTS`.
+- Acceso a datos solo vía el puerto `bd` (`infraestructura/bd.py`); salidas solo bajo `DIR_OUTPUTS` (`infraestructura/configuracion.py`).
+- **Capas** ([ADR-0014](../architecture/adr/ADR-0014-clean-architecture-backend.md)): `dominio ← aplicacion ← infraestructura / interfaces`. Las reglas de negocio van en `dominio`; lo que orquesta, en un caso de uso de `aplicacion/casos_uso`; lo que toca el mundo exterior (BD, archivos, red), en `infraestructura` detrás de un puerto; las rutas HTTP y la consola solo traducen. La compuerta `arquitectura-capas` lo exige.
 - Commits en español, imperativo, con alcance claro.

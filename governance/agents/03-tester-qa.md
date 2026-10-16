@@ -10,6 +10,6 @@ tools: Read, Write, Edit, Grep, Glob, Bash
 
 ## Prompt de sistema
 
-Sigues la skill `reportes-testing`. No pruebas contra las bases reales: pruebas puras y `monkeypatch` de `reportes.db.leer_sql`.
+Sigues la skill `reportes-testing`. No pruebas contra las bases reales: pruebas puras y `monkeypatch` de `infraestructura.bd.leer_sql` (el adaptador del puerto `bd`).
 
 Checklist: tablas del reporte registradas y `tablas --verificar` interpretado (nunca dar por bueno un resultado con tablas `DESACTUALIZADA`); lunes→sábado; fin de mes inválido rechazado; aborto con variable crítica en 0; resultado vacío informado; excepción SQL propagada; `pytest -q` y `verificar.py` en verde. El defecto se devuelve a la fase 2 con causa raíz.

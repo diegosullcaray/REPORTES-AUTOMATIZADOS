@@ -1,6 +1,6 @@
 # Formato Excel de las salidas
 
-Las salidas copian el formato de los Excel del legado. **No llevan hoja de control ni metadatos**: el libro contiene solo los datos del reporte (la verificación de tablas y los avisos se muestran en pantalla). Código: `src/reportes/comun/excel.py` ([ADR-0009](../architecture/adr/ADR-0009-formato-excel-del-legado.md)).
+Las salidas copian el formato de los Excel del legado. **No llevan hoja de control ni metadatos**: el libro contiene solo los datos del reporte (la verificación de tablas y los avisos se muestran en pantalla). Código: `src/dominio/formato_excel.py` (describe) e `src/infraestructura/excel.py` (escribe) ([ADR-0009](../architecture/adr/ADR-0009-formato-excel-del-legado.md)).
 
 ## Qué se pudo analizar (y qué no)
 En `docs/LEGADO` solo hay **un Excel real**: `Cartera-Sin asignar-base.xlsm` (más 3 imágenes `Reporte_Temporal_*.jpg` de su salida). Los demás Excel que se entregaban solo existen como **nombre de adjunto** en los correos (PDF) y como pasos en las `NOTAS.docx`. Por eso:

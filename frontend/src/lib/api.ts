@@ -10,7 +10,7 @@ export class ErrorApi extends Error {
   }
 }
 
-const SIN_API = "No hay conexión con la API de reportes. Arráncala con: python -m uvicorn api.app:app --app-dir src";
+const SIN_API = "No hay conexión con la API de reportes. Arráncala con: python -m uvicorn interfaces.http.app:app --app-dir src";
 
 function mensajeDe(cuerpo: unknown): string | null {
   const detalle = (cuerpo as { detail?: unknown } | null)?.detail;

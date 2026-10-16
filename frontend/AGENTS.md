@@ -15,7 +15,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 2. **Capas**: `lib/api.ts` es la única puerta a la API; `lib/formato.ts` funciones puras; `components/` presentación;
    `features/` orquestación por pantalla; `app/` solo rutas.
 3. **Estados en orden**: error → cargando (esqueleto de la propia tabla) → vacío → contenido (`components/estados.tsx`).
-4. **La API decide**: toda regla del reporte se valida en `src/api/servicios.py`; la web solo la anticipa.
+4. **La API decide**: toda regla del reporte se valida en los casos de uso de `backend/src/aplicacion/casos_uso/`; la web solo la anticipa.
 5. **Estética Dokploy** (`governance/tasks/tareasdiarias.md`): plana, sin vidrio ni wallpaper; navegación con el `Sidebar` de
    shadcn (`AppSidebar`: retráctil, con el árbol de reportes plegable y el menú de usuario al pie, que lleva a `/perfil`
    con la configuración), migas en `components/encabezado.tsx`; dentro de una vista, tarjetas con `components/tarjeta.tsx`,

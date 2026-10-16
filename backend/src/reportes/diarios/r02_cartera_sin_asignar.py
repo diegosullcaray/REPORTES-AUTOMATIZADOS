@@ -7,9 +7,9 @@ tablas al corte, ejecuta, valida datos y exporta a data/outputs/cartera_sin_asig
 
 from __future__ import annotations
 
-from ..comun.ejecutor import Hoja, ReporteLote, correr
-from ..comun.excel import Resumen
-from ..comun.entrega_correo import EntregaCorreoResumen
+from aplicacion.ejecucion import Hoja, ReporteLote, correr
+from dominio.formato_excel import Resumen
+from infraestructura.entregas.correo_resumen import EntregaCorreoResumen
 
 SQL = r"""
 USE [storage]

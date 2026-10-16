@@ -164,7 +164,7 @@ La [interfaz web](../frontend/README.md) consume una API (FastAPI, `src/api/`) q
 
 ```bat
 env\Scripts\activate
-python -m uvicorn api.app:app --app-dir src --host 127.0.0.1 --port 8000
+python -m uvicorn interfaces.http.app:app --app-dir src --host 127.0.0.1 --port 8000
 ```
 
 Escucha solo en `127.0.0.1`. Toda la API exige sesión; las credenciales están en el `.env`:
@@ -175,7 +175,7 @@ Escucha solo en `127.0.0.1`. Toda la API exige sesión; las credenciales están 
 | `WEB_CLAVE` | clave de la web. Si falta alguna de las dos, **nadie puede entrar** |
 | `SESION_SECRETO` | firma de la cookie. Vacío = se genera en cada arranque y las sesiones caen al reiniciar la API |
 
-La sesión dura 8 horas; tras 5 intentos fallidos el usuario queda bloqueado 5 minutos. Contrato de rutas y reglas: `src/api/app.py` y `src/api/servicios.py`.
+La sesión dura 8 horas; tras 5 intentos fallidos el usuario queda bloqueado 5 minutos. Rutas: `src/interfaces/http/rutas/`; reglas de cada pantalla: `src/aplicacion/casos_uso/`.
 
 ---
 
@@ -297,11 +297,11 @@ Los archivos contienen **datos de clientes**: no los subas al repositorio ni los
 | `La fecha de corte debe ser fin de mes` | un reporte mensual recibió otro día | usa el último día del mes (feriado: día hábil anterior) |
 | `✗ N tabla(s) sin actualizar al corte` (código 3) | Producción aún no cargó el cierre | usa el mensaje de `data\outputs\solicitudes\`; reverifica; no uses `--forzar` salvo que lo decidas |
 | `No pude verificar ninguna tabla` | conexión caída o sin permisos | `python main.py probar-conexiones`; revisa VPN y credenciales |
-| `AVISO: no pude verificar <tabla> … confirma su columna de fecha` | la columna de fecha de esa tabla es una inferencia | confírmala con el DBA y corrígela en `src/reportes/tablas.py` |
+| `AVISO: no pude verificar <tabla> … confirma su columna de fecha` | la columna de fecha de esa tabla es una inferencia | confírmala con el DBA y corrígela en `src/dominio/tablas.py` |
 | `✗ Datos: Todos los resultados vinieron vacíos` | casi seguro falta cargar una tabla al corte | `python main.py tablas <reporte> --verificar` |
 | `✗ Datos: … llega solo hasta <fecha>, antes del corte` | tabla desactualizada | pide la actualización |
 | `… crea/borra tablas permanentes … --confirmar-escritura` | el reporte escribe en BD | repite con `--confirmar-escritura` solo si estás seguro |
-| `No sé en qué servidor vive la base '…'` | base nueva sin mapear | añádela a `BASES_DE` en `src/reportes/config.py` |
+| `No sé en qué servidor vive la base '…'` | base nueva sin mapear | añádela a `BASES_DE` en `src/dominio/servidores.py` |
 | `Invalid object name` / `database … does not exist` | el reporte se conecta a un servidor que no tiene esa base | revisa que `servidor` y `base` del reporte coincidan con [servidores y bases](../governance/docs/data/servidores-y-bases.md) |
 | `PermissionError` al exportar | el Excel de salida está abierto | ciérralo y repite |
 | `Error de base de datos al ejecutar …` | error SQL o de red | repite con `-v` y revisa el detalle |
@@ -334,22 +334,24 @@ main.py                       punto de entrada único (listar | probar-conexione
 .env.example                  plantilla del .env (el .env real no se versiona)
 requirements*.txt             dependencias (dev = pytest)
 env/                          entorno virtual (no versionado)
-src/reportes/
-  config.py                   rutas, los 3 servidores y carpetas data/
-  db.py                       ÚNICO acceso a SQL Server (servidor + base por reporte)
-  registro.py                 catálogo de reportes
-  tablas.py                   tablas de cada reporte (servidor, tipo, columna de fecha)
-  verificacion.py             ¿tablas al día? + mensaje para Producción
-  comun/ejecutor.py           flujo común: conexión → tablas → consulta → validación → Excel
-  comun/fechas.py             fecha de corte (.env / --fecha-corte) y tokens @@F@@…
-  comun/excel.py              formato Excel del legado (tabla, resumen jerárquico, columnas)
-  comun/imagen.py correo.py   imagen del resumen y envío por correo (cuenta MIS)
-  diarios/                    r02_cartera_sin_asignar.py, r04_1_cmg_mora.py … (número del legado)
-  mensuales/piero/            r01_desembolsos_por_canal.py … r09_2_michael_castigos.py
-  mensuales/erick/            r01_productos_verdes.py … r03_4_indicadores_clientes.py
-src/api/                      API de la web (FastAPI): rutas, servicios, ejecuciones y sesión
+src/                          Clean Architecture por capas (ADR-0014): la dependencia apunta solo hacia adentro
+  dominio/                    reglas puras: reportes.py (catálogo), tablas.py, servidores.py (qué base vive en qué servidor),
+                              fechas.py, reglas_fecha.py, verificacion.py, formato_excel.py, entregas.py, errores.py
+  aplicacion/                 casos de uso y puertos
+    ejecucion.py              flujo común: conexión → tablas → consulta → validación → Excel (ReporteLote, correr)
+    puertos.py · dto.py       interfaces hacia afuera (BD, .env, Excel, cola, Google…) y contratos de entrada/salida
+    casos_uso/                catalogo · verificacion · ejecuciones · archivos · configuracion · correo_reporte
+                              validacion · google · notificaciones · sesion
+  infraestructura/            adaptadores: configuracion.py (.env y conexión), bd.py (ÚNICO acceso a SQL Server), excel.py,
+                              imagen.py, correo_smtp.py, entorno.py, cola_ejecuciones.py, google/, entregas/
+  interfaces/                 http/ (FastAPI: app.py + rutas/), cli/ (comandos de main.py), mcp/ (servidor de envío)
+  reportes/                   un módulo por reporte del legado
+    diarios/                  r02_cartera_sin_asignar.py, r04_1_cmg_mora.py … (número del legado)
+    mensuales/piero/          r01_desembolsos_por_canal.py … r09_2_michael_castigos.py
+    mensuales/erick/          r01_productos_verdes.py … r03_4_indicadores_clientes.py
+  composicion.py              raíz de composición: conecta los adaptadores a los puertos
 data/inputs/  data/outputs/   entradas y salidas locales (no versionadas)
-tests/                        pytest (no tocan las bases reales)
+tests/                        pytest por capa (dominio · aplicacion · infraestructura · interfaces · reportes); no tocan las bases reales
 ```
 
 `governance/` y `docs/LEGADO/` están en la raíz del repositorio, un nivel arriba.
@@ -380,8 +382,9 @@ Todo está en [`governance/`](../governance/readme.md). Lo que más vas a usar:
 ## 14. Si vas a modificar o crear un reporte
 
 - Reglas: [AGENTS.md](../AGENTS.md). Guía: [crear un reporte nuevo](../governance/docs/development/report-creation-guide.md) y la skill [reportes-ejecutor](../governance/skills/reportes-ejecutor/SKILL.md).
-- Un reporte = un módulo `.py` con un `ReporteLote`: el T-SQL va dentro, **las fechas solo por tokens** (`@@F@@`, `@@F_ISO@@`, `@@F_ANT@@`…, nunca literales), registrado en `registro.py` y con **todas sus tablas** en `tablas.py`.
-- Conexiones solo vía `src/reportes/db.py`, indicando servidor y base.
+- Un reporte = un módulo `.py` con un `ReporteLote`: el T-SQL va dentro, **las fechas solo por tokens** (`@@F@@`, `@@F_ISO@@`, `@@F_ANT@@`…, nunca literales), registrado en `dominio/reportes.py` y con **todas sus tablas** en `dominio/tablas.py`.
+- Conexiones solo vía `src/infraestructura/bd.py`, indicando servidor y base.
+- Respeta las capas: el dominio no importa nada de afuera, la aplicación usa puertos y no importa la infraestructura, las interfaces solo llaman casos de uso (la compuerta `arquitectura-capas` lo comprueba).
 - Antes de cada commit:
 
 ```bat

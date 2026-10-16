@@ -11,7 +11,7 @@ Uso:
     python bancarizados.py --fecha-corte 2026-06-30
     python bancarizados.py --fecha-corte 2026-06-30 --sin-cache --copiar productos_nuevos
 
-Conexiones: RCC (DBRCC) y SLC, definidas en reportes.config / .env (ver .env.example).
+Conexiones: RCC (DBRCC) y SLC, definidas en infraestructura/configuracion.py / .env (ver .env.example).
 """
 
 from __future__ import annotations
@@ -30,10 +30,11 @@ from pathlib import Path
 
 import pandas as pd
 
-from ...comun.fechas import nombre_de_archivo, resolver_corte
-from ...config import ConfiguracionError
-from ...registro import carpeta_salida
-from ...db import leer_sql as _leer_sql
+from dominio.fechas import nombre_de_archivo
+from aplicacion.cortes import resolver_corte
+from dominio.errores import ConfiguracionError
+from aplicacion.rutas import carpeta_salida
+from infraestructura.bd import leer_sql as _leer_sql
 
 # =============================================================================
 # Configuración

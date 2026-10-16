@@ -1,4 +1,4 @@
-// Espejo de src/api/esquemas.py. Si cambia un contrato allá, se cambia aquí.
+// Espejo de src/aplicacion/dto.py. Si cambia un contrato allá, se cambia aquí.
 
 export type Grupo = "diarias" | "piero" | "erick";
 export type Frecuencia = "diaria" | "mensual";

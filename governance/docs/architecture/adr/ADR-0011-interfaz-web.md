@@ -38,3 +38,5 @@ tablas, ejecución, vista previa de las salidas y envío de correo) con el estil
 - Los reportes con lógica propia (sin `ReporteLote`) se ejecutan, pero no admiten `--forzar`, confirmación de escritura ni correo; sus advertencias (p. ej. `cmg-mora` trunca y recarga `CMGMora_Recaudo`) salen de `AVISOS_PROPIOS` en `servicios.py`.
 - La vista previa lee las primeras 200 filas de cada hoja; el Excel completo se descarga.
 - Si cambia un contrato de `esquemas.py`, se actualiza `frontend/src/lib/tipos.ts`.
+
+> **Actualización 2026-10-16 ([ADR-0014](./ADR-0014-clean-architecture-backend.md))**: la API vive en `interfaces/http/` (`app.py` + `rutas/`), los casos de uso en `aplicacion/casos_uso/`, los contratos en `aplicacion/dto.py` y la cola en `infraestructura/cola_ejecuciones.py`. Arranque: `python -m uvicorn interfaces.http.app:app --app-dir src`.

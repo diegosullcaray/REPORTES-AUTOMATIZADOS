@@ -1,6 +1,6 @@
 # Servidores y bases de datos
 
-Qué base vive en qué servidor. Fuente: explorador de objetos de SSMS de cada servidor (capturas de 2026-10). **Fuente de verdad en código:** `config.BASES_DE` ([ADR-0008](../architecture/adr/ADR-0008-mapa-bases-servidores.md)).
+Qué base vive en qué servidor. Fuente: explorador de objetos de SSMS de cada servidor (capturas de 2026-10). **Fuente de verdad en código:** `BASES_DE` en `dominio/servidores.py` ([ADR-0008](../architecture/adr/ADR-0008-mapa-bases-servidores.md)).
 
 > Una consulta con nombres de 3 partes solo ve las bases de **su** servidor. Por eso un reporte se conecta al servidor de las bases que usa.
 

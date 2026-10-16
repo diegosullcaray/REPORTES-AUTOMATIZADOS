@@ -10,3 +10,5 @@ El legado tenía cinco implementaciones distintas de conexión (pyodbc directo, 
 
 ## Consecuencias
 Cambiar un servidor o credencial es editar `.env`. La regla `conexion-solo-en-db` lo hace cumplir. Las bases accesibles por nombre de 3 partes (`dbriesgos`, `INTCOM`, `DWH`, `csd`) no son conexiones propias.
+
+> **Actualización 2026-10-16 ([ADR-0014](./ADR-0014-clean-architecture-backend.md))**: `config.py` es hoy `infraestructura/configuracion.py` (conexiones) y `dominio/servidores.py` (qué base vive en qué servidor); `db.py` es `infraestructura/bd.py`. Sigue siendo el único que abre conexiones.

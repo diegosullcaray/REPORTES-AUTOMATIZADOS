@@ -144,7 +144,7 @@ def main() -> int:
         if subprocess.run([npm, "run", "build"], cwd=FRONTEND, env={**os.environ, "REPORTES_API_URL": url_api}).returncode != 0:
             return 1
     procesos = {
-        "api": lanzar("api", [python_del_backend(), "-m", "uvicorn", "api.app:app", "--app-dir", "src", "--host", "127.0.0.1", "--port", str(args.puerto_api)], BACKEND),
+        "api": lanzar("api", [python_del_backend(), "-m", "uvicorn", "interfaces.http.app:app", "--app-dir", "src", "--host", "127.0.0.1", "--port", str(args.puerto_api)], BACKEND),
         "web": lanzar("web", [npm, "run", "start" if args.prod else "dev", "--", "-p", str(args.puerto_web)], FRONTEND, {"REPORTES_API_URL": url_api}),
     }
     try:

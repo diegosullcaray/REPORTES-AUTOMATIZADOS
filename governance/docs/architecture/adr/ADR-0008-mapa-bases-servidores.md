@@ -12,7 +12,7 @@ Una consulta T-SQL con nombres de 3 partes (`base.esquema.tabla`) solo resuelve 
 | `172.20.0.70` | DB202511…DB202610, DBEstudios, DBFinanzas, DBFSH, **DBRCC**, **dbriesgos**, DW_Application, DW_Metadata, DW_Raw, **DW_Raw_v2**, DW_Recycle, DW_Staging(_v2), DW_Summary(_v2), gerencia_riesgos_bd, ReportServer(TempDB) |
 
 ## Decisión
-- `config.BASES_DE` es el único mapa base → servidor; `servidor_de_base()` / `servidor_de_tabla()` lo consultan. Las tablas ya no llevan servidor escrito: se **deriva** de su base.
+- `BASES_DE` (hoy en `dominio/servidores.py`) es el único mapa base → servidor; `servidor_de_base()` / `servidor_de_tabla()` lo consultan. Las tablas ya no llevan servidor escrito: se **deriva** de su base.
 - Cada reporte se conecta al servidor de las bases que usa: 14 reportes con `storage` → `mish`; los de `dwh`/`dma`/`csd`/`intcom` → `slc`; `dbriesgos`/`DW_Raw_v2`/`DBRCC` → `rcc`.
 - La verificación de tablas al corte consulta cada tabla en **su** servidor.
 - Regla de gobernanza `servidor-coherente`: las tablas y la base de un reporte deben vivir en el servidor que declara.

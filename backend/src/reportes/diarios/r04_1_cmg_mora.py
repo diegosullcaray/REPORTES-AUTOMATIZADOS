@@ -1,16 +1,17 @@
 """CMG Mora (diario): recaudo + provisiones -> INSERTs para [storage].[com_act].[SBTVRIE001].
 
-Conexión: servidor rcc (172.20.0.70), base DW_Raw_v2 (dbriesgos por nombre de 3 partes). Ver reportes.config / .env.
+Conexión: servidor rcc (172.20.0.70), base DW_Raw_v2 (dbriesgos por nombre de 3 partes). Ver infraestructura/configuracion.py / .env.
 """
 import datetime
 import os
 from pathlib import Path
 
-from ..comun import entrega_chat
-from ..comun.fechas import fecha_iso, resolver_corte
-from ..config import ConfiguracionError
-from ..registro import carpeta_salida
-from ..db import conexion_pyodbc
+from infraestructura.entregas import chat as entrega_chat
+from dominio.fechas import fecha_iso
+from aplicacion.cortes import resolver_corte
+from dominio.errores import ConfiguracionError
+from aplicacion.rutas import carpeta_salida
+from infraestructura.bd import conexion_pyodbc
 
 def generar_inserts_sql(fecha_corte: datetime.date | None = None) -> int:
     """0 = TXT generado. 1 = abortó o falló (sin datos, tabla del día ausente, provisiones en 0, error SQL): nunca se presenta como éxito."""

@@ -11,6 +11,6 @@ description: Cómo pasar un reporte manual de docs/LEGADO a un reporte automatiz
 4. Implementa el módulo siguiendo [reportes-arquitectura-modulos](../reportes-arquitectura-modulos/SKILL.md).
 5. Reproduce la salida manual de un mes conocido y compara cifras (evidencia en `docs/evidence/`).
 6. Registra, regenera inventario, `verificar.py`.
-7. Registra el reporte y sus tablas (`registro.py`, `tablas.py`) y actualiza el [catálogo](../../docs/business/domain-catalog.md).
+7. Registra el reporte y sus tablas (`dominio/reportes.py`, `dominio/tablas.py`) y actualiza el [catálogo](../../docs/business/domain-catalog.md).
 
 No edites ni muevas el original ([ADR-0004](../../docs/architecture/adr/ADR-0004-legado-intacto.md)).

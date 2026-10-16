@@ -17,3 +17,5 @@ El legado se heredó de dos personas (Piero y Erick) y sus carpetas están **num
 - Renombrar archivos obligó a regenerar la línea base (mismos 38 avisos con rutas nuevas; no hay deuda nueva).
 - `heredados-pdm` queda pendiente de formato, y `cmg-mora` tiene una consulta abierta sobre su ejecución manual (ver [roadmap](../../business/roadmap.md)).
 - **SEC-004**: las credenciales de la macro habían llegado al repositorio; se ocultaron y deben rotarse.
+
+> **Actualización 2026-10-16 ([ADR-0014](./ADR-0014-clean-architecture-backend.md))**: la entrega por correo es `infraestructura/entregas/correo_resumen.py` y el registro es `dominio/reportes.py`. Las rutas de los reportes no cambiaron.

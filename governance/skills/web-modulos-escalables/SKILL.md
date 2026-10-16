@@ -18,5 +18,5 @@ src/
 - Un tema nuevo = carpeta nueva en `features/` + ruta en `app/(panel)/`; no se toca otro feature.
 - Un feature importa de `components/` y `lib/`, nunca de otro feature salvo por su componente público (p. ej. `VisorLog`, `DialogoVistaPrevia`).
 - Contenido compartido entre diálogo y página = un componente (`ContenidoEjecucion`), no dos copias.
-- Endpoint nuevo: ruta en `src/api/app.py`, regla en `servicios.py`, contrato en `esquemas.py`, método en `lib/api.ts`, prueba en `tests/test_app.py`.
+- Endpoint nuevo: regla en un caso de uso de `src/aplicacion/casos_uso/`, contrato en `aplicacion/dto.py`, ruta en `src/interfaces/http/rutas/`, método en `lib/api.ts`, prueba en `tests/aplicacion/casos_uso/`.
 - Cierre: `npm test`, `npx tsc --noEmit`, `npx eslint src`, `npx next build`.

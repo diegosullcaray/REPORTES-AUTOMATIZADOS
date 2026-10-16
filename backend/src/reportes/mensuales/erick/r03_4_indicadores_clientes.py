@@ -33,10 +33,11 @@ from pathlib import Path
 import pandas as pd
 from openpyxl.utils import get_column_letter
 
-from ...comun.fechas import nombre_de_archivo, resolver_corte
-from ...config import ConfiguracionError
-from ...registro import carpeta_salida
-from ...db import leer_sql
+from dominio.fechas import nombre_de_archivo
+from aplicacion.cortes import resolver_corte
+from dominio.errores import ConfiguracionError
+from aplicacion.rutas import carpeta_salida
+from infraestructura.bd import leer_sql
 
 # =============================================================================
 # Configuración

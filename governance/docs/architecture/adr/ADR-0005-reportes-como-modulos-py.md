@@ -15,3 +15,5 @@ Si una tabla no está al día: el reporte **no se ejecuta**, se imprime qué tab
 - La lógica heredada se conserva tal cual (con fechas parametrizadas): **no se ha ejecutado contra las bases reales** desde este entorno; la primera ejecución de cada reporte debe compararse con la salida manual del mes anterior ([evidencia](../../evidence/evidence-policy.md)).
 - Los nombres de hoja son `Resultado_N` hasta fijarlos tras esa primera ejecución.
 - La regla `fechas-fijas-en-sql` impide volver a incrustar fechas.
+
+> **Actualización 2026-10-16 ([ADR-0014](./ADR-0014-clean-architecture-backend.md))**: el ejecutor común es `aplicacion/ejecucion.py` y el registro de reportes es `dominio/reportes.py`. Los módulos de reporte conservan sus rutas.

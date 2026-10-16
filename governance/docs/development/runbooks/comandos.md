@@ -1,6 +1,6 @@
 # Catálogo de comandos
 
-> **Generado** por `governance/scripts/generar_inventario.py` desde `registro.py`, `tablas.py` y los módulos. No editar a mano.
+> **Generado** por `governance/scripts/generar_inventario.py` desde `dominio/reportes.py`, `dominio/tablas.py` y los módulos. No editar a mano.
 
 Los reportes **los ejecutas tú, cuando quieras** (no hay tareas programadas): `python main.py <comando>`. La fecha de corte sale de `FECHA_CORTE_MENSUAL` / `FECHA_CORTE_DIARIA` del `.env`, o de `--fecha-corte AAAA-MM-DD` (que manda sobre el `.env`). El ejecutor común valida las tablas al corte (si falta alguna, **no ejecuta** y deja el mensaje para Producción), consulta, valida los datos y exporta el Excel a `data/outputs/mensuales/<piero|erick>/<NN_nombre>/` (diarios: `data/outputs/diarias/<NN_nombre>/`). La numeración es la de las carpetas del legado. Proceso completo: [ejecutar un reporte](./ejecutar-un-reporte.md).
 

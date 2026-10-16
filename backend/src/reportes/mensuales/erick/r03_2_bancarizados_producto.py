@@ -32,10 +32,10 @@ from pathlib import Path
 import pandas as pd
 from openpyxl.utils import get_column_letter
 
-from ...comun.fechas import resolver_corte
-from ...config import ConfiguracionError
-from ...registro import carpeta_salida
-from ...db import leer_ultimo_resultado as _leer_ultimo
+from aplicacion.cortes import resolver_corte
+from dominio.errores import ConfiguracionError
+from aplicacion.rutas import carpeta_salida
+from infraestructura.bd import leer_ultimo_resultado as _leer_ultimo
 
 # =============================================================================
 # Configuración

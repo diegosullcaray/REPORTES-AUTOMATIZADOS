@@ -2,6 +2,7 @@
 
 | ADR | Decisión | Estado |
 |---|---|---|
+| [0014](./adr/ADR-0014-clean-architecture-backend.md) | Backend con Clean Architecture por capas (`dominio ← aplicacion ← infraestructura / interfaces`), puertos y raíz de composición; compuerta `arquitectura-capas` | Vigente |
 | [0001](./adr/ADR-0001-conexiones-centralizadas.md) | Una sola capa de conexión (ajustada por 0006) | Vigente |
 | [0002](./adr/ADR-0002-secretos-solo-en-env.md) | Secretos solo en `.env` | Vigente |
 | [0003](./adr/ADR-0003-linea-base-de-gobernanza.md) | Línea base en vez de "cero hallazgos" | Vigente |

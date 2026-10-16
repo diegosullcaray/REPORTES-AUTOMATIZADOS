@@ -15,3 +15,5 @@ La primera versión exportaba con pandas: hojas con nombres genéricos (`Resulta
 ## Consecuencias
 - Sin hoja de control se pierde la trazabilidad dentro del archivo; queda en la salida de consola y en los avisos. Si hiciera falta, sería un archivo aparte, no una hoja.
 - Para igualar el resto de reportes al detalle hacen falta sus Excel originales ([pendiente](../../data/formato-excel.md#pendiente-necesita-los-excel-originales)).
+
+> **Actualización 2026-10-16 ([ADR-0014](./ADR-0014-clean-architecture-backend.md))**: el formato se describe en `dominio/formato_excel.py` (`Columna`, `Resumen`) y se escribe en `infraestructura/excel.py`.

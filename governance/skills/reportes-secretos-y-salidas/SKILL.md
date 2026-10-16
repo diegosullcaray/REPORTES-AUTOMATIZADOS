@@ -1,6 +1,6 @@
 ---
 name: reportes-secretos-y-salidas
-description: Manejo de credenciales y de archivos con datos de clientes. Usar al tocar .env, config.py, data/outputs/ o al compartir resultados.
+description: Manejo de credenciales y de archivos con datos de clientes. Usar al tocar .env, infraestructura/configuracion.py, data/outputs/ o al compartir resultados.
 ---
 
 # Secretos y salidas

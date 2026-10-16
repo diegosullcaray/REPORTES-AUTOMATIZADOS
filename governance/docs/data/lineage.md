@@ -4,7 +4,7 @@
 Servidores y bases origen (mish / slc / rcc)
       │  T-SQL incrustado en el módulo del reporte (tokens de fecha)
       ▼
-reportes.db (único acceso, parámetros enlazados)
+infraestructura/bd.py (único acceso, parámetros enlazados)
       ▼
 Módulo del reporte (src/reportes/<frecuencia>/<reporte>.py): validación + transformación pandas
       ▼
