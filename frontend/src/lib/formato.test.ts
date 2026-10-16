@@ -1,7 +1,7 @@
 // node --test src/lib  (Node 22+ ejecuta TypeScript directamente)
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { agruparPorCarpeta, corteDe, haceTiempo, iniciales } from "./formato.ts";
+import { agruparPorAnioMes, agruparPorCarpeta, corteDe, haceTiempo, iniciales } from "./formato.ts";
 
 test("tiempo relativo y corte de los argumentos", () => {
   const ahora = Date.parse("2026-10-07T12:00:00");
@@ -25,4 +25,9 @@ test("los sub-reportes de una carpeta del legado quedan bajo un nodo", () => {
   assert.equal(entradas[0].tipo, "reporte");
   assert.deepEqual(entradas[1].tipo === "nodo" && [entradas[1].orden, entradas[1].titulo, entradas[1].reportes.map((x) => x.nombre)],
     ["09", "Reporte mensual michael palacios", ["michael-captaciones", "michael-castigos"]]);
+});
+
+test("archivos agrupados por año y mes", () => {
+  const g = agruparPorAnioMes([{ modificado: "2026-10-05T10:00:00" }, { modificado: "2026-10-01T10:00:00" }, { modificado: "2026-09-30T10:00:00" }, { modificado: "2025-12-31T10:00:00" }]);
+  assert.deepEqual(g.map((a) => [a.anio, a.meses.map((m) => [m.mes, m.items.length])]), [["2026", [["Octubre", 2], ["Septiembre", 1]]], ["2025", [["Diciembre", 1]]]]);
 });

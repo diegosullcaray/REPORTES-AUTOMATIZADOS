@@ -7,7 +7,7 @@ import { Hace } from "@/components/hace";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { useConsulta } from "@/hooks/use-consulta";
 import { api, urlArchivo } from "@/lib/api";
-import { tamano } from "@/lib/formato";
+import { agruparPorAnioMes, tamano } from "@/lib/formato";
 import { DialogoVistaPrevia, type ArchivoAbierto } from "./vista-previa";
 
 const ICONOS = { excel: FileSpreadsheet, imagen: FileImage, texto: FileText, otro: FileIcon };
@@ -24,29 +24,41 @@ export function PanelArchivos({ reporte }: { reporte: string }) {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <span className="text-sm text-muted-foreground">{datos.length} archivo(s), del más reciente al más antiguo</span>
+        <span className="text-sm text-muted-foreground">{datos.length} archivo(s), por año y mes, del más reciente al más antiguo</span>
         <Button variant="outline" size="icon-sm" onClick={recargar} aria-label="Actualizar lista"><RefreshCw className={cargando ? "animate-spin" : ""} /></Button>
       </div>
-      <ul className="divide-y rounded-lg border">
-        {datos.map((a) => {
-          const Icono = ICONOS[a.tipo];
-          return (
-            <li key={a.nombre} className="flex flex-wrap items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/40">
-              <Icono className="size-5 shrink-0 text-muted-foreground" />
-              <div className="flex min-w-0 flex-1 flex-col">
-                <span className="truncate text-sm font-medium" title={a.nombre}>{a.nombre}</span>
-                <span className="text-xs text-muted-foreground"><Hace iso={a.modificado} /> · {tamano(a.tamano)}</span>
-              </div>
-              <div className="flex gap-2">
-                {a.tipo !== "otro" && (
-                  <Button variant="outline" size="sm" onClick={() => setAbierto({ reporte, nombre: a.nombre, tipo: a.tipo })}><Eye /> Vista previa</Button>
-                )}
-                <a href={urlArchivo(reporte, a.nombre)} className={buttonVariants({ variant: "ghost", size: "sm" })}><Download /> Descargar</a>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
+      {agruparPorAnioMes(datos).map((g, i) => (
+        <details key={g.anio} open={i === 0} className="rounded-lg border">
+          <summary className="cursor-pointer px-4 py-3 text-sm font-semibold">{g.anio}</summary>
+          <div className="flex flex-col gap-2 border-t p-3">
+            {g.meses.map((m, j) => (
+              <details key={m.mes} open={i === 0 && j === 0} className="rounded-lg border">
+                <summary className="cursor-pointer px-4 py-2 text-sm font-medium">{m.mes} <span className="text-muted-foreground">({m.items.length})</span></summary>
+                <ul className="divide-y border-t">
+                  {m.items.map((a) => {
+                    const Icono = ICONOS[a.tipo];
+                    return (
+                      <li key={a.nombre} className="flex flex-wrap items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/40">
+                          <Icono className="size-5 shrink-0 text-muted-foreground" />
+                          <div className="flex min-w-0 flex-1 flex-col">
+                            <span className="truncate text-sm font-medium" title={a.nombre}>{a.nombre}</span>
+                            <span className="text-xs text-muted-foreground"><Hace iso={a.modificado} /> · {tamano(a.tamano)}</span>
+                          </div>
+                          <div className="flex gap-2">
+                            {a.tipo !== "otro" && (
+                              <Button variant="outline" size="sm" onClick={() => setAbierto({ reporte, nombre: a.nombre, tipo: a.tipo })}><Eye /> Vista previa</Button>
+                            )}
+                            <a href={urlArchivo(reporte, a.nombre)} className={buttonVariants({ variant: "ghost", size: "sm" })}><Download /> Descargar</a>
+                          </div>
+                        </li>
+                    );
+                  })}
+                </ul>
+              </details>
+            ))}
+          </div>
+        </details>
+      ))}
       <DialogoVistaPrevia archivo={abierto} onCerrar={() => setAbierto(null)} />
     </div>
   );

@@ -97,6 +97,20 @@ export function fecha(iso: string | null | undefined): string {
   return `${dd}/${m}/${y}${h ? ` ${h.slice(0, 5)}` : ""}`;
 }
 
+const MESES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+
+/** Año → mes → archivos según `modificado` (ISO). Conserva el orden de entrada (más reciente primero). */
+export function agruparPorAnioMes<T extends { modificado: string }>(archivos: T[]) {
+  const anios = new Map<string, Map<string, T[]>>();
+  for (const a of archivos) {
+    const [anio, mes] = a.modificado.split("-");
+    const meses = anios.get(anio) ?? anios.set(anio, new Map()).get(anio)!;
+    const etiqueta = MESES[Number(mes) - 1] ?? mes;
+    meses.set(etiqueta, [...(meses.get(etiqueta) ?? []), a]);
+  }
+  return [...anios].map(([anio, meses]) => ({ anio, meses: [...meses].map(([mes, items]) => ({ mes, items })) }));
+}
+
 export function tamano(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 ** 2) return `${(bytes / 1024).toFixed(1)} KB`;
