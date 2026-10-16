@@ -1,6 +1,7 @@
 "use client";
 
-import { Copy, ExternalLink, KeyRound, LogOut, Play, Plug, PlugZap, Save, Send, Trash2, Undo2 } from "lucide-react";
+import { ArrowLeft, Copy, ExternalLink, KeyRound, LogOut, Play, Plug, PlugZap, Save, Send, Trash2, Undo2 } from "lucide-react";
+import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -11,7 +12,7 @@ import { Marco } from "@/components/marco";
 import { Pagina } from "@/components/pagina";
 import { Tarjeta } from "@/components/tarjeta";
 import { Terminal } from "@/components/terminal";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -26,7 +27,7 @@ const copiar = (texto: string, aviso = "Copiado") => {
   navigator.clipboard.writeText(texto).then(() => toast.success(aviso), () => toast.error("No se pudo copiar"));
 };
 
-/** URI a la que Google devuelve el código: la del .env o esta misma página. */
+/** URI a la que Google devuelve el código: la del .env o la lista de MCP (que reenvía el código al detalle de Google). */
 const redireccionPorDefecto = () => (typeof window === "undefined" ? "" : `${window.location.origin}/configuracion/mcp`);
 
 /** Envuelve una llamada con estado ocupado y toast de error. */
@@ -84,7 +85,7 @@ function Credenciales({ g, onCambio }: { g: GoogleMcp; onCambio: Cambio }) {
           <Button type="button" variant="outline" size="icon" aria-label="Copiar URI" onClick={() => copiar(v.redirect_uri || redireccionPorDefecto(), "URI copiada")}><Copy /></Button>
         </FilaAjuste>
       </div>
-      <p className="text-xs text-muted-foreground">Registra la URI en «URIs de redireccionamiento autorizados» del cliente OAuth (tipo «Aplicación web»). Vacío = esta página.</p>
+      <p className="text-xs text-muted-foreground">Registra la URI en «URIs de redireccionamiento autorizados» del cliente OAuth (tipo «Aplicación web»). Vacío = la página de MCP.</p>
     </Tarjeta>
   );
 }
@@ -319,7 +320,8 @@ export function PanelMcp() {
 
   return (
     <Pagina>
-      <Marco icono={<Plug />} titulo="MCP · Google Workspace" descripcion="Servidores MCP oficiales de Google con tu cuenta, y envío por Gmail y Chat.">
+      <Marco icono={<Plug />} titulo="MCP · Google Workspace" descripcion="Servidores MCP oficiales de Google con tu cuenta, y envío por Gmail y Chat."
+        acciones={<Link href="/configuracion/mcp" className={buttonVariants({ variant: "outline", size: "sm" })}><ArrowLeft /> Integraciones</Link>}>
         {error ? <ErrorEnLinea titulo="No se pudo leer el MCP de Google" detalle={`${error} Si acabas de actualizar el sistema, reinicia la API.`} onReintentar={recargar} />
           : cargando && !g ? <EsqueletoFilas filas={4} alto="h-12" />
           : g && (

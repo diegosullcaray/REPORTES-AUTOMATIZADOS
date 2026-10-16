@@ -7,7 +7,7 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 export default function PanelLayout({ children }: LayoutProps<"/">) {
   return (
     <ProveedorCierre>
-      <SidebarProvider style={{ "--sidebar-width": "19.5rem" } as React.CSSProperties}>
+      <SidebarProvider style={{ "--sidebar-width": "17.5rem" } as React.CSSProperties}>
         <AppSidebar />
         <SidebarInset className="min-w-0">
           <Encabezado />

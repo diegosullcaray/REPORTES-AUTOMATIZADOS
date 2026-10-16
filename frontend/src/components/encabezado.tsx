@@ -20,12 +20,13 @@ const SECCION: Record<string, string> = { reportes: "Reportes", ejecuciones: "Ej
 
 /** Migas según la ruta: Reportes > Diarios > Cartera sin asignar · Ejecuciones > a1b2c3… */
 function useMigas(): Miga[] {
-  const [seccion, id] = usePathname().split("/").filter(Boolean);
+  const [seccion, id, detalle] = usePathname().split("/").filter(Boolean);
   const { datos } = useConsulta(seccion === "reportes" && id ? "reportes" : null, api.reportes);
   if (!seccion) return [{ texto: "Inicio" }];
   const raiz: Miga = { texto: SECCION[seccion] ?? seccion, href: `/${seccion}` };
   if (!id) return [{ texto: raiz.texto }];
-  if (seccion === "configuracion") return [raiz, { texto: id === "notificaciones" ? "Notificaciones" : id === "mcp" ? "MCP · Google Workspace" : id }];
+  if (seccion === "configuracion" && id === "mcp") return detalle ? [raiz, { texto: "MCP", href: "/configuracion/mcp" }, { texto: "Google Workspace" }] : [raiz, { texto: "MCP" }];
+  if (seccion === "configuracion") return [raiz, { texto: id === "notificaciones" ? "Notificaciones" : id }];
   if (seccion === "reportes") {
     const nombre = decodeURIComponent(id);
     const r = datos?.find((x) => x.nombre === nombre);

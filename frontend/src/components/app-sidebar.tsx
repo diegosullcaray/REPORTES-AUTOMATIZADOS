@@ -178,7 +178,7 @@ export function AppSidebar() {
           <SidebarMenu>
             {AJUSTES.map(({ ruta: destino, texto, icono: Icono }) => (
               <SidebarMenuItem key={destino}>
-                <SidebarMenuButton isActive={ruta === destino} tooltip={texto} render={<Link href={destino} />}><Icono /><span>{texto}</span></SidebarMenuButton>
+                <SidebarMenuButton isActive={ruta === destino || (destino !== "/configuracion" && ruta.startsWith(`${destino}/`))} tooltip={texto} render={<Link href={destino} />}><Icono /><span>{texto}</span></SidebarMenuButton>
               </SidebarMenuItem>
             ))}
           </SidebarMenu>
