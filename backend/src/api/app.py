@@ -19,7 +19,7 @@ from datetime import date
 from fastapi import FastAPI, HTTPException, Query, Request, Response
 from fastapi.responses import FileResponse, JSONResponse
 
-from . import ejecuciones, mcp, notificaciones, servicios, sesion
+from . import ejecuciones, envio_correo, mcp, notificaciones, servicios, sesion
 from . import esquemas as e
 
 
@@ -94,6 +94,21 @@ def listar_reportes():
 @app.get("/api/reportes/{nombre}", response_model=e.ReporteDetalle)
 def detalle_reporte(nombre: str):
     return servicios.detalle(nombre)
+
+
+@app.put("/api/reportes/{nombre}/correo-destinos", response_model=e.ReporteDetalle)
+def guardar_destinos_correo(nombre: str, pedido: e.PedidoDestinosCorreo):
+    return envio_correo.guardar_destinos(nombre, pedido)
+
+
+@app.post("/api/reportes/{nombre}/correo/enviar", response_model=e.PruebaNotificacion)
+def enviar_archivos_correo(nombre: str, pedido: e.PedidoEnvioArchivos):
+    return envio_correo.enviar(nombre, pedido)
+
+
+@app.get("/api/google/firma", response_model=e.FirmaGmail)
+def firma_gmail():
+    return envio_correo.firma()
 
 
 @app.put("/api/reportes/{nombre}/chat", response_model=e.ReporteDetalle)

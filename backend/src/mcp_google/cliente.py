@@ -12,6 +12,7 @@ Configuración (solo en el .env; el secreto y el refresh token nunca salen hacia
 from __future__ import annotations
 
 import base64
+import html
 import json
 import mimetypes
 import os
@@ -86,9 +87,11 @@ def falta_consentimiento(servicio: str) -> bool:
 
 # ---------------------------------------------------------------- HTTP
 
-def _http(metodo: str, url: str, *, datos: dict | None = None, form: dict | None = None, token: str | None = None) -> dict:
+def _http(metodo: str, url: str, *, datos: dict | None = None, form: dict | None = None, crudo: tuple[bytes, str] | None = None, token: str | None = None) -> dict:
     cuerpo, cabeceras = None, {}
-    if form is not None:
+    if crudo is not None:
+        cuerpo, cabeceras["Content-Type"] = crudo
+    elif form is not None:
         cuerpo, cabeceras["Content-Type"] = urllib.parse.urlencode(form).encode(), "application/x-www-form-urlencoded"
     elif datos is not None:
         cuerpo, cabeceras["Content-Type"] = json.dumps(datos).encode(), "application/json; charset=UTF-8"
@@ -170,6 +173,37 @@ def enviar_correo(token: str, para: str, asunto: str, cuerpo: str) -> str:
     msg.set_content(cuerpo)
     raw = base64.urlsafe_b64encode(msg.as_bytes()).decode()
     return _http("POST", "https://gmail.googleapis.com/gmail/v1/users/me/messages/send", datos={"raw": raw}, token=token).get("id", "")
+
+
+def armar_correo(para: list[str], cc: list[str], asunto: str, texto: str, firma_html: str = "", adjuntos: list[Path] | None = None) -> EmailMessage:
+    """Correo con el texto en HTML (+ la firma de Gmail, ya HTML) y los archivos adjuntos."""
+    msg = EmailMessage()
+    msg["To"], msg["Subject"] = ", ".join(para), asunto
+    if cc:
+        msg["Cc"] = ", ".join(cc)
+    if _env("USER_GOOGLE_EMAIL"):
+        msg["From"] = formataddr((_env("MAIL_FROM_NAME") or "Reportes automatizados", _env("USER_GOOGLE_EMAIL")))
+    msg.set_content(texto)
+    cuerpo = html.escape(texto).replace("\n", "<br>")
+    msg.add_alternative(f"<div>{cuerpo}</div>" + (f"<br><div>{firma_html}</div>" if firma_html else ""), subtype="html")
+    for ruta in adjuntos or []:
+        tipo, _ = mimetypes.guess_type(ruta.name)
+        principal, _, sub = (tipo or "application/octet-stream").partition("/")
+        msg.add_attachment(ruta.read_bytes(), maintype=principal, subtype=sub, filename=ruta.name)
+    return msg
+
+
+def enviar_mensaje(token: str, msg: EmailMessage) -> str:
+    """Envío por la carga `message/rfc822` de Gmail (hasta 35 MB; el JSON con `raw` admite mucho menos)."""
+    url = "https://gmail.googleapis.com/upload/gmail/v1/users/me/messages/send?uploadType=media"
+    return _http("POST", url, crudo=(msg.as_bytes(), "message/rfc822"), token=token).get("id", "")
+
+
+def firma_gmail(token: str) -> str:
+    """Firma HTML de la dirección de envío predeterminada de la cuenta (Configuración › Firma de Gmail)."""
+    direcciones = _http("GET", "https://gmail.googleapis.com/gmail/v1/users/me/settings/sendAs", token=token).get("sendAs", [])
+    elegida = next((d for d in direcciones if d.get("isDefault")), direcciones[0] if direcciones else {})
+    return elegida.get("signature", "")
 
 
 # ---------------------------------------------------------------- Chat

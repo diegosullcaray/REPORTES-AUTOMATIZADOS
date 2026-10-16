@@ -18,7 +18,7 @@ from functools import lru_cache
 from importlib import import_module
 from pathlib import Path
 
-from reportes.comun import correo, entrega_chat
+from reportes.comun import correo, entrega_chat, entrega_gmail
 from reportes.comun.ejecutor import ReporteLote
 from reportes.comun.fechas import Cortes, fecha_iso, resolver_corte
 from dotenv import dotenv_values
@@ -110,7 +110,8 @@ def detalle(nombre: str) -> e.ReporteDetalle:
         for t in tablas_de(nombre)
     ]
     destinos = entrega_chat.destinatarios(nombre) if nombre in ENVIAN_CHAT else []
-    return e.ReporteDetalle(**_resumen(r), corte=corte, tablas=tablas, chat_destinatarios=destinos)
+    return e.ReporteDetalle(**_resumen(r), corte=corte, tablas=tablas, chat_destinatarios=destinos,
+                            correo_para=entrega_gmail.para(nombre), correo_cc=entrega_gmail.cc(nombre))
 
 
 def guardar_chat(nombre: str, p: e.PedidoChat) -> e.ReporteDetalle:

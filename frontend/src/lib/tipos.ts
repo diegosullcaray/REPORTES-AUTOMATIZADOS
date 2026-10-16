@@ -40,6 +40,9 @@ export interface ReporteDetalle extends ReporteResumen {
   tablas: TablaReporte[];
   /** A quién se envía el archivo por Google Chat (ENTREGA_CHAT_<REPORTE> del .env). */
   chat_destinatarios: string[];
+  /** Destinatarios y copia del correo con los archivos (ENTREGA_CORREO_PARA_/CC_<REPORTE> del .env). */
+  correo_para: string[];
+  correo_cc: string[];
 }
 
 export type EstadoTabla = "OK" | "DESACTUALIZADA" | "NO EXISTE" | "ERROR" | "SIN CONTROL";
@@ -206,6 +209,20 @@ export interface PedidoNotificaciones {
   remitente_nombre?: string;
   correo_prueba?: string;
   webhook?: string;
+}
+
+export interface PedidoEnvioArchivos {
+  para: string[];
+  cc: string[];
+  asunto: string;
+  mensaje: string;
+  archivos: string[];
+  con_firma: boolean;
+  prueba: boolean;
+}
+
+export interface FirmaGmail {
+  html: string; // vacío si la cuenta no tiene firma
 }
 
 export interface PruebaNotificacion {

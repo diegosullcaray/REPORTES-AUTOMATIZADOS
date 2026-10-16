@@ -43,10 +43,31 @@ class ReporteDetalle(ReporteResumen):
     corte: Corte
     tablas: list[TablaReporte]
     chat_destinatarios: list[str] = []   # a quién se envía por Google Chat (ENTREGA_CHAT_<REPORTE> del .env)
+    correo_para: list[str] = []          # destinatarios del correo con los archivos (ENTREGA_CORREO_PARA_<REPORTE>)
+    correo_cc: list[str] = []            # con copia (ENTREGA_CORREO_CC_<REPORTE>)
 
 
 class PedidoChat(BaseModel):
     destinatarios: str            # correos separados por coma; vacío = no enviar a nadie
+
+
+class PedidoDestinosCorreo(BaseModel):
+    para: str = ""                # correos separados por coma; vacío = sin destinatarios guardados
+    cc: str = ""
+
+
+class PedidoEnvioArchivos(BaseModel):
+    para: list[str]
+    cc: list[str] = []
+    asunto: str
+    mensaje: str = ""
+    archivos: list[str]
+    con_firma: bool = True
+    prueba: bool = False          # solo a CORREO_PRUEBA, sin copia
+
+
+class FirmaGmail(BaseModel):
+    html: str                     # vacío si la cuenta no tiene firma
 
 
 class PedidoCorte(BaseModel):

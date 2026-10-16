@@ -58,6 +58,7 @@ insignias (tipo, servidor, responsable · Nº). La pestaña abierta queda en la 
 | Ejecuciones | Agrupadas por fecha de corte; la más reciente abierta con su proceso paso a paso (✓ / X falta / falla resaltada) y **Ver log** por paso | — |
 | Archivos | Excel, imagen y textos de la carpeta del reporte, agrupados **por ejecución** (se abre cada una para ver sus archivos; los que no son de ninguna van en «Sin ejecución registrada»), con **vista previa** (200 filas por hoja) y descarga | `data/outputs/<…>/` |
 | Correo (solo `cartera-sin-asignar`) | Estado de la prueba; **Enviar a toda la lista** exige marcar «Revisé el correo de prueba» | `--correo todos --conforme` |
+| Correo (todos los reportes) | **Enviar archivos por correo** con la cuenta de Google autorizada en MCP (API de Gmail, no el MCP oficial): Para y CC (se guardan en el `.env` como `ENTREGA_CORREO_PARA_<REPORTE>` / `ENTREGA_CORREO_CC_<REPORTE>`), asunto, mensaje, archivos generados a adjuntar (hasta 10 y 25 MB) y **tu firma de Gmail** (se lee de Gmail, `sendAs`, y se muestra en vista previa). **Enviarme una prueba** va solo a `CORREO_PRUEBA` y sin copia; **Enviar a la lista** pide confirmar «Revisé la prueba» | `POST /api/reportes/<r>/correo/enviar` |
 
 Reglas que la API exige (aunque la web ya las avise):
 

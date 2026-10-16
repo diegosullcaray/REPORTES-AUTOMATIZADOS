@@ -1,6 +1,6 @@
 // Transporte: única puerta hacia la API de Python (proxy /api en next.config.ts). Sin estado ni presentación.
 import type {
-  Archivo, ConfiguracionGeneral, Ejecucion, EjecucionDetalle, EstadoEnvio, PedidoEjecucion, Notificaciones, Perfil, PedidoConfiguracion, PedidoCuenta, PedidoNotificaciones, PruebaConexion, PruebaNotificacion, ReporteDetalle, ReporteResumen,
+  Archivo, ConfiguracionGeneral, FirmaGmail, PedidoEnvioArchivos, Ejecucion, EjecucionDetalle, EstadoEnvio, PedidoEjecucion, Notificaciones, Perfil, PedidoConfiguracion, PedidoCuenta, PedidoNotificaciones, PruebaConexion, PruebaNotificacion, ReporteDetalle, ReporteResumen,
   GoogleMcp, PedidoGoogleMcp, PruebaMcp, Servidor, Sesion, Solicitud, Verificacion, VerificacionGrupo, VistaPrevia,
 } from "./tipos";
 
@@ -67,6 +67,9 @@ export const api = {
   reportes: () => (catalogo ??= pedir<ReporteResumen[]>("/reportes").catch((e) => { catalogo = null; throw e; })),
   reporte: (nombre: string) => pedir<ReporteDetalle>(r(nombre)),
   guardarChatReporte: (nombre: string, destinatarios: string) => pedir<ReporteDetalle>(`${r(nombre)}/chat`, { method: "PUT", body: JSON.stringify({ destinatarios }) }),
+  guardarDestinosCorreo: (nombre: string, para: string, cc: string) => pedir<ReporteDetalle>(`${r(nombre)}/correo-destinos`, { method: "PUT", body: JSON.stringify({ para, cc }) }),
+  enviarArchivosCorreo: (nombre: string, pedido: PedidoEnvioArchivos) => pedir<PruebaNotificacion>(`${r(nombre)}/correo/enviar`, enviar(pedido)),
+  firmaGmail: () => pedir<FirmaGmail>("/google/firma"),
   verificar: (nombre: string, fecha_corte: string | null) => pedir<Verificacion>(`${r(nombre)}/verificacion`, enviar({ fecha_corte })),
   verificarGrupo: (grupo: string, fecha_corte: string | null) => pedir<VerificacionGrupo>(`/validacion/${grupo}`, enviar({ fecha_corte })),
   guardarSolicitudGrupo: (grupo: string, fecha_corte: string | null) => pedir<Solicitud>(`/validacion/${grupo}/solicitud`, enviar({ fecha_corte })),
