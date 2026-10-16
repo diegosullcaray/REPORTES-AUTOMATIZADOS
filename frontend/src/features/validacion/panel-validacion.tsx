@@ -1,7 +1,7 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { Database, FileSpreadsheet, ShieldCheck, TriangleAlert } from "lucide-react";
+import { Database, FileSpreadsheet, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, type ReactNode } from "react";
@@ -87,7 +87,6 @@ function Resultado({ v, grupo, corte, onRecargar }: { v: VerificacionGrupo; grup
   const sinVerificar = v.reportes.filter((r) => r.pendientes === 0 && r.dudosas > 0).length;
   const verificables = v.tablas.filter((t) => t.estado !== "SIN CONTROL");
   const tablasOk = verificables.filter((t) => t.estado === "OK").length;
-  const problemas = v.problemas ?? [];
 
   return (
     <div className="flex flex-col gap-6">
@@ -97,19 +96,6 @@ function Resultado({ v, grupo, corte, onRecargar }: { v: VerificacionGrupo; grup
         <Cifra etiqueta="Sin verificar (conexión)" valor={sinVerificar} tono="peligro" />
         <Cifra etiqueta="Tablas al día" valor={tablasOk} total={verificables.length} tono="exito" />
       </div>
-
-      {problemas.length > 0 && (
-        <Bloque icono={<TriangleAlert />} titulo="Problemas de conexión (no son tablas desactualizadas)">
-          <ul className="flex flex-col gap-2">
-            {problemas.map((p) => (
-              <li key={p.causa} className="flex flex-col gap-1 rounded-lg border p-3" style={{ background: "var(--mis-warning-light)", borderColor: "color-mix(in srgb, var(--mis-warning) 30%, transparent)" }}>
-                <span className="text-sm font-medium">{p.causa} <span className="font-normal text-muted-foreground">· {p.tablas} tabla(s)</span></span>
-                <span className="text-xs text-muted-foreground">{p.solucion}</span>
-              </li>
-            ))}
-          </ul>
-        </Bloque>
-      )}
 
       <Bloque icono={<ShieldCheck />} titulo={v.listo ? `Todo al día al ${fecha(v.corte)}: puedes ejecutar los ${v.reportes.length} reportes` : `Detalle al ${fecha(v.corte)}`}>
         <Tabs defaultValue="reportes">

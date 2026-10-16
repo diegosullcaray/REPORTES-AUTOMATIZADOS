@@ -22,35 +22,36 @@ import type { ReporteResumen } from "@/lib/tipos";
 const enlace = (r: ReporteResumen) => <Link href={`/reportes/${r.nombre}`} title={r.descripcion} prefetch={false} />;
 const rutaDe = (r: ReporteResumen) => `/reportes/${r.nombre}`;
 
-function Hoja({ r, ruta }: { r: ReporteResumen; ruta: string }) {
+function Hoja({ r, ruta, num }: { r: ReporteResumen; ruta: string; num?: string }) {
   return (
     <SidebarMenuSubItem>
       <SidebarMenuSubButton isActive={ruta === rutaDe(r)} render={enlace(r)}>
-        <span className="w-7 shrink-0 text-[11px] text-muted-foreground tabular-nums">{r.orden}</span>
-        <span className="truncate">{titulo(r.nombre)}</span>
-        {r.escribe_en_bd && <Database aria-label="escribe en BD" className="ml-auto size-3.5 shrink-0 text-[var(--mis-warning)]!" />}
-        {r.envia_correo && <Mail aria-label="envía correo" className="ml-auto size-3.5 shrink-0" />}
+        <span className="w-7 shrink-0 text-[11px] text-muted-foreground tabular-nums">{num ?? r.orden}</span>
+        <span className="min-w-0 flex-1 truncate">{titulo(r.nombre)}</span>
+        {r.escribe_en_bd && <Database aria-label="escribe en BD" className="size-3.5 shrink-0 text-[var(--mis-warning)]!" />}
+        {r.envia_correo && <Mail aria-label="envía correo" className="size-3.5 shrink-0" />}
       </SidebarMenuSubButton>
     </SidebarMenuSubItem>
   );
 }
 
-/** Carpeta plegable dentro del árbol: categoría (Diarios, Piero, Erick) o carpeta del legado con sub-reportes (09 → 09.1, 09.2). */
-function Carpeta({ etiqueta, orden, reportes, ruta, abierta }: { etiqueta: string; orden?: string; reportes: ReporteResumen[]; ruta: string; abierta?: boolean }) {
+/** Carpeta plegable dentro del árbol (`numerar`: numera 01, 02… por posición en vez de usar el número del legado): categoría (Diarios, Piero, Erick) o carpeta del legado con sub-reportes (09 → 09.1, 09.2). */
+function Carpeta({ etiqueta, orden, reportes, ruta, abierta, numerar }: { etiqueta: string; orden?: string; reportes: ReporteResumen[]; ruta: string; abierta?: boolean; numerar?: boolean }) {
   const contieneActivo = reportes.some((r) => ruta === rutaDe(r));
   const [elegido, setElegido] = useState<boolean | null>(null); // null = sigue a la ruta hasta que el usuario la pliegue o despliegue
   return (
     <Collapsible open={elegido ?? (!!abierta || contieneActivo)} onOpenChange={setElegido} className="group/carpeta" render={<SidebarMenuSubItem />}>
       {/* SidebarMenuSubButton es un <a> por defecto; para plegar hace falta un <button> real (teclado y lectores de pantalla). */}
-      <CollapsibleTrigger render={<SidebarMenuSubButton render={<button type="button" />} />} title={etiqueta}>
+      <CollapsibleTrigger render={<SidebarMenuSubButton className="w-full text-left" render={<button type="button" />} />} title={etiqueta}>
         {orden && <span className="w-7 shrink-0 text-[11px] text-muted-foreground tabular-nums">{orden}</span>}
-        <span className="truncate">{etiqueta}</span>
-        <ChevronRight className="ml-auto size-3.5 shrink-0 transition-transform duration-150 group-data-[open]/carpeta:rotate-90" />
+        <span className="min-w-0 flex-1 truncate">{etiqueta}</span>
+        <ChevronRight className="size-3.5 shrink-0 transition-transform duration-150 group-data-[open]/carpeta:rotate-90" />
       </CollapsibleTrigger>
       <CollapsibleContent>
         <SidebarMenuSub className="mr-0 pr-0">
           {/* Una carpeta del legado (con `orden`) ya es un grupo: sus reportes van directo; agruparla de nuevo no termina nunca. */}
           {orden ? reportes.map((r) => <Hoja key={r.nombre} r={r} ruta={ruta} />)
+            : numerar ? reportes.map((r, i) => <Hoja key={r.nombre} r={r} ruta={ruta} num={String(i + 1).padStart(2, "0")} />)
             : agruparPorCarpeta(reportes).map((e) => e.tipo === "reporte"
               ? <Hoja key={e.r.nombre} r={e.r} ruta={ruta} />
               : <Carpeta key={e.orden} etiqueta={e.titulo} orden={e.orden} reportes={e.reportes} ruta={ruta} />)}
@@ -78,7 +79,7 @@ function MenuReportes({ ruta }: { ruta: string }) {
         {/* Las carpetas se montan con el catálogo ya cargado: así ven desde el inicio qué reporte está abierto. */}
         {datos && (
           <SidebarMenuSub>
-            <Carpeta etiqueta="Diarios" reportes={de("diarias")} ruta={ruta} abierta />
+            <Carpeta etiqueta="Diarios" reportes={de("diarias")} ruta={ruta} abierta numerar />
             <Carpeta etiqueta="Heredados de Piero" reportes={de("piero")} ruta={ruta} />
             <Carpeta etiqueta="Heredados de Erick" reportes={de("erick")} ruta={ruta} />
           </SidebarMenuSub>
