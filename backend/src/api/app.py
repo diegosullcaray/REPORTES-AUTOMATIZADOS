@@ -172,6 +172,16 @@ def historial(reporte: str | None = None, limite: int = Query(200, ge=1, le=2000
     return ejecuciones.historial(reporte, limite)
 
 
+@app.post("/api/ejecuciones/eliminar", response_model=e.EjecucionesEliminadas)
+def eliminar_ejecuciones(pedido: e.PedidoEliminarEjecuciones):
+    try:
+        return e.EjecucionesEliminadas(eliminadas=ejecuciones.eliminar(pedido.ids))
+    except KeyError:
+        raise servicios.NoEncontrado("Alguna ejecución ya no existe: recarga la lista.") from None
+    except ValueError as exc:
+        raise servicios.PeticionInvalida(str(exc)) from exc
+
+
 @app.get("/api/ejecuciones/{id_}", response_model=e.EjecucionDetalle)
 def ejecucion(id_: str):
     try:

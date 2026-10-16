@@ -70,6 +70,19 @@ def obtener(id_: str) -> e.EjecucionDetalle:
     return e.EjecucionDetalle(**x.model_dump(), log=texto)
 
 
+def eliminar(ids: list[str]) -> int:
+    """Quita del historial las ejecuciones (estado y log); los archivos generados no se tocan.
+    KeyError si alguna no existe; ValueError si alguna sigue en cola o corriendo (nada se borra en ese caso)."""
+    xs = [_leer(i) for i in dict.fromkeys(ids)]
+    if activas := [x.id for x in xs if x.estado in {"en_cola", "ejecutando"}]:
+        raise ValueError(f"Siguen en curso y no se pueden eliminar: {', '.join(activas)}")
+    with _candado:
+        for x in xs:
+            for ext in ("json", "log"):
+                _ruta(x.id, ext).unlink(missing_ok=True)
+    return len(xs)
+
+
 def historial(reporte: str | None = None, limite: int = 100) -> list[e.Ejecucion]:
     if not DIR.is_dir():
         return []

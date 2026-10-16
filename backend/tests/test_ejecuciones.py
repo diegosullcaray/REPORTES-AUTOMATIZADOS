@@ -33,3 +33,27 @@ def test_id_invalido_no_sale_de_la_carpeta():
 
     with pytest.raises(KeyError):
         ejecuciones.obtener("../../.env")
+
+
+def _guardar_ejecucion(id_, estado):
+    from api.esquemas import Ejecucion
+
+    ejecuciones._guardar(Ejecucion(id=id_, reporte="saca-tu-garra", argumentos=[], estado=estado, codigo=None, inicio="2026-10-01T10:00:00", fin=None))
+    (ejecuciones.DIR / f"{id_}.log").write_text("salida", encoding="utf-8")
+
+
+def test_eliminar_borra_estado_y_log_pero_no_las_en_curso(tmp_path, monkeypatch):
+    import pytest
+
+    monkeypatch.setattr(ejecuciones, "DIR", tmp_path)
+    for id_, estado in [("a1", "ok"), ("a2", "error"), ("a3", "ejecutando")]:
+        _guardar_ejecucion(id_, estado)
+    with pytest.raises(ValueError, match="a3"):
+        ejecuciones.eliminar(["a1", "a3"])                      # una en curso: no se borra ninguna
+    assert {x.id for x in ejecuciones.historial()} == {"a1", "a2", "a3"}
+    assert ejecuciones.eliminar(["a1", "a2", "a2"]) == 2
+    assert [x.id for x in ejecuciones.historial()] == ["a3"] and not (tmp_path / "a1.log").exists()
+    with pytest.raises(KeyError):
+        ejecuciones.eliminar(["a1"])
+    with pytest.raises(KeyError):
+        ejecuciones.eliminar(["../../.env"])

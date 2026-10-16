@@ -10,6 +10,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { useConsulta } from "@/hooks/use-consulta";
 import { api } from "@/lib/api";
 import { fecha } from "@/lib/formato";
+import { BotonEliminar, ListaIntentos } from "./eliminar-ejecuciones";
 import { ESTADO_PROCESO, LineaProceso, PasosEnLinea } from "./pasos-proceso";
 import { agruparProcesos } from "./proceso";
 import { VisorLog } from "./visor-log";
@@ -37,8 +38,9 @@ export function ListaEjecuciones({ reporte, limite = 60 }: { reporte: string; li
               const visible = abierto(i, p.clave);
               return (
                 <li key={p.clave} className="rounded-lg border">
+                  <div className="flex items-center gap-1 pr-2">
                   <button type="button" onClick={() => alternar(p.clave)} aria-expanded={visible}
-                    className="flex w-full flex-wrap items-center gap-3 rounded-lg px-4 py-3 text-left transition-colors hover:bg-muted/40">
+                    className="flex min-w-0 flex-1 flex-wrap items-center gap-3 rounded-lg px-4 py-3 text-left transition-colors hover:bg-muted/40">
                     <ChevronRight className={`size-4 shrink-0 text-muted-foreground transition-transform duration-150 ${visible ? "rotate-90" : ""}`} />
                     <div className="flex min-w-0 flex-1 flex-col gap-1">
                       <span className="flex flex-wrap items-center gap-2 text-sm font-medium">
@@ -52,7 +54,17 @@ export function ListaEjecuciones({ reporte, limite = 60 }: { reporte: string; li
                       <Hace iso={p.ultima} />
                     </span>
                   </button>
-                  {visible && <div className="border-t p-3"><LineaProceso pasos={p.pasos} onVerLog={setLog} /></div>}
+                  <BotonEliminar ids={p.ejecuciones.map((x) => x.id)} onHecho={recargar} etiqueta="Eliminar proceso"
+                    deshabilitado={p.estado === "en_curso" && "En curso: espera a que termine"}
+                    descripcion={<>Se eliminarán las {p.ejecuciones.length} ejecuciones con corte {p.corte ? (p.corte.length === 10 ? fecha(p.corte) : p.corte) : "—"}.</>} />
+                  </div>
+                  {visible && (
+                    <div className="flex flex-col gap-3 border-t p-3">
+                      <LineaProceso pasos={p.pasos} onVerLog={setLog} />
+                      <h3 className="text-sm font-medium">Ejecuciones ({p.ejecuciones.length})</h3>
+                      <ListaIntentos ejecuciones={p.ejecuciones} onVerLog={setLog} onCambio={recargar} />
+                    </div>
+                  )}
                 </li>
               );
             })}

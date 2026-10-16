@@ -15,6 +15,7 @@ import { useConsulta } from "@/hooks/use-consulta";
 import { api } from "@/lib/api";
 import { TIPO, fecha, titulo } from "@/lib/formato";
 import type { Frecuencia } from "@/lib/tipos";
+import { BotonEliminar, ListaIntentos } from "./eliminar-ejecuciones";
 import { ESTADO_PROCESO, LineaProceso, PasosEnLinea } from "./pasos-proceso";
 import { agruparProcesos, type EstadoProceso, type Proceso } from "./proceso";
 import { VisorLog } from "./visor-log";
@@ -77,10 +78,15 @@ export function TablaEjecuciones() {
       id: "acciones", enableHiding: false, enableSorting: false,
       header: () => <span className="sr-only">Acciones</span>,
       cell: ({ row: { original: p } }) => (
-        <div className="flex justify-end"><Button variant="ghost" size="sm" onClick={() => setAbierto(p.clave)}><ListChecks /> Ver proceso</Button></div>
+        <div className="flex items-center justify-end gap-1">
+          <Button variant="ghost" size="sm" onClick={() => setAbierto(p.clave)}><ListChecks /> Ver proceso</Button>
+          <BotonEliminar ids={p.ejecuciones.map((x) => x.id)} onHecho={consulta.recargar} etiqueta="Eliminar proceso"
+            deshabilitado={p.estado === "en_curso" && "En curso: espera a que termine"}
+            descripcion={<>Se eliminarán las {p.ejecuciones.length} ejecuciones de <b>{titulo(p.reporte)}</b> con corte {corteTexto(p.corte)}.</>} />
+        </div>
       ),
     },
-  ], [frecuencia]);
+  ], [frecuencia, consulta.recargar]);
 
   const filtros = (
     <>
@@ -111,7 +117,13 @@ export function TablaEjecuciones() {
             <DialogTitle>{elegido && titulo(elegido.reporte)}</DialogTitle>
             <DialogDescription>{elegido && `Corte ${corteTexto(elegido.corte)} · ${ESTADO_PROCESO[elegido.estado].texto.toLowerCase()}`}</DialogDescription>
           </DialogHeader>
-          {elegido && <LineaProceso pasos={elegido.pasos} onVerLog={setLog} />}
+          {elegido && (
+            <div className="flex flex-col gap-3">
+              <LineaProceso pasos={elegido.pasos} onVerLog={setLog} />
+              <h3 className="text-sm font-medium">Ejecuciones ({elegido.ejecuciones.length})</h3>
+              <ListaIntentos ejecuciones={elegido.ejecuciones} onVerLog={setLog} onCambio={consulta.recargar} />
+            </div>
+          )}
         </DialogContent>
       </Dialog>
       <VisorLog id={log} onCerrar={() => setLog(null)} />

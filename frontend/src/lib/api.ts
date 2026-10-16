@@ -81,6 +81,7 @@ export const api = {
   ejecutar: (pedido: PedidoEjecucion) => pedir<Ejecucion>("/ejecuciones", enviar(pedido)),
   ejecuciones: (reporte?: string, limite = 200) =>
     pedir<Ejecucion[]>(`/ejecuciones?limite=${limite}${reporte ? `&reporte=${encodeURIComponent(reporte)}` : ""}`),
+  eliminarEjecuciones: (ids: string[]) => pedir<{ eliminadas: number }>("/ejecuciones/eliminar", enviar({ ids })),
   ejecucion: (id: string) => pedir<EjecucionDetalle>(`/ejecuciones/${encodeURIComponent(id)}`),
   perfil: () => pedir<Perfil>("/perfil"),
   configuracion: () => pedir<ConfiguracionGeneral>("/configuracion"),

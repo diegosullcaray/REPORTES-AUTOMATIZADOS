@@ -149,6 +149,14 @@ class Ejecucion(BaseModel):
     archivos: list[str] = Field(default_factory=list)  # nombres dentro de la carpeta del reporte
 
 
+class PedidoEliminarEjecuciones(BaseModel):
+    ids: list[str] = Field(min_length=1, max_length=500)
+
+
+class EjecucionesEliminadas(BaseModel):
+    eliminadas: int
+
+
 class EjecucionDetalle(Ejecucion):
     log: str
 
