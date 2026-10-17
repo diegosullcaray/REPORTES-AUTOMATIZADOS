@@ -5,7 +5,7 @@ description: Cómo se construye un reporte ejecutable (.py) con el ejecutor com�
 
 # Reporte ejecutable = un módulo `.py`
 
-No hay carpeta `sql/`: la lógica de cada reporte vive **en su módulo** (`src/reportes/<diarios|mensuales>/<reporte>.py`) y el ejecutor común (`aplicacion/ejecucion.py`) hace lo demás.
+No hay carpeta `sql/`: la lógica de cada reporte vive **en su módulo** (`src/modulos/reportes/catalogo/<diarios|mensuales>/<reporte>.py`) y el ejecutor común (`modulos/reportes/aplicacion/ejecucion.py`) hace lo demás.
 
 ```python
 from aplicacion.ejecucion import Hoja, ReporteLote, correr
@@ -42,7 +42,7 @@ def main(argv=None) -> int:
 La regla `fechas-fijas-en-sql` bloquea fechas literales en el T-SQL.
 
 ## Formato, orden y entrega
-- **Ubicación y nombre**: `src/reportes/mensuales/<piero|erick>/r<NN>_<nombre>.py` (o `diarios/`), con el número de su carpeta del legado; se registra en `dominio/reportes.py` con `grupo`, `orden` y `carpeta` de salida.
+- **Ubicación y nombre**: `src/modulos/reportes/catalogo/mensuales/<piero|erick>/r<NN>_<nombre>.py` (o `diarios/`), con el número de su carpeta del legado; se registra en `modulos/reportes/dominio/reportes.py` con `grupo`, `orden` y `carpeta` de salida.
 - **Columnas del Excel**: `Hoja("Datos", columnas=(Columna("HASEOPER", "Usuario"), Columna("VAR", "Var.", si_cero="-"), Columna("FECHA", "FECHA", formato="dd/mm/yyyy")))` deja solo esas columnas, con ese encabezado y esos reemplazos.
 - **Entrega por correo**: `entrega=EntregaCorreoResumen()` (ver `cartera-sin-asignar`): prueba a `CORREO_PRUEBA` → `--correo todos --conforme`.
 
@@ -50,5 +50,5 @@ La regla `fechas-fijas-en-sql` bloquea fechas literales en el T-SQL.
 - El `servidor` y la `base` deben coincidir con el mapa de [servidores y bases](../../docs/data/servidores-y-bases.md) (`storage` vive en `mish`, no en `slc`); la regla `servidor-coherente` lo exige.
 - Un reporte que **crea/borra tablas permanentes** declara `escribe_en_bd=True` (exige `--confirmar-escritura`).
 - Un resultado legítimamente vacío (p. ej. Castigos) declara `vacio_valido=True`.
-- Toda tabla que consulte va en `src/dominio/tablas.py` (`TABLAS` y `USO`): sin eso no hay verificación de frescura ni mensaje a Producción (regla `tabla-sin-registrar`).
-- Reportes con lógica Python propia (CMG Mora, Bancarizados…) siguen el mismo contrato: `main(argv) -> int`, `infraestructura/bd.py`, tablas registradas.
+- Toda tabla que consulte va en `src/modulos/reportes/dominio/tablas.py` (`TABLAS` y `USO`): sin eso no hay verificación de frescura ni mensaje a Producción (regla `tabla-sin-registrar`).
+- Reportes con lógica Python propia (CMG Mora, Bancarizados…) siguen el mismo contrato: `main(argv) -> int`, `core/bd.py`, tablas registradas.

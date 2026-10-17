@@ -13,20 +13,21 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parents[2]
 BACK = RAIZ / "backend"  # el motor Python vive en backend/; governance/ queda en la raíz
 sys.path.insert(0, str(BACK / "src"))
-import composicion  # noqa: E402,F401 - conecta los adaptadores: los reportes leen sus rutas por los puertos
+sys.path.insert(0, str(BACK))   # config/
+from config import composicion  # noqa: F401 - conecta los adaptadores reales a los puertos
 SALIDA = RAIZ / "governance" / "docs" / "architecture" / "module-inventory.md"
 SALIDA_TABLAS = RAIZ / "governance" / "docs" / "data" / "tables-inventory.md"
 SALIDA_COLUMNAS = RAIZ / "governance" / "docs" / "data" / "columnas-fecha-de-corte.md"
 SALIDA_COMANDOS = RAIZ / "governance" / "docs" / "development" / "runbooks" / "comandos.md"
 
 
-CAPAS = [
-    ("dominio", "Reglas puras del negocio: reportes, tablas, fechas de corte, verificación. Sin I/O ni frameworks."),
-    ("aplicacion", "Casos de uso, puertos (interfaces hacia afuera) y contratos (`dto.py`). Depende solo del dominio."),
-    ("infraestructura", "Adaptadores de los puertos: bases de datos, Excel, correo, Google, `.env`, cola de ejecuciones."),
-    ("interfaces", "Entradas: API HTTP (Django, una app por tema), consola (`main.py`) y servidor MCP. Solo traducen al caso de uso."),
-    ("reportes", "Un módulo por reporte del legado (T-SQL y formato de salida); se ejecutan con el ejecutor común."),
+MODULOS = [
+    ("reportes", "Catálogo, ejecución, verificación de tablas, archivos, validación masiva y ejecuciones; incluye los reportes del legado (`catalogo/`)."),
+    ("notificaciones", "Correo corporativo (SMTP) y aviso al webhook de Google Chat."),
+    ("integraciones", "Google Workspace: autorización OAuth, Gmail, Chat y servidor MCP."),
+    ("sistema", "Sesión, cuenta, perfil, ajustes y servidores SQL editables desde la web."),
 ]
+CAPAS = ["dominio", "aplicacion", "infraestructura", "interfaces", "catalogo"]
 
 
 def _resumen(ruta: Path) -> str:
@@ -36,27 +37,39 @@ def _resumen(ruta: Path) -> str:
     return doc.strip().splitlines()[0].rstrip(".").replace("|", "/") if doc.strip() else "—"
 
 
+def _tabla(carpeta: Path, base: Path) -> list[str]:
+    archivos = sorted(p for p in carpeta.rglob("*.py") if p.name != "__init__.py" and "__pycache__" not in p.parts)
+    return ["| Módulo | Qué hace |", "|---|---|"] + [f"| `{p.relative_to(base).as_posix()}` | {_resumen(p)} |" for p in archivos] + [""]
+
+
 def capas_y_modulos() -> list[str]:
-    """Módulos de `src/` por capa (Clean Architecture, ADR-0014) con la primera línea de su docstring."""
-    L = ["", "## Capas y módulos", "",
-         "La dependencia apunta solo hacia adentro (`dominio` ← `aplicacion` ← `infraestructura` / `interfaces`); la regla `arquitectura-capas` lo exige. "
-         "`composicion.py` es la raíz de composición: conecta los adaptadores a los puertos al arrancar.", ""]
-    for capa, para_que in CAPAS:
-        archivos = sorted(p for p in (BACK / "src" / capa).rglob("*.py") if p.name != "__init__.py" and "__pycache__" not in p.parts)
-        if capa == "reportes":
-            L += [f"### `{capa}/` — {para_que}", "", f"{len(archivos)} módulos (ver «Reportes ejecutables»).", ""]
-            continue
-        L += [f"### `{capa}/` — {para_que}", "", "| Módulo | Qué hace |", "|---|---|"]
-        L += [f"| `{p.relative_to(BACK / 'src').as_posix()}` | {_resumen(p)} |" for p in archivos]
-        L.append("")
+    """Núcleo, módulos de negocio (con sus capas) y configuración, con la primera línea de su docstring (ADR-0016)."""
+    src = BACK / "src"
+    L = ["", "## Módulos y capas", "",
+         "Monolito modular: cada módulo de negocio tiene sus capas (`dominio` ← `aplicacion` ← `infraestructura` / `interfaces`) y solo usa el dominio y la aplicación "
+         "de los módulos de los que depende; la regla `arquitectura-capas` lo exige. `config/` es la raíz de composición y el proyecto Django.", "",
+         "### `core/` — Núcleo compartido (bd, entorno, configuración, puertos, errores, HTTP)", ""]
+    L += _tabla(src / "core", src)
+    L += ["### `config/` — Proyecto Django y raíz de composición", ""] + _tabla(BACK / "config", BACK)
+    for modulo, para_que in MODULOS:
+        L += [f"### `modulos/{modulo}/` — {para_que}", ""]
+        for capa in CAPAS:
+            carpeta = src / "modulos" / modulo / capa
+            if not carpeta.is_dir():
+                continue
+            if capa == "catalogo":
+                n = len([p for p in carpeta.rglob("*.py") if p.name != "__init__.py" and "__pycache__" not in p.parts])
+                L += [f"**`{capa}/`**: {n} módulos (ver «Reportes ejecutables»).", ""]
+                continue
+            L += [f"**`{capa}/`**", ""] + _tabla(carpeta, src)
     return L
 
 
 def generar() -> str:
     from importlib import import_module
 
-    from infraestructura.configuracion import SERVIDORES
-    from dominio.reportes import REPORTES, ordenados
+    from core.configuracion import SERVIDORES
+    from modulos.reportes.dominio.reportes import REPORTES, ordenados
 
     tests = sorted(p.relative_to(BACK / "tests").as_posix() for p in (BACK / "tests").rglob("test_*.py"))
     L = ["# Inventario de módulos", "",
@@ -73,17 +86,17 @@ def generar() -> str:
         base = (lote.base or "—") if lote is not None else "propia (ver módulo)"
         L.append(f"| {r.etiqueta} | `{r.nombre}` | {r.frecuencia} | {', '.join(r.servidores)} | {base} | `{r.modulo}` | {r.descripcion} |")
     L += capas_y_modulos()
-    L += ["", f"## Pruebas ({len(tests)} archivos)", "", "Reflejan las capas: `tests/dominio`, `tests/aplicacion`, `tests/infraestructura`, `tests/interfaces` y `tests/reportes`.", ""]
+    L += ["", f"## Pruebas ({len(tests)} archivos)", "", "Reflejan los módulos: `tests/core`, `tests/config` y `tests/modulos/<módulo>/<capa>`.", ""]
     L += [f"- `tests/{t}`" for t in tests]
     return "\n".join(L) + "\n"
 
 
 def generar_tablas() -> str:
-    from dominio.reportes import REPORTES, frecuencia_de, ordenados
-    from dominio.tablas import TABLAS, USO, reportes_que_usan
+    from modulos.reportes.dominio.reportes import REPORTES, frecuencia_de, ordenados
+    from modulos.reportes.dominio.tablas import TABLAS, USO, reportes_que_usan
 
     L = ["# Inventario de tablas", "",
-         "> **Generado** desde `src/dominio/tablas.py` por `governance/scripts/generar_inventario.py`. No editar a mano; "
+         "> **Generado** desde `src/modulos/reportes/dominio/tablas.py` por `governance/scripts/generar_inventario.py`. No editar a mano; "
          "para cambiar algo edita `tablas.py` y regenera.", "",
          "Sirve para el cierre de mes: saber **qué tablas necesita cada reporte** y **a qué reportes afecta una tabla** "
          "antes de pedir a Producción que la actualice. Proceso: [cierre de mes](../development/runbooks/proceso-cierre-de-mes.md).", "",
@@ -106,13 +119,13 @@ def generar_tablas() -> str:
 
 
 def generar_columnas_fecha() -> str:
-    from interfaces.cli.tablas import filas_columnas_fecha
-    from dominio.reportes import REPORTES, ordenados
-    from dominio.tablas import TABLAS
+    from modulos.reportes.interfaces.cli.tablas import filas_columnas_fecha
+    from modulos.reportes.dominio.reportes import REPORTES, ordenados
+    from modulos.reportes.dominio.tablas import TABLAS
 
     filas = filas_columnas_fecha()
     L = ["# Columnas que controlan la fecha de corte", "",
-         "> **Generado** desde `src/dominio/tablas.py` y `src/dominio/reglas_fecha.py` (leyendo el SQL de cada reporte). No editar a mano; "
+         "> **Generado** desde `src/modulos/reportes/dominio/tablas.py` y `src/modulos/reportes/dominio/reglas_fecha.py` (leyendo el SQL de cada reporte). No editar a mano; "
          "CSV para Producción: `python main.py columnas-fecha --csv columnas.csv`.", "",
          "Para **Producción**: al cargar el cierre, la columna de la tabla indicada debe quedar con la **fecha de corte**; los reportes validan y filtran por ella. "
          "Notación: D = corte diario · F = corte mensual (fin de mes) · «cierre hábil» = `RCIEBT = 1` en `storage.ref.rcalen001`.", "",
@@ -138,11 +151,11 @@ def generar_columnas_fecha() -> str:
 def generar_comandos() -> str:
     from importlib import import_module
 
-    from dominio.reportes import TITULOS_GRUPO, ordenados
-    from dominio.tablas import TABLAS, USO
+    from modulos.reportes.dominio.reportes import TITULOS_GRUPO, ordenados
+    from modulos.reportes.dominio.tablas import TABLAS, USO
 
     L = ["# Catálogo de comandos", "",
-         "> **Generado** por `governance/scripts/generar_inventario.py` desde `dominio/reportes.py`, `dominio/tablas.py` y los módulos. No editar a mano.", "",
+         "> **Generado** por `governance/scripts/generar_inventario.py` desde `modulos/reportes/dominio/reportes.py`, `modulos/reportes/dominio/tablas.py` y los módulos. No editar a mano.", "",
          "Los reportes **los ejecutas tú, cuando quieras** (no hay tareas programadas): `python main.py <comando>`. La fecha de corte sale de `FECHA_CORTE_MENSUAL` / `FECHA_CORTE_DIARIA` del `.env`, o de `--fecha-corte AAAA-MM-DD` (que manda sobre el `.env`). El ejecutor común valida las tablas al corte "
          "(si falta alguna, **no ejecuta** y deja el mensaje para Producción), consulta, valida los datos y exporta el Excel a `data/outputs/mensuales/<piero|erick>/<NN_nombre>/` (diarios: `data/outputs/diarias/<NN_nombre>/`). La numeración es la de las carpetas del legado. "
          "Proceso completo: [ejecutar un reporte](./ejecutar-un-reporte.md).", "",

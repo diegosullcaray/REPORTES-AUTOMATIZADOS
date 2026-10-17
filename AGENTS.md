@@ -5,7 +5,7 @@ Repo en dos partes: `backend/` (Python, API y motor de reportes) y `frontend/` (
 Python + 3 servidores SQL Server (`mish`, `slc`, `rcc`); **la base de datos la elige cada reporte** (`base=`), no el `.env`. Marco completo: [governance/readme.md](governance/readme.md).
 
 1. **Gana el código** cuando documentación y código discrepan; se corrige el documento.
-2. **Conexiones**: solo vía `backend/src/infraestructura/bd.py` indicando servidor y base. Nunca `pyodbc.connect`/`create_engine` en otro sitio.
+2. **Conexiones**: solo vía `backend/src/core/bd.py` indicando servidor y base. Nunca `pyodbc.connect`/`create_engine` en otro sitio.
    **Capas** ([ADR-0014](governance/docs/architecture/adr/ADR-0014-clean-architecture-backend.md)): `dominio ← aplicacion ← infraestructura / interfaces`; la compuerta `arquitectura-capas` falla si una capa importa hacia afuera.
 3. **Secretos**: solo `.env`. Jamás en código, SQL ni docs. Si aparecen en `docs/LEGADO`, no se copian; se reportan en `governance/docs/security/findings.md`.
 4. **`docs/LEGADO` es solo lectura**; el código vivo está en `backend/src/` (el T-SQL va incrustado en cada reporte; **no hay carpeta `sql/`**); datos locales en `data/inputs/` (entradas) y `data/outputs/` (salidas), no versionados.
@@ -14,6 +14,6 @@ Python + 3 servidores SQL Server (`mish`, `slc`, `rcc`); **la base de datos la e
 7. **Orden del legado**: cada reporte conserva el número y el responsable (Piero/Erick) de su carpeta en `docs/LEGADO`: módulo `r<NN>_<nombre>.py` y salida `data/outputs/<mensuales/piero|mensuales/erick|diarias>/<NN_nombre>/`.
 8. **Correo**: la cuenta MIS, su contraseña y el webhook solo en `.env`. Antes de enviar a la lista siempre se envía una prueba a `CORREO_PRUEBA` y se espera el conforme del usuario.
 9. **Vacío ≠ error**; variable crítica en 0 ⇒ abortar.
-10. Cada reporte: `main(argv) -> int`, registrado en `dominio/reportes.py`, con `backend/tests/<capa>/test_<modulo>.py`.
+10. Cada reporte: `main(argv) -> int`, registrado en `modulos/reportes/dominio/reportes.py`, con `backend/tests/<ruta espejo de src>/test_<modulo>.py`.
 11. Antes de commitear: `python governance/scripts/verificar.py`. No regenerar la línea base para destrabar.
 12. Agentes: [governance/agents/README.md](governance/agents/README.md) · Skills: `governance/skills/`.

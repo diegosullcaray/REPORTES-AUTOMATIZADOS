@@ -1,5 +1,7 @@
 # ADR-0014: Backend con Clean Architecture por capas
 
+> **Actualización 2026-10-16 ([ADR-0016](./ADR-0016-monolito-modular.md))**: las capas ya no son carpetas globales de `src/`; viven dentro de cada módulo (`src/modulos/<módulo>/<capa>`) y lo compartido en `src/core/`. Las rutas de este documento son las anteriores.
+
 - Estado: Vigente
 - Fecha: 2026-10-16
 - Sustituye en parte: ADR-0001 (dónde viven `config` y `db`), ADR-0005 (dónde viven el ejecutor y el registro) y ADR-0011 (capas de la API). Las decisiones de fondo de esos ADR siguen vigentes; solo cambia **dónde** están.

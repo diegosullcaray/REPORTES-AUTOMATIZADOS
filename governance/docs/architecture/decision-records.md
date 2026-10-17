@@ -2,7 +2,8 @@
 
 | ADR | Decisión | Estado |
 |---|---|---|
-| [0015](./adr/ADR-0015-django-como-interfaz-http.md) | Django reemplaza a FastAPI como interfaz HTTP: un proyecto (`interfaces/web`) con una app por módulo y vistas JSON con los DTO | Vigente |
+| [0016](./adr/ADR-0016-monolito-modular.md) | Monolito modular: módulos de negocio (`reportes`, `notificaciones`, `integraciones`, `sistema`) con sus capas, `core/` compartido y `config/`; dependencias entre módulos solo por su API pública | Vigente |
+| [0015](./adr/ADR-0015-django-como-interfaz-http.md) | Django reemplaza a FastAPI como interfaz HTTP: un proyecto (`config/`) con una app por módulo y vistas JSON con los DTO | Vigente |
 | [0014](./adr/ADR-0014-clean-architecture-backend.md) | Backend con Clean Architecture por capas (`dominio ← aplicacion ← infraestructura / interfaces`), puertos y raíz de composición; compuerta `arquitectura-capas` | Vigente |
 | [0001](./adr/ADR-0001-conexiones-centralizadas.md) | Una sola capa de conexión (ajustada por 0006) | Vigente |
 | [0002](./adr/ADR-0002-secretos-solo-en-env.md) | Secretos solo en `.env` | Vigente |

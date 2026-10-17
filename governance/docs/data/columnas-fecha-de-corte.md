@@ -1,6 +1,6 @@
 # Columnas que controlan la fecha de corte
 
-> **Generado** desde `src/dominio/tablas.py` y `src/dominio/reglas_fecha.py` (leyendo el SQL de cada reporte). No editar a mano; CSV para Producción: `python main.py columnas-fecha --csv columnas.csv`.
+> **Generado** desde `src/modulos/reportes/dominio/tablas.py` y `src/modulos/reportes/dominio/reglas_fecha.py` (leyendo el SQL de cada reporte). No editar a mano; CSV para Producción: `python main.py columnas-fecha --csv columnas.csv`.
 
 Para **Producción**: al cargar el cierre, la columna de la tabla indicada debe quedar con la **fecha de corte**; los reportes validan y filtran por ella. Notación: D = corte diario · F = corte mensual (fin de mes) · «cierre hábil» = `RCIEBT = 1` en `storage.ref.rcalen001`.
 

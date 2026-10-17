@@ -83,11 +83,13 @@ Si la API se reinicia con una ejecución en curso, queda en **Error** con la not
 ## Estructura
 
 ```text
-src/interfaces/web/   Django: apps/ (sesion · reportes · validacion · ejecuciones · configuracion · google), http.py, middleware.py
-src/aplicacion/       casos_uso/ (reglas de cada pantalla) · dto.py (contratos) · puertos.py
-src/infraestructura/  cola_ejecuciones.py · entorno.py · google/ · …
+config/                        Django: settings, urls, middleware, wsgi y composicion.py
+src/modulos/<módulo>/interfaces/web/   vistas y rutas de cada módulo (sistema: sesión, perfil, ajustes · reportes · notificaciones · integraciones)
+src/modulos/<módulo>/aplicacion/       casos_uso/ (reglas de cada pantalla) · dto.py (contratos) · puertos.py
+src/core/                      http.py (JSON y validación) · bd.py · entorno.py
+src/modulos/reportes/infraestructura/  cola_ejecuciones.py · excel.py · … ; src/modulos/integraciones/infraestructura/google/
 frontend/src/app/        rutas: / · /reportes · /reportes/[nombre] · /ejecuciones · /ejecuciones/[id] · /perfil; tokens.css (copia de MIS)
-frontend/src/lib/        api.ts (transporte) · tipos.ts (espejo de aplicacion/dto.py) · formato.ts (funciones puras)
+frontend/src/lib/        api.ts (transporte) · tipos.ts (espejo de <módulo>/aplicacion/dto.py) · formato.ts (funciones puras)
 frontend/src/features/   orquestación por pantalla (inicio, reportes, ejecuciones, perfil)
 frontend/src/components/ presentación compartida: app-sidebar, encabezado (migas), pagina, terminal, estados, confirmar; ui/ = shadcn
 ```

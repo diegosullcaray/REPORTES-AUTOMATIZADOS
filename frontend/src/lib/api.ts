@@ -15,7 +15,7 @@ const SIN_API = "No hay conexión con la API de reportes. Arráncala con: python
 function mensajeDe(cuerpo: unknown): string | null {
   const detalle = (cuerpo as { detail?: unknown } | null)?.detail;
   if (typeof detalle === "string") return detalle;
-  // 422 de validación: lista de { loc, msg, type } (la devuelve interfaces/web/http.py)
+  // 422 de validación: lista de { loc, msg, type } (la devuelve core/http.py)
   if (Array.isArray(detalle)) return detalle.map((d) => `${(d.loc ?? []).slice(1).join(".")}: ${d.msg}`).join(" · ");
   return null;
 }

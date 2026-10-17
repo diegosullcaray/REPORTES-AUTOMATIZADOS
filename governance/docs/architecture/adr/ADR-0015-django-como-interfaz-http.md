@@ -1,5 +1,7 @@
 # ADR-0015: Django como interfaz HTTP, una app por módulo
 
+> **Actualización 2026-10-16 ([ADR-0016](./ADR-0016-monolito-modular.md))**: el proyecto Django es `backend/config/` y cada módulo aporta su app en `modulos/<módulo>/interfaces/web`. Las rutas de este documento son las anteriores.
+
 - Estado: Vigente
 - Fecha: 2026-10-16
 - Sustituye en parte: ADR-0011 (la API ya no es FastAPI) y la ubicación `interfaces/http` de [ADR-0014](./ADR-0014-clean-architecture-backend.md).

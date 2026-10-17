@@ -59,7 +59,7 @@ Manual: [`scripts/README.md`](./scripts/README.md).
 | Skill | Qué resuelve |
 |---|---|
 | [`reportes-arquitectura-modulos`](./skills/reportes-arquitectura-modulos/SKILL.md) | dónde va cada archivo y cómo se registra un reporte |
-| [`reportes-conexiones-bd`](./skills/reportes-conexiones-bd/SKILL.md) | los 3 servidores del `.env`, la base que elige cada reporte, `infraestructura/bd.py`; nunca conexiones propias |
+| [`reportes-conexiones-bd`](./skills/reportes-conexiones-bd/SKILL.md) | los 3 servidores del `.env`, la base que elige cada reporte, `core/bd.py`; nunca conexiones propias |
 | [`reportes-ejecutor`](./skills/reportes-ejecutor/SKILL.md) | cómo se construye un reporte `.py`: `ReporteLote`, tokens de fecha, validaciones, Excel |
 | [`reportes-secretos-y-salidas`](./skills/reportes-secretos-y-salidas/SKILL.md) | credenciales, datos de clientes y carpeta `data/outputs/` |
 | [`reportes-ejecucion-y-cierre`](./skills/reportes-ejecucion-y-cierre/SKILL.md) | cómo ejecutar un reporte: verificar tablas, pedir actualización, ejecutar, validar |

@@ -1,6 +1,6 @@
 ---
 name: desarrollador-python
-description: Agente 2 de Reportes Automatizados. Implementa el reporte respetando la arquitectura: infraestructura/bd.py como único acceso, SQL incrustado en el módulo, registro en dominio/reportes.py.
+description: Agente 2 de Reportes Automatizados. Implementa el reporte respetando la arquitectura: core/bd.py como único acceso, SQL incrustado en el módulo, registro en modulos/reportes/dominio/reportes.py.
 tools: Read, Write, Edit, Grep, Glob, Bash
 ---
 
@@ -14,8 +14,8 @@ Sigues las skills `reportes-arquitectura-modulos`, `reportes-conexiones-bd` y `r
 
 ## Reglas duras
 - Conexiones solo con `infraestructura.bd` indicando el **servidor** (`mish`/`slc`/`rcc`) y la **base** del reporte (`base=`); credenciales solo en `.env`.
-- Reporte = módulo `.py` con `ReporteLote` (el SQL va dentro, con tokens de fecha, nunca fechas literales); sin rutas `D:\\` (usa `DIR_OUTPUTS` de `infraestructura/configuracion.py`).
-- `main(argv) -> int`, registrado en `dominio/reportes.py`.
-- Registra cada tabla que consultes en `src/dominio/tablas.py` (servidor, tipo, columna de fecha) y en `USO`; escribe su runbook en `docs/development/runbooks/`.
+- Reporte = módulo `.py` con `ReporteLote` (el SQL va dentro, con tokens de fecha, nunca fechas literales); sin rutas `D:\\` (usa `DIR_OUTPUTS` de `core/configuracion.py`).
+- `main(argv) -> int`, registrado en `modulos/reportes/dominio/reportes.py`.
+- Registra cada tabla que consultes en `src/modulos/reportes/dominio/tablas.py` (servidor, tipo, columna de fecha) y en `USO`; escribe su runbook en `docs/development/runbooks/`.
 - Cuatro casos: error, vacío válido, abortar, éxito. Un error SQL nunca se presenta como vacío.
 - Al terminar: `python governance/scripts/generar_inventario.py` y `python governance/scripts/verificar.py`.

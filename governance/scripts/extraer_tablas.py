@@ -1,6 +1,6 @@
 """Extrae de cada módulo de reporte (el SQL va incrustado) las tablas que consulta.
 
-Es la fuente de la regla `tabla-sin-registrar`: lo que el código usa debe estar en `dominio/tablas.py`.
+Es la fuente de la regla `tabla-sin-registrar`: lo que el código usa debe estar en `modulos/reportes/dominio/tablas.py`.
 
     python governance/scripts/extraer_tablas.py            # imprime reporte -> tablas
 """
@@ -59,7 +59,7 @@ def por_reporte() -> dict[str, set[str]]:
     import sys
 
     sys.path.insert(0, str(BACK / "src"))
-    from dominio.reportes import REPORTES
+    from modulos.reportes.dominio.reportes import REPORTES
 
     res: dict[str, set[str]] = {}
     for r in REPORTES.values():

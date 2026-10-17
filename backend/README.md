@@ -160,7 +160,7 @@ python ..\governance\scripts\verificar.py   :: compuertas del repo (no se conect
 
 > Para levantar la API **y** la web juntas: `python iniciar.py` desde la raíz del repositorio ([README principal](../README.md#arranque-rápido)).
 
-La [interfaz web](../frontend/README.md) consume una API (Django, `src/interfaces/web/`) que vive en este backend. Se arranca desde `backend/`, con el entorno activado y el `.env` completo (si cambias el `.env`, reinicia la API):
+La [interfaz web](../frontend/README.md) consume una API (Django, `backend/config/` y `src/modulos/<módulo>/interfaces/web/`) que vive en este backend. Se arranca desde `backend/`, con el entorno activado y el `.env` completo (si cambias el `.env`, reinicia la API):
 
 ```bat
 env\Scripts\activate
@@ -175,7 +175,7 @@ python manage.py runserver 127.0.0.1:8000 --noreload
 | `WEB_CLAVE` | clave de la web. Si falta alguna de las dos, **nadie puede entrar** |
 | `SESION_SECRETO` | firma de la cookie. Vacío = se genera en cada arranque y las sesiones caen al reiniciar la API |
 
-La sesión dura 8 horas; tras 5 intentos fallidos el usuario queda bloqueado 5 minutos. Rutas: una app de Django por tema en `src/interfaces/web/apps/`; reglas de cada pantalla: `src/aplicacion/casos_uso/`.
+La sesión dura 8 horas; tras 5 intentos fallidos el usuario queda bloqueado 5 minutos. Rutas: cada módulo aporta sus rutas en `src/modulos/<módulo>/interfaces/web/`; reglas de cada pantalla: `src/modulos/<módulo>/aplicacion/casos_uso/`.
 
 ---
 
@@ -297,11 +297,11 @@ Los archivos contienen **datos de clientes**: no los subas al repositorio ni los
 | `La fecha de corte debe ser fin de mes` | un reporte mensual recibió otro día | usa el último día del mes (feriado: día hábil anterior) |
 | `✗ N tabla(s) sin actualizar al corte` (código 3) | Producción aún no cargó el cierre | usa el mensaje de `data\outputs\solicitudes\`; reverifica; no uses `--forzar` salvo que lo decidas |
 | `No pude verificar ninguna tabla` | conexión caída o sin permisos | `python main.py probar-conexiones`; revisa VPN y credenciales |
-| `AVISO: no pude verificar <tabla> … confirma su columna de fecha` | la columna de fecha de esa tabla es una inferencia | confírmala con el DBA y corrígela en `src/dominio/tablas.py` |
+| `AVISO: no pude verificar <tabla> … confirma su columna de fecha` | la columna de fecha de esa tabla es una inferencia | confírmala con el DBA y corrígela en `src/modulos/reportes/dominio/tablas.py` |
 | `✗ Datos: Todos los resultados vinieron vacíos` | casi seguro falta cargar una tabla al corte | `python main.py tablas <reporte> --verificar` |
 | `✗ Datos: … llega solo hasta <fecha>, antes del corte` | tabla desactualizada | pide la actualización |
 | `… crea/borra tablas permanentes … --confirmar-escritura` | el reporte escribe en BD | repite con `--confirmar-escritura` solo si estás seguro |
-| `No sé en qué servidor vive la base '…'` | base nueva sin mapear | añádela a `BASES_DE` en `src/dominio/servidores.py` |
+| `No sé en qué servidor vive la base '…'` | base nueva sin mapear | añádela a `BASES_DE` en `src/core/servidores.py` |
 | `Invalid object name` / `database … does not exist` | el reporte se conecta a un servidor que no tiene esa base | revisa que `servidor` y `base` del reporte coincidan con [servidores y bases](../governance/docs/data/servidores-y-bases.md) |
 | `PermissionError` al exportar | el Excel de salida está abierto | ciérralo y repite |
 | `Error de base de datos al ejecutar …` | error SQL o de red | repite con `-v` y revisa el detalle |
@@ -334,24 +334,22 @@ main.py                       punto de entrada único (listar | probar-conexione
 .env.example                  plantilla del .env (el .env real no se versiona)
 requirements*.txt             dependencias (dev = pytest)
 env/                          entorno virtual (no versionado)
-src/                          Clean Architecture por capas (ADR-0014): la dependencia apunta solo hacia adentro
-  dominio/                    reglas puras: reportes.py (catálogo), tablas.py, servidores.py (qué base vive en qué servidor),
-                              fechas.py, reglas_fecha.py, verificacion.py, formato_excel.py, entregas.py, errores.py
-  aplicacion/                 casos de uso y puertos
-    ejecucion.py              flujo común: conexión → tablas → consulta → validación → Excel (ReporteLote, correr)
-    puertos.py · dto.py       interfaces hacia afuera (BD, .env, Excel, cola, Google…) y contratos de entrada/salida
-    casos_uso/                catalogo · verificacion · ejecuciones · archivos · configuracion · correo_reporte
-                              validacion · google · notificaciones · sesion
-  infraestructura/            adaptadores: configuracion.py (.env y conexión), bd.py (ÚNICO acceso a SQL Server), excel.py,
-                              imagen.py, correo_smtp.py, entorno.py, cola_ejecuciones.py, google/, entregas/
-  interfaces/                 web/ (Django: apps/ por tema, middleware, http.py), cli/ (comandos de main.py), mcp/ (servidor de envío)
-  reportes/                   un módulo por reporte del legado
-    diarios/                  r02_cartera_sin_asignar.py, r04_1_cmg_mora.py … (número del legado)
-    mensuales/piero/          r01_desembolsos_por_canal.py … r09_2_michael_castigos.py
-    mensuales/erick/          r01_productos_verdes.py … r03_4_indicadores_clientes.py
-  composicion.py              raíz de composición: conecta los adaptadores a los puertos
+src/
+  core/                        núcleo compartido: bd.py (ÚNICO acceso a SQL Server), configuracion.py, entorno.py (.env), puertos.py,
+                               excepciones.py, servidores.py (qué base vive en qué servidor), fechas.py, http.py, dto.py
+  modulos/
+    reportes/                  catálogo, ejecución, verificación de tablas, archivos, validación masiva y ejecuciones
+      dominio/                 reportes.py (catálogo), tablas.py, reglas_fecha.py, verificacion.py, formato_excel.py, archivos.py
+      aplicacion/              ejecucion.py (ReporteLote, correr), puertos.py, dto.py, casos_uso/
+      infraestructura/         excel.py, imagen.py, lector_archivos.py, cola_ejecuciones.py, historial_validacion.py, entregas/
+      interfaces/              web/ (Django: apps, urls, vistas/), cli/ (comandos de main.py)
+      catalogo/                un módulo por reporte del legado: diarios/ · mensuales/piero/ · mensuales/erick/
+    notificaciones/            correo corporativo (SMTP) y aviso al webhook de Chat: dominio · aplicacion (correo.py = API pública) · infraestructura · interfaces/web
+    integraciones/             Google Workspace: aplicacion (mensajeria.py = API pública) · infraestructura/google · interfaces/{web,mcp}
+    sistema/                   sesión, cuenta, perfil, ajustes y servidores: aplicacion · interfaces/web
+config/                        (en backend/) proyecto Django (settings, urls, middleware, wsgi) y composicion.py (raíz de composición)
 (data/ vive en la raíz del repo: inputs/ y outputs/, entradas y salidas locales no versionadas)
-tests/                        pytest por capa (dominio · aplicacion · infraestructura · interfaces · reportes); no tocan las bases reales
+tests/                        pytest espejo de src/: core · config · modulos/<módulo>/<capa>; no tocan las bases reales
 ```
 
 `governance/` y `docs/LEGADO/` están en la raíz del repositorio, un nivel arriba.
@@ -382,8 +380,8 @@ Todo está en [`governance/`](../governance/readme.md). Lo que más vas a usar:
 ## 14. Si vas a modificar o crear un reporte
 
 - Reglas: [AGENTS.md](../AGENTS.md). Guía: [crear un reporte nuevo](../governance/docs/development/report-creation-guide.md) y la skill [reportes-ejecutor](../governance/skills/reportes-ejecutor/SKILL.md).
-- Un reporte = un módulo `.py` con un `ReporteLote`: el T-SQL va dentro, **las fechas solo por tokens** (`@@F@@`, `@@F_ISO@@`, `@@F_ANT@@`…, nunca literales), registrado en `dominio/reportes.py` y con **todas sus tablas** en `dominio/tablas.py`.
-- Conexiones solo vía `src/infraestructura/bd.py`, indicando servidor y base.
+- Un reporte = un módulo `.py` con un `ReporteLote`: el T-SQL va dentro, **las fechas solo por tokens** (`@@F@@`, `@@F_ISO@@`, `@@F_ANT@@`…, nunca literales), registrado en `modulos/reportes/dominio/reportes.py` y con **todas sus tablas** en `modulos/reportes/dominio/tablas.py`.
+- Conexiones solo vía `src/core/bd.py`, indicando servidor y base.
 - Respeta las capas: el dominio no importa nada de afuera, la aplicación usa puertos y no importa la infraestructura, las interfaces solo llaman casos de uso (la compuerta `arquitectura-capas` lo comprueba).
 - Antes de cada commit:
 

@@ -1,6 +1,6 @@
 # Inventario de tablas
 
-> **Generado** desde `src/dominio/tablas.py` por `governance/scripts/generar_inventario.py`. No editar a mano; para cambiar algo edita `tablas.py` y regenera.
+> **Generado** desde `src/modulos/reportes/dominio/tablas.py` por `governance/scripts/generar_inventario.py`. No editar a mano; para cambiar algo edita `tablas.py` y regenera.
 
 Sirve para el cierre de mes: saber **qué tablas necesita cada reporte** y **a qué reportes afecta una tabla** antes de pedir a Producción que la actualice. Proceso: [cierre de mes](../development/runbooks/proceso-cierre-de-mes.md).
 

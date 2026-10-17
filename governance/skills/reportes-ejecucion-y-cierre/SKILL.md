@@ -15,6 +15,6 @@ python main.py <reporte>                                        # lo ejecutas t�
 
 1. **Nunca** ejecutes con tablas `DESACTUALIZADA` o `NO EXISTE`: el resultado es plausible y equivocado.
 2. Para saber qué tabla usa un reporte, o qué reportes se afectan al actualizar una tabla: [inventario de tablas](../../docs/data/tables-inventory.md).
-3. Registra toda tabla nueva en `src/dominio/tablas.py` (la regla `tabla-sin-registrar` bloquea si falta).
+3. Registra toda tabla nueva en `src/modulos/reportes/dominio/tablas.py` (la regla `tabla-sin-registrar` bloquea si falta).
 4. Una columna de fecha con confianza `convencion` hay que validarla con el DBA y subirla a `confirmada`.
 5. Guías completas: [runbooks](../../docs/development/runbooks/README.md) (proceso estándar, cierre de mes, solicitud, y una por reporte).
