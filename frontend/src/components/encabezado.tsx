@@ -12,10 +12,12 @@ import { ModoTema } from "@/components/modo-tema";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useConsulta } from "@/hooks/use-consulta";
 import { api } from "@/lib/api";
-import { GRUPOS, agruparPorCarpeta, titulo } from "@/lib/formato";
+import { useGrupos } from "@/hooks/use-grupos";
+import { agruparPorCarpeta, titulo } from "@/lib/formato";
 
 type Miga = { texto: string; href?: string };
 
+const AJUSTE: Record<string, string> = { notificaciones: "Notificaciones", ia: "Inteligencia artificial", etiquetas: "Etiquetas" };
 const SECCION: Record<string, string> = { reportes: "Reportes", ejecuciones: "Ejecuciones", perfil: "Perfil", configuracion: "Configuración", servidores: "Bases de datos", validacion: "Validación de tablas" };
 
 /** Migas según la ruta: Reportes > Diarios > Cartera sin asignar · Ejecuciones > a1b2c3… */
@@ -23,24 +25,23 @@ function useMigas(): Miga[] {
   const [seccion, id, detalle] = usePathname().split("/").filter(Boolean);
   const params = useSearchParams();
   const { datos } = useConsulta(seccion === "reportes" ? "reportes" : null, api.reportes);
-  const { datos: secciones } = useConsulta(seccion === "reportes" && !id ? "secciones" : null, api.secciones);
+  const grupos = useGrupos(seccion === "reportes");
   if (!seccion) return [{ texto: "Inicio" }];
   const raiz: Miga = { texto: SECCION[seccion] ?? seccion, href: `/${seccion}` };
   if (seccion === "reportes" && !id) { // explorador por tarjetas: /reportes?grupo=…&carpeta=…
-    if (params.get("seccion")) return [raiz, { texto: secciones?.find((x) => x.id === params.get("seccion"))?.nombre ?? "Sección" }];
-    const g = params.get("grupo") as keyof typeof GRUPOS | null;
-    if (!g || !(g in GRUPOS)) return [{ texto: raiz.texto }];
+    const g = params.get("grupo");
+    if (!g || !grupos.datos?.some((x) => x.id === g)) return [{ texto: raiz.texto }];
     const nodo = agruparPorCarpeta((datos ?? []).filter((r) => r.grupo === g)).find((e) => e.tipo === "nodo" && e.reportes[0].carpeta === params.get("carpeta"));
-    return nodo?.tipo === "nodo" ? [raiz, { texto: GRUPOS[g], href: `/reportes?grupo=${g}` }, { texto: `${nodo.orden} · ${nodo.titulo}` }] : [raiz, { texto: GRUPOS[g] }];
+    return nodo?.tipo === "nodo" ? [raiz, { texto: grupos.nombre(g), href: `/reportes?grupo=${g}` }, { texto: `${nodo.orden} · ${nodo.titulo}` }] : [raiz, { texto: grupos.nombre(g) }];
   }
   if (!id) return [{ texto: raiz.texto }];
   if (seccion === "validacion") return [raiz, { texto: id === "piero" ? "Heredados de Piero" : id === "erick" ? "Heredados de Erick" : id }];
   if (seccion === "configuracion" && id === "mcp") return detalle ? [raiz, { texto: "MCP", href: "/configuracion/mcp" }, { texto: "Google Workspace" }] : [raiz, { texto: "MCP" }];
-  if (seccion === "configuracion") return [raiz, { texto: id === "notificaciones" ? "Notificaciones" : id }];
+  if (seccion === "configuracion") return [raiz, { texto: AJUSTE[id] ?? id }];
   if (seccion === "reportes") {
     const nombre = decodeURIComponent(id);
     const r = datos?.find((x) => x.nombre === nombre);
-    return [raiz, ...(r ? [{ texto: GRUPOS[r.grupo], href: `/reportes?grupo=${r.grupo}` }] : []), { texto: titulo(nombre) }];
+    return [raiz, ...(r ? [{ texto: grupos.nombre(r.grupo), href: `/reportes?grupo=${r.grupo}` }] : []), { texto: titulo(nombre) }];
   }
   return [raiz, { texto: `Ejecución ${id.slice(0, 8)}` }];
 }

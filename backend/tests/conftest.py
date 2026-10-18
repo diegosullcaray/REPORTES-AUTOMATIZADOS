@@ -24,8 +24,8 @@ def _historial_de_validacion_aislado(tmp_path, monkeypatch):
 
 
 @pytest.fixture(autouse=True)
-def _secciones_aisladas(tmp_path, monkeypatch):
-    """Ninguna prueba escribe las secciones de /reportes en data/outputs."""
-    from modulos.reportes.infraestructura import secciones
+def _etiquetas_aisladas(tmp_path, monkeypatch):
+    """Ninguna prueba escribe las etiquetas de los grupos en data/outputs."""
+    from modulos.reportes.infraestructura import etiquetas
 
-    monkeypatch.setattr(secciones, "RUTA", tmp_path / "secciones.json")
+    monkeypatch.setattr(etiquetas, "RUTA", tmp_path / "etiquetas.json")

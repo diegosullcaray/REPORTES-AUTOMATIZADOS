@@ -117,3 +117,8 @@
     display: none;
   }
 }
+
+/* Código de la pestaña Script (Shiki): fondo de la terminal, números de línea y sin saltos de línea. */
+.script-codigo pre.shiki { background: transparent !important; margin: 0; padding: 0.75rem 0; font-size: 12px; line-height: 1.6; counter-reset: linea; }
+.script-codigo pre.shiki code { display: block; width: max-content; min-width: 100%; }
+.script-codigo .line::before { counter-increment: linea; content: counter(linea); display: inline-block; width: 3rem; padding-right: 1rem; text-align: right; color: var(--terminal-tenue); opacity: 0.5; }

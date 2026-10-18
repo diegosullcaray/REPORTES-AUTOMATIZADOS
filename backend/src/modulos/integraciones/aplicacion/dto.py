@@ -79,3 +79,44 @@ class PedidoCodigo(BaseModel):
 class PedidoPruebaGoogle(BaseModel):
     destinatario: str = ""
     texto: str = ""
+
+
+class ConfigIA(BaseModel):
+    """Una conexión con un proveedor de IA. Sin la API key: solo se informa si está configurada."""
+
+    id: str
+    nombre: str
+    api_url: str
+    modelo: str
+    activo: bool
+    proveedor: str                  # openai | anthropic | gemini | mistral | ollama | custom…
+    clave_configurada: bool
+
+
+class PedidoIA(BaseModel):
+    nombre: str
+    api_url: str
+    api_key: str = ""               # Ollama local no la exige
+    modelo: str
+    activo: bool = True
+
+
+class PedidoIAActualizar(BaseModel):
+    """Solo se cambian los campos enviados; `api_key` vacía o ausente conserva la guardada."""
+
+    nombre: str | None = None
+    api_url: str | None = None
+    api_key: str | None = None
+    modelo: str | None = None
+    activo: bool | None = None
+
+
+class PedidoModelos(BaseModel):
+    api_url: str
+    api_key: str = ""               # vacía + `id`: usa la guardada (solo si la URL no cambió)
+    id: str | None = None
+
+
+class ModelosIA(BaseModel):
+    proveedor: str
+    modelos: list[str]

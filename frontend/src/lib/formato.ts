@@ -1,13 +1,7 @@
 // Funciones puras de presentación (sin estado ni red).
-import type { EstadoEjecucion, EstadoTabla, Frecuencia, Grupo } from "./tipos";
+import type { EstadoEjecucion, EstadoTabla, Frecuencia } from "./tipos";
 
 export type Tono = "exito" | "aviso" | "peligro" | "info" | "neutro";
-
-export const GRUPOS: Record<Grupo, string> = {
-  diarias: "Diarias",
-  piero: "Mensuales · Piero",
-  erick: "Mensuales · Erick",
-};
 
 export const ESTADO_EJECUCION: Record<EstadoEjecucion, { texto: string; tono: Tono }> = {
   en_cola: { texto: "En cola", tono: "neutro" },

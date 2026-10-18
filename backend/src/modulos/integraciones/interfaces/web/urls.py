@@ -2,9 +2,13 @@
 
 from django.urls import path
 
-from .vistas import google
+from .vistas import google, ia
 
 urlpatterns = [
+    path("api/ia", ia.Conexiones.as_view()),
+    path("api/ia/modelos", ia.Modelos.as_view()),
+    path("api/ia/<str:id_>", ia.Conexion.as_view()),
+    path("api/ia/<str:id_>/probar", ia.Probar.as_view()),
     path("api/mcp/google", google.Mcp.as_view()),
     path("api/mcp/google/autorizar", google.Autorizar.as_view()),
     path("api/mcp/google/codigo", google.Codigo.as_view()),

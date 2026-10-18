@@ -20,8 +20,9 @@ import { PanelCorreo } from "./panel-correo";
 import { PanelEnvioArchivos } from "./panel-envio-archivos";
 import { PanelFlujo } from "./panel-flujo";
 import { PanelGeneral } from "./panel-general";
+import { PanelScript } from "./panel-script";
 
-const PESTANAS = ["general", "flujo", "ejecuciones", "archivos", "correo"] as const;
+const PESTANAS = ["general", "flujo", "ejecuciones", "archivos", "correo", "script"] as const;
 type Pestana = (typeof PESTANAS)[number];
 
 /** Sección plegada por defecto para no obligar a bajar hasta el final de la pestaña. */
@@ -97,6 +98,7 @@ export function DetalleReporte({ nombre }: { nombre: string }) {
                   <TabsTrigger value="ejecuciones">Ejecuciones</TabsTrigger>
                   <TabsTrigger value="archivos">Archivos</TabsTrigger>
                   <TabsTrigger value="correo">Correo</TabsTrigger>
+                  <TabsTrigger value="script">Script</TabsTrigger>
                 </TabsList>
                 <TabsContent value="general" className="pt-3">
                   <PanelGeneral reporte={r} corte={corte} />
@@ -108,6 +110,7 @@ export function DetalleReporte({ nombre }: { nombre: string }) {
                     <PanelArchivos reporte={r.nombre} />
                   </Tarjeta>
                 </TabsContent>
+                <TabsContent value="script" className="pt-3"><PanelScript reporte={r.nombre} /></TabsContent>
                 <TabsContent value="correo" className="flex flex-col gap-4 pt-3">
                   {r.envia_correo && (
                     <Desplegable titulo="Envío a la lista">

@@ -1,6 +1,6 @@
 // Transporte: única puerta hacia la API de Python (proxy /api en next.config.ts). Sin estado ni presentación.
 import type {
-  Archivo, ConfiguracionGeneral, DestinosChat, EntradaValidacion, FirmaGmail, PedidoEnvioArchivos, Ejecucion, EjecucionDetalle, EstadoEnvio, PedidoEjecucion, Notificaciones, Perfil, PedidoConfiguracion, PedidoCuenta, PedidoNotificaciones, PruebaConexion, PruebaNotificacion, ReporteDetalle, ReporteResumen, Seccion,
+  Archivo, ConfigIA, Etiqueta, GrupoReportes, ConfiguracionGeneral, ModelosIA, PedidoIA, DestinosChat, EntradaValidacion, FirmaGmail, PedidoEnvioArchivos, Ejecucion, EjecucionDetalle, EstadoEnvio, PedidoEjecucion, Notificaciones, Perfil, PedidoConfiguracion, PedidoCuenta, PedidoNotificaciones, PruebaConexion, PruebaNotificacion, ReporteDetalle, PedidoReporteNuevo, ReporteCreado, ReporteResumen, Script,
   GoogleMcp, PedidoGoogleMcp, PruebaMcp, Servidor, Sesion, Solicitud, Verificacion, VerificacionGrupo, VistaPrevia,
 } from "./tipos";
 
@@ -64,10 +64,19 @@ export const api = {
   sesion: () => pedir<Sesion>("/sesion"),
   actualizarCuenta: (cambios: PedidoCuenta) => pedir<Sesion>("/cuenta", { method: "PUT", body: JSON.stringify(cambios) }),
   cerrarSesion: () => fetch("/api/sesion", { method: "DELETE" }),
-  secciones: () => pedir<Seccion[]>("/secciones"),
-  crearSeccion: (s: Omit<Seccion, "id">) => pedir<Seccion>("/secciones", enviar(s)),
-  eliminarSeccion: (id: string) => pedir<{ ok: boolean }>(`/secciones/${encodeURIComponent(id)}`, { method: "DELETE" }),
   reportes: () => (catalogo ??= pedir<ReporteResumen[]>("/reportes").catch((e) => { catalogo = null; throw e; })),
+  grupos: () => pedir<GrupoReportes[]>("/grupos"),
+  crearGrupo: (p: { nombre: string; etiquetas: string[] }) => pedir<GrupoReportes>("/grupos", enviar(p)),
+  etiquetasDeGrupo: (id: string, etiquetas: string[]) => pedir<GrupoReportes>(`/grupos/${encodeURIComponent(id)}/etiquetas`, { method: "PUT", body: JSON.stringify({ etiquetas }) }),
+  etiquetas: () => pedir<Etiqueta[]>("/etiquetas"),
+  crearEtiqueta: (p: { nombre: string; color: string }) => pedir<Etiqueta>("/etiquetas", enviar(p)),
+  actualizarEtiqueta: (id: string, p: { nombre: string; color: string }) => pedir<Etiqueta>(`/etiquetas/${encodeURIComponent(id)}`, { method: "PUT", body: JSON.stringify(p) }),
+  eliminarEtiqueta: (id: string) => pedir<{ ok: boolean }>(`/etiquetas/${encodeURIComponent(id)}`, { method: "DELETE" }),
+  eliminarGrupo: (id: string) => pedir<{ ok: boolean }>(`/grupos/${encodeURIComponent(id)}`, { method: "DELETE" }),
+  crearReporte: (p: PedidoReporteNuevo) => {
+    catalogo = null; // el catálogo cambia: la próxima lectura lo pide de nuevo
+    return pedir<ReporteCreado>("/reportes", enviar(p));
+  },
   reporte: (nombre: string) => pedir<ReporteDetalle>(r(nombre)),
   guardarChatReporte: (nombre: string, destinatarios: string) => pedir<ReporteDetalle>(`${r(nombre)}/chat`, { method: "PUT", body: JSON.stringify({ destinatarios }) }),
   guardarDestinosCorreo: (nombre: string, para: string, cc: string) => pedir<ReporteDetalle>(`${r(nombre)}/correo-destinos`, { method: "PUT", body: JSON.stringify({ para, cc }) }),
@@ -82,6 +91,8 @@ export const api = {
   guardarSolicitudGrupo: (grupo: string, fecha_corte: string | null) => pedir<Solicitud>(`/validacion/${grupo}/solicitud`, enviar({ fecha_corte })),
   guardarSolicitud: (nombre: string, fecha_corte: string | null) => pedir<Solicitud>(`${r(nombre)}/solicitud`, enviar({ fecha_corte })),
   archivos: (nombre: string) => pedir<Archivo[]>(`${r(nombre)}/archivos`),
+  script: (nombre: string) => pedir<Script>(`${r(nombre)}/script`),
+  guardarScript: (nombre: string, codigo: string) => pedir<Script>(`${r(nombre)}/script`, { method: "PUT", body: JSON.stringify({ codigo }) }),
   vistaPrevia: (nombre: string, archivo: string) => pedir<VistaPrevia>(`${a(nombre, archivo)}/vista-previa`),
   estadoEnvio: (nombre: string, fecha_corte: string | null) =>
     pedir<EstadoEnvio>(`${r(nombre)}/envio${fecha_corte ? `?fecha_corte=${fecha_corte}` : ""}`),
@@ -93,6 +104,12 @@ export const api = {
   perfil: () => pedir<Perfil>("/perfil"),
   configuracion: () => pedir<ConfiguracionGeneral>("/configuracion"),
   guardarConfiguracion: (cambios: PedidoConfiguracion) => pedir<ConfiguracionGeneral>("/configuracion", { method: "PUT", body: JSON.stringify(cambios) }),
+  ia: () => pedir<ConfigIA[]>("/ia"),
+  crearIA: (p: PedidoIA) => pedir<ConfigIA>("/ia", enviar(p)),
+  actualizarIA: (id: string, p: Partial<PedidoIA>) => pedir<ConfigIA>(`/ia/${encodeURIComponent(id)}`, { method: "PUT", body: JSON.stringify(p) }),
+  eliminarIA: (id: string) => pedir<{ ok: boolean }>(`/ia/${encodeURIComponent(id)}`, { method: "DELETE" }),
+  modelosIA: (p: { api_url: string; api_key: string; id?: string }) => pedir<ModelosIA>("/ia/modelos", enviar(p)),
+  probarIA: (id: string) => pedir<ModelosIA>(`/ia/${encodeURIComponent(id)}/probar`, enviar({})),
   notificaciones: () => pedir<Notificaciones>("/notificaciones"),
   guardarNotificaciones: (cambios: PedidoNotificaciones) => pedir<Notificaciones>("/notificaciones", { method: "PUT", body: JSON.stringify(cambios) }),
   googleMcp: () => pedir<GoogleMcp>("/mcp/google"),

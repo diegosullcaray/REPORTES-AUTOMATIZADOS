@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, ChevronRight, ChevronsUpDown, Database, FileSpreadsheet, History, House, LogOut, Mail, Plug, ShieldCheck, SlidersHorizontal, UserRound } from "lucide-react";
+import { Bell, Bot, Tag, ChevronRight, ChevronsUpDown, Database, FileSpreadsheet, Folder, FolderOpen, History, House, LogOut, Mail, Plug, ShieldCheck, SlidersHorizontal, UserRound } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -14,6 +14,7 @@ import {
   SidebarMenuBadge, SidebarMenuButton, SidebarMenuItem, SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem, SidebarRail, useSidebar,
 } from "@/components/ui/sidebar";
 import { useConsulta } from "@/hooks/use-consulta";
+import { useGrupos } from "@/hooks/use-grupos";
 import { api, irALogin } from "@/lib/api";
 import { agruparPorCarpeta, enCurso, iniciales, titulo } from "@/lib/formato";
 import type { ReporteResumen } from "@/lib/tipos";
@@ -26,6 +27,7 @@ function Hoja({ r, ruta, num }: { r: ReporteResumen; ruta: string; num?: string 
   return (
     <SidebarMenuSubItem>
       <SidebarMenuSubButton isActive={ruta === rutaDe(r)} render={enlace(r)}>
+        <FileSpreadsheet className="size-3.5 shrink-0" />
         <span className="w-7 shrink-0 text-[11px] text-sidebar-foreground/60 tabular-nums">{num ?? r.orden}</span>
         <span className="min-w-0 flex-1 truncate">{titulo(r.nombre)}</span>
         {r.escribe_en_bd && <Database aria-label="escribe en BD" className="size-3.5 shrink-0 text-[var(--mis-warning)]!" />}
@@ -39,10 +41,13 @@ function Hoja({ r, ruta, num }: { r: ReporteResumen; ruta: string; num?: string 
 function Carpeta({ etiqueta, orden, reportes, ruta, abierta, numerar }: { etiqueta: string; orden?: string; reportes: ReporteResumen[]; ruta: string; abierta?: boolean; numerar?: boolean }) {
   const contieneActivo = reportes.some((r) => ruta === rutaDe(r));
   const [elegido, setElegido] = useState<boolean | null>(null); // null = sigue a la ruta hasta que el usuario la pliegue o despliegue
+  const open = elegido ?? (!!abierta || contieneActivo);
+  const IconoCarpeta = open ? FolderOpen : Folder;
   return (
-    <Collapsible open={elegido ?? (!!abierta || contieneActivo)} onOpenChange={setElegido} className="group/carpeta" render={<SidebarMenuSubItem />}>
+    <Collapsible open={open} onOpenChange={setElegido} className="group/carpeta" render={<SidebarMenuSubItem />}>
       {/* SidebarMenuSubButton es un <a> por defecto; para plegar hace falta un <button> real (teclado y lectores de pantalla). */}
       <CollapsibleTrigger render={<SidebarMenuSubButton className="w-full text-left" render={<button type="button" />} />} title={etiqueta}>
+        <IconoCarpeta className="size-3.5 shrink-0" />
         {orden && <span className="w-7 shrink-0 text-[11px] text-sidebar-foreground/60 tabular-nums">{orden}</span>}
         <span className="min-w-0 flex-1 truncate">{etiqueta}</span>
         <ChevronRight className="size-3.5 shrink-0 transition-transform duration-150 group-data-[open]/carpeta:rotate-90" />
@@ -64,12 +69,14 @@ function Carpeta({ etiqueta, orden, reportes, ruta, abierta, numerar }: { etique
 /** «Reportes» como menú plegable del sidebar principal (como los ítems con sub-menú de Dokploy). */
 function MenuReportes({ ruta }: { ruta: string }) {
   const { datos } = useConsulta("reportes", api.reportes);
+  const { datos: grupos } = useGrupos();
   const de = (g: string) => datos?.filter((r) => r.grupo === g) ?? [];
   const [elegido, setElegido] = useState<boolean | null>(null); // null = abierto mientras estés en Reportes
+  const open = elegido ?? ruta.startsWith("/reportes");
   return (
-    <Collapsible open={elegido ?? ruta.startsWith("/reportes")} onOpenChange={setElegido} className="group/reportes" render={<SidebarMenuItem />}>
+    <Collapsible open={open} onOpenChange={setElegido} className="group/reportes" render={<SidebarMenuItem />}>
       <SidebarMenuButton isActive={ruta === "/reportes"} tooltip="Reportes" render={<Link href="/reportes" />}>
-        <FileSpreadsheet />
+        {open ? <FolderOpen /> : <Folder />}
         <span>Reportes</span>
       </SidebarMenuButton>
       <CollapsibleTrigger render={<SidebarMenuAction aria-label="Mostrar u ocultar la lista de reportes" />}>
@@ -82,6 +89,7 @@ function MenuReportes({ ruta }: { ruta: string }) {
             <Carpeta etiqueta="Diarios" reportes={de("diarias")} ruta={ruta} abierta numerar />
             <Carpeta etiqueta="Heredados de Piero" reportes={de("piero")} ruta={ruta} />
             <Carpeta etiqueta="Heredados de Erick" reportes={de("erick")} ruta={ruta} />
+            {grupos?.filter((g) => g.propio).map((g) => <Carpeta key={g.id} etiqueta={g.nombre} reportes={de(g.id)} ruta={ruta} numerar />)}
           </SidebarMenuSub>
         )}
       </CollapsibleContent>
@@ -121,6 +129,8 @@ const AJUSTES = [
   { ruta: "/configuracion", texto: "General", icono: SlidersHorizontal },
   { ruta: "/configuracion/notificaciones", texto: "Notificaciones", icono: Bell },
   { ruta: "/configuracion/mcp", texto: "MCP", icono: Plug },
+  { ruta: "/configuracion/ia", texto: "Inteligencia artificial", icono: Bot },
+  { ruta: "/configuracion/etiquetas", texto: "Etiquetas", icono: Tag },
   { ruta: "/servidores", texto: "Bases de datos", icono: Database },
 ] as const;
 

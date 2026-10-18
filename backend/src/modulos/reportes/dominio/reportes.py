@@ -35,8 +35,31 @@ class Reporte:
 # Reportes diarios cuya fecha por defecto es siempre ayer (Date - 1 del legado), sin la regla lunes -> sábado de CMG Mora
 DIA_ANTERIOR_SIMPLE = frozenset({"cartera-sin-asignar"})
 
-GRUPOS = ("diarias", "piero", "erick")
+# Grupos creados desde la web: (id, nombre, frecuencia). Los tres del legado van aparte.
+_GRUPOS_EXTRA: list[tuple[str, str, str]] = [
+]
+
+GRUPOS_BASE = ("diarias", "piero", "erick")
+GRUPOS = list(GRUPOS_BASE)
 TITULOS_GRUPO = {"diarias": "Diarias (01 TAREAS DIARIAS)", "piero": "Mensuales · heredados de Piero", "erick": "Mensuales · heredados de Erick"}
+NOMBRE_GRUPO = {"diarias": "Diarias", "piero": "Mensuales · Piero", "erick": "Mensuales · Erick"}
+FRECUENCIA_GRUPO = {"diarias": "diaria", "piero": "mensual", "erick": "mensual"}
+
+
+def registrar_grupo(id_: str, nombre: str, frecuencia: str) -> None:
+    GRUPOS.append(id_)
+    TITULOS_GRUPO[id_] = NOMBRE_GRUPO[id_] = nombre
+    FRECUENCIA_GRUPO[id_] = frecuencia
+
+
+def quitar_grupo(id_: str) -> None:
+    GRUPOS.remove(id_)
+    for tabla in (TITULOS_GRUPO, NOMBRE_GRUPO, FRECUENCIA_GRUPO):
+        tabla.pop(id_, None)
+
+
+for _g in _GRUPOS_EXTRA:
+    registrar_grupo(*_g)
 
 # (comando, grupo, orden, paquete, módulo, carpeta de salida, servidores, descripción)
 _DEFINICION = [
@@ -86,7 +109,7 @@ _DEFINICION = [
 
 REPORTES: dict[str, Reporte] = {}
 for _cmd, _grupo, _orden, _modulo, _carpeta, _srv, _desc in _DEFINICION:
-    REPORTES[_cmd] = Reporte(_cmd, _modulo, "diaria" if _grupo == "diarias" else "mensual", _srv, _desc, _grupo, _orden, _carpeta)
+    REPORTES[_cmd] = Reporte(_cmd, _modulo, "diaria" if _carpeta.startswith("diarias/") else "mensual", _srv, _desc, _grupo, _orden, _carpeta)
 
 
 def ordenados() -> list[Reporte]:

@@ -1,6 +1,23 @@
 // Espejo de src/modulos/<módulo>/aplicacion/dto.py. Si cambia un contrato allá, se cambia aquí.
 
-export type Grupo = "diarias" | "piero" | "erick";
+/** Id de un grupo de reportes: diarias, piero, erick o uno creado desde la web. */
+export type Grupo = string;
+
+/** Etiqueta (como los tags de Dokploy): nombre y color #rrggbb que elige la persona, para organizar los grupos. */
+export interface Etiqueta {
+  id: string;
+  nombre: string;
+  color: string;
+}
+
+export interface GrupoReportes {
+  id: Grupo;
+  nombre: string;
+  frecuencia: Frecuencia;
+  propio: boolean;
+  reportes: number;
+  etiquetas: Etiqueta[];
+}
 export type Frecuencia = "diaria" | "mensual";
 
 export interface ReporteResumen {
@@ -18,14 +35,6 @@ export interface ReporteResumen {
   /** Puede enviar su archivo por Google Chat (--chat). */
   envia_chat: boolean;
   avisos: string[];
-}
-
-/** Carpeta visual de /reportes definida por la persona: solo agrupa tarjetas. */
-export interface Seccion {
-  id: string;
-  nombre: string;
-  descripcion: string;
-  reportes: string[];
 }
 
 export interface Corte {
@@ -176,6 +185,27 @@ export interface HojaPrevia {
   total_filas: number;
 }
 
+export interface PedidoReporteNuevo {
+  nombre: string;
+  grupo: Grupo;
+  orden: string;
+  base: string;
+  descripcion: string;
+  frecuencia?: Frecuencia;
+  sql: string;
+}
+
+export interface ReporteCreado {
+  nombre: string;
+  ruta: string;
+  tablas_nuevas: string[];
+}
+
+export interface Script {
+  ruta: string;
+  codigo: string;
+}
+
 export interface VistaPrevia {
   archivo: string;
   tipo: "excel" | "texto";
@@ -279,6 +309,30 @@ export interface ServicioGoogle {
 }
 
 /** MCP de Google Workspace. El Client secret y el token nunca llegan al navegador: solo si están configurados. */
+/** Conexión con un proveedor de IA por API key (la clave nunca llega al navegador). */
+export interface ConfigIA {
+  id: string;
+  nombre: string;
+  api_url: string;
+  modelo: string;
+  activo: boolean;
+  proveedor: string;
+  clave_configurada: boolean;
+}
+
+export interface PedidoIA {
+  nombre: string;
+  api_url: string;
+  api_key: string;
+  modelo: string;
+  activo: boolean;
+}
+
+export interface ModelosIA {
+  proveedor: string;
+  modelos: string[];
+}
+
 export interface GoogleMcp {
   client_id: string;
   secreto_configurado: boolean;

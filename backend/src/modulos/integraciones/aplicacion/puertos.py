@@ -31,9 +31,15 @@ class GoogleWorkspace(Protocol):
     def mcp_ejecutar(self, servicio: str, herramienta: str, argumentos: dict) -> tuple[bool, str]: ...
 
 
+class ProveedorIA(Protocol):
+    def proveedor_de(self, api_url: str) -> str: ...
+    def modelos(self, api_url: str, api_key: str) -> list[str]: ...
+
+
 @dataclass
 class Puertos:
     google: GoogleWorkspace
+    ia: ProveedorIA
 
 
 puertos: Registro[Puertos] = Registro("integraciones")

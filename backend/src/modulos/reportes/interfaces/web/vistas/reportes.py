@@ -7,17 +7,42 @@ from django.views import View
 
 from core import http as h
 from modulos.reportes.aplicacion import dto as dto_reportes
-from modulos.reportes.aplicacion.casos_uso import archivos, catalogo, correo_reporte, ejecuciones, secciones, verificacion
+from modulos.reportes.aplicacion.casos_uso import archivos, catalogo, correo_reporte, crear_reporte, ejecuciones, etiquetas, verificacion
 
 
 class Catalogo(View):
     def get(self, request: HttpRequest) -> HttpResponse:
         return h.json(catalogo.catalogo())
 
+    def post(self, request: HttpRequest) -> HttpResponse:
+        return h.json(crear_reporte.crear(h.cuerpo(request, dto_reportes.PedidoReporteNuevo)), status=201)
+
 
 class Detalle(View):
     def get(self, request: HttpRequest, nombre: str) -> HttpResponse:
         return h.json(catalogo.detalle(nombre))
+
+
+class Script(View):
+    def get(self, request: HttpRequest, nombre: str) -> HttpResponse:
+        return h.json(catalogo.script(nombre))
+
+    def put(self, request: HttpRequest, nombre: str) -> HttpResponse:
+        return h.json(catalogo.guardar_script(nombre, h.cuerpo(request, dto_reportes.PedidoScript)))
+
+
+class Grupos(View):
+    def get(self, request: HttpRequest) -> HttpResponse:
+        return h.json(crear_reporte.listar_grupos())
+
+    def post(self, request: HttpRequest) -> HttpResponse:
+        return h.json(crear_reporte.crear_grupo(h.cuerpo(request, dto_reportes.PedidoGrupo)), status=201)
+
+
+class GrupoDetalle(View):
+    def delete(self, request: HttpRequest, id_: str) -> HttpResponse:
+        crear_reporte.eliminar_grupo(id_)
+        return h.json({"ok": True})
 
 
 class Chat(View):
@@ -68,15 +93,23 @@ class Envio(View):
         return h.json(ejecuciones.estado_envio(nombre, h.fecha(request, "fecha_corte")))
 
 
-class Secciones(View):
+class Etiquetas(View):
     def get(self, request: HttpRequest) -> HttpResponse:
-        return h.json(secciones.listar())
+        return h.json(etiquetas.listar())
 
     def post(self, request: HttpRequest) -> HttpResponse:
-        return h.json(secciones.crear(h.cuerpo(request, dto_reportes.PedidoSeccion)), status=201)
+        return h.json(etiquetas.crear(h.cuerpo(request, dto_reportes.PedidoEtiqueta)), status=201)
 
 
-class SeccionDetalle(View):
+class EtiquetaDetalle(View):
+    def put(self, request: HttpRequest, id_: str) -> HttpResponse:
+        return h.json(etiquetas.actualizar(id_, h.cuerpo(request, dto_reportes.PedidoEtiqueta)))
+
     def delete(self, request: HttpRequest, id_: str) -> HttpResponse:
-        secciones.eliminar(id_)
+        etiquetas.eliminar(id_)
         return h.json({"ok": True})
+
+
+class GrupoEtiquetas(View):
+    def put(self, request: HttpRequest, id_: str) -> HttpResponse:
+        return h.json(crear_reporte.asignar_etiquetas(id_, h.cuerpo(request, dto_reportes.PedidoEtiquetasGrupo)))

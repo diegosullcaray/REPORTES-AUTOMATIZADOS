@@ -32,9 +32,9 @@ class HistorialValidacion(Protocol):
     def listar(self, grupo: str, limite: int) -> list[dto.EntradaValidacion]: ...
 
 
-class AlmacenSecciones(Protocol):
-    def leer(self) -> list[dto.Seccion]: ...
-    def escribir(self, secciones: list[dto.Seccion]) -> None: ...
+class AlmacenEtiquetas(Protocol):
+    def leer(self) -> dto.CatalogoEtiquetas: ...
+    def escribir(self, catalogo: dto.CatalogoEtiquetas) -> None: ...
 
 
 class LectorArchivos(Protocol):
@@ -47,7 +47,7 @@ class Puertos:
     cola: ColaEjecuciones
     historial_validacion: HistorialValidacion
     lector_archivos: LectorArchivos
-    secciones: AlmacenSecciones
+    etiquetas: AlmacenEtiquetas
 
 
 puertos: Registro[Puertos] = Registro("reportes")

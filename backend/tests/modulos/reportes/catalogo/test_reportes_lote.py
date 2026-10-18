@@ -14,8 +14,8 @@ LOTES = [(r.nombre, getattr(import_module(r.modulo), "REPORTE", None)) for r in 
 LOTES = [(n, l) for n, l in LOTES if l is not None]
 
 
-def test_hay_16_reportes_de_lote():
-    assert len(LOTES) == 16
+def test_hay_reportes_de_lote():
+    assert len(LOTES) >= 16  # los creados desde la web suman
 
 
 @pytest.mark.parametrize("nombre,lote", LOTES)

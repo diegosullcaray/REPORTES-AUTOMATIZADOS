@@ -47,6 +47,40 @@ class ReporteDetalle(ReporteResumen):
     correo_cc: list[str] = []            # con copia (ENTREGA_CORREO_CC_<REPORTE>)
 
 
+class Grupo(BaseModel):
+    id: str
+    nombre: str
+    frecuencia: Literal["diaria", "mensual"]
+    propio: bool                  # creado desde la web (los del legado no se tocan)
+    reportes: int
+    etiquetas: list[Etiqueta] = []
+
+
+class PedidoGrupo(BaseModel):
+    nombre: str
+    etiquetas: list[str] = []
+
+
+class PedidoReporteNuevo(BaseModel):
+    nombre: str                   # comando: minúsculas y guiones
+    grupo: str                    # id de un grupo existente (diarias, piero, erick o uno creado desde la web)
+    orden: str                    # número del legado: "07" o "07.1"
+    base: str                     # base de datos del reporte; de ella sale el servidor
+    descripcion: str
+    frecuencia: Literal["diaria", "mensual"] | None = None   # None = la del grupo; los grupos del legado no admiten otra
+    sql: str                      # T-SQL con tokens de fecha
+
+
+class ReporteCreado(BaseModel):
+    nombre: str
+    ruta: str                     # relativa al repo
+    tablas_nuevas: list[str]      # tablas que no estaban registradas: completar su columna de fecha en dominio/tablas.py
+
+
+class PedidoScript(BaseModel):
+    codigo: str
+
+
 class PedidoChat(BaseModel):
     destinatarios: str            # correos separados por coma; vacío = no enviar a nadie
 
@@ -212,13 +246,26 @@ class EstadoEnvio(BaseModel):
     excel: str | None
 
 
-class PedidoSeccion(BaseModel):
+class PedidoEtiqueta(BaseModel):
     nombre: str
-    descripcion: str = ""
-    reportes: list[str] = []
+    color: str = "#6b7280"        # #rrggbb, el que elige la persona
 
 
-class Seccion(PedidoSeccion):
-    """Carpeta visual de /reportes definida por la persona: solo agrupa tarjetas, no cambia ningún reporte."""
-
+class Etiqueta(PedidoEtiqueta):
     id: str
+
+
+class CatalogoEtiquetas(BaseModel):
+    """Lo que se guarda en disco: las etiquetas y cuáles lleva cada grupo."""
+
+    etiquetas: list[Etiqueta] = []
+    grupos: dict[str, list[str]] = {}
+
+
+class PedidoEtiquetasGrupo(BaseModel):
+    etiquetas: list[str]
+
+
+class Script(BaseModel):
+    ruta: str     # relativa al repo, para abrirla en el editor
+    codigo: str

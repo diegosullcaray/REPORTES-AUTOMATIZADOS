@@ -87,13 +87,16 @@ Monolito modular: cada módulo de negocio tiene sus capas (`dominio` ← `aplica
 | `modulos/reportes/aplicacion/casos_uso/archivos.py` | Archivos generados por cada reporte: listado, descarga segura y vista previa (Excel y texto) |
 | `modulos/reportes/aplicacion/casos_uso/catalogo.py` | Catálogo de reportes: qué hay, cómo se describe cada uno, su fecha de corte y a quién se le entrega su archivo |
 | `modulos/reportes/aplicacion/casos_uso/correo_reporte.py` | Correo de los archivos generados de un reporte, con la cuenta de Google autorizada (API de Gmail) y su firma |
+| `modulos/reportes/aplicacion/casos_uso/crear_reporte.py` | Alta de un reporte desde la web: escribe su módulo, su test y su registro, y lo deja disponible sin reiniciar |
 | `modulos/reportes/aplicacion/casos_uso/ejecuciones.py` | Ejecuciones: valida el pedido con las reglas del reporte, arma los argumentos de `main.py` y consulta/gestiona el historial |
+| `modulos/reportes/aplicacion/casos_uso/etiquetas.py` | Etiquetas (como los «tags» de Dokploy): un nombre y un color (#rrggbb) que se pegan a los grupos de reportes para organizarlos |
 | `modulos/reportes/aplicacion/casos_uso/validacion.py` | Historial de la validación masiva de tablas (una ficha por verificación) y envío por Google Chat del mensaje para actualizarlas |
 | `modulos/reportes/aplicacion/casos_uso/verificacion.py` | Verificación de tablas al corte y solicitud a Producción (por reporte y masiva por responsable) |
 | `modulos/reportes/aplicacion/columnas.py` | Aplica el formato de columnas de un reporte (orden, encabezados y reemplazo de 0/nulos) a un resultado |
 | `modulos/reportes/aplicacion/cortes.py` | Fecha de corte de un reporte: argumento > .env > día anterior (la regla es del dominio; el .env se lee por el puerto) |
 | `modulos/reportes/aplicacion/dto.py` | Contratos del módulo de reportes (entrada y salida). Solo forma de los datos: sin lógica |
 | `modulos/reportes/aplicacion/ejecucion.py` | Ejecutor común de reportes (caso de uso): conexión -> validación de tablas y fechas -> consulta -> validación de datos -> Excel |
+| `modulos/reportes/aplicacion/nuevo_reporte.py` | Alta de un reporte desde la web: validación y texto de lo que se escribe (módulo, test y líneas de registro). Sin disco ni estado |
 | `modulos/reportes/aplicacion/puertos.py` | Puertos del módulo de reportes: lo que necesita del mundo exterior (Excel, cola de ejecuciones, historial de validación, lectura de archivos) |
 | `modulos/reportes/aplicacion/rutas.py` | Dónde deja cada reporte sus archivos |
 | `modulos/reportes/aplicacion/verificacion.py` | ¿Están las tablas de un reporte al día para el corte? Solo hace SELECT MAX(<col_fecha>) / comprueba existencia; no modifica nada |
@@ -105,6 +108,7 @@ Monolito modular: cada módulo de negocio tiene sus capas (`dominio` ← `aplica
 | `modulos/reportes/infraestructura/cola_ejecuciones.py` | Cola de ejecuciones: un reporte a la vez, como subproceso de `main.py` (mismos códigos de salida y mensajes que la consola) |
 | `modulos/reportes/infraestructura/entregas/chat.py` | Entrega de archivos generados por Google Chat (mensaje directo con adjunto), con la cuenta de Google autorizada en la web |
 | `modulos/reportes/infraestructura/entregas/correo_resumen.py` | Entrega por correo del resumen diario (legado: macro `ActualizarSQL_AmbasHojas` de «Cartera-Sin asignar-base.xlsm») |
+| `modulos/reportes/infraestructura/etiquetas.py` | Etiquetas de los grupos de /reportes en disco: data/outputs/etiquetas.json (no versionado) |
 | `modulos/reportes/infraestructura/excel.py` | Formato Excel de las salidas, copiado del legado (Cartera-Sin asignar-base.xlsm) |
 | `modulos/reportes/infraestructura/historial_validacion.py` | Fichas del historial de validación en disco: data/outputs/validaciones/<grupo>/<id>.json (no versionadas) |
 | `modulos/reportes/infraestructura/imagen.py` | Imagen JPG del resumen jerárquico (el `Reporte_Temporal.jpg` que el legado pegaba en el cuerpo del correo) |
@@ -165,6 +169,7 @@ Monolito modular: cada módulo de negocio tiene sus capas (`dominio` ← `aplica
 |---|---|
 | `modulos/integraciones/aplicacion/casos_uso/google.py` | MCP de Google Workspace desde la web: cliente OAuth, autorización con código, servidores MCP oficiales y pruebas |
 | `modulos/integraciones/aplicacion/casos_uso/herramientas_envio.py` | Herramientas MCP propias para ENVIAR: correo por Gmail y mensajes de Google Chat a contactos o espacios |
+| `modulos/integraciones/aplicacion/casos_uso/ia.py` | Conexiones con proveedores de IA por API key (como «AI» en Settings de Dokploy), guardadas en el .env |
 | `modulos/integraciones/aplicacion/dto.py` | Contratos del módulo de integraciones (Google Workspace y MCP). Solo forma de los datos: sin lógica |
 | `modulos/integraciones/aplicacion/mensajeria.py` | API pública del módulo de integraciones para los demás módulos: enviar por Gmail y Google Chat con la cuenta autorizada |
 | `modulos/integraciones/aplicacion/puertos.py` | Puertos del módulo de integraciones: Google con OAuth de usuario (Gmail, Chat y servidores MCP oficiales). Los fallos son `ErrorIntegracion` |
@@ -174,6 +179,7 @@ Monolito modular: cada módulo de negocio tiene sus capas (`dominio` ← `aplica
 | Módulo | Qué hace |
 |---|---|
 | `modulos/integraciones/infraestructura/google/cliente.py` | Google Workspace con OAuth de usuario: servidores MCP oficiales de Google (Drive, Gmail, Docs, Sheets, Slides, Chat) |
+| `modulos/integraciones/infraestructura/ia/cliente.py` | Proveedores de IA con API key (OpenAI, Anthropic, Gemini, Mistral, OpenRouter, Ollama o cualquier endpoint compatible con OpenAI) |
 
 **`interfaces/`**
 
@@ -183,6 +189,7 @@ Monolito modular: cada módulo de negocio tiene sus capas (`dominio` ← `aplica
 | `modulos/integraciones/interfaces/web/apps.py` | — |
 | `modulos/integraciones/interfaces/web/urls.py` | Rutas del módulo de integraciones (Google Workspace y MCP) |
 | `modulos/integraciones/interfaces/web/vistas/google.py` | MCP de Google Workspace: cliente OAuth, autorización, servidores MCP oficiales y envío directo |
+| `modulos/integraciones/interfaces/web/vistas/ia.py` | Conexiones con proveedores de IA por API key |
 
 ### `modulos/sistema/` — Sesión, cuenta, perfil, ajustes y servidores SQL editables desde la web.
 
@@ -204,7 +211,7 @@ Monolito modular: cada módulo de negocio tiene sus capas (`dominio` ← `aplica
 | `modulos/sistema/interfaces/web/vistas/sesion.py` | Inicio y cierre de sesión, y cambio de usuario o contraseña (credenciales en el .env) |
 
 
-## Pruebas (52 archivos)
+## Pruebas (57 archivos)
 
 Reflejan los módulos: `tests/core`, `tests/config` y `tests/modulos/<módulo>/<capa>`.
 
@@ -220,8 +227,10 @@ Reflejan los módulos: `tests/core`, `tests/config` y `tests/modulos/<módulo>/<
 - `tests/core/test_servidores.py`
 - `tests/modulos/integraciones/aplicacion/casos_uso/test_google.py`
 - `tests/modulos/integraciones/aplicacion/casos_uso/test_herramientas_envio.py`
+- `tests/modulos/integraciones/aplicacion/casos_uso/test_ia.py`
 - `tests/modulos/integraciones/aplicacion/test_mensajeria.py`
 - `tests/modulos/integraciones/infraestructura/google/test_cliente.py`
+- `tests/modulos/integraciones/infraestructura/ia/test_cliente.py`
 - `tests/modulos/integraciones/interfaces/mcp/test_servidor.py`
 - `tests/modulos/notificaciones/aplicacion/casos_uso/test_notificaciones.py`
 - `tests/modulos/notificaciones/aplicacion/test_correo.py`
@@ -231,13 +240,16 @@ Reflejan los módulos: `tests/core`, `tests/config` y `tests/modulos/<módulo>/<
 - `tests/modulos/reportes/aplicacion/casos_uso/test_archivos.py`
 - `tests/modulos/reportes/aplicacion/casos_uso/test_catalogo.py`
 - `tests/modulos/reportes/aplicacion/casos_uso/test_correo_reporte.py`
+- `tests/modulos/reportes/aplicacion/casos_uso/test_crear_reporte.py`
 - `tests/modulos/reportes/aplicacion/casos_uso/test_ejecuciones.py`
+- `tests/modulos/reportes/aplicacion/casos_uso/test_etiquetas.py`
 - `tests/modulos/reportes/aplicacion/casos_uso/test_validacion.py`
 - `tests/modulos/reportes/aplicacion/casos_uso/test_verificacion.py`
 - `tests/modulos/reportes/aplicacion/test_columnas.py`
 - `tests/modulos/reportes/aplicacion/test_cortes.py`
 - `tests/modulos/reportes/aplicacion/test_dto.py`
 - `tests/modulos/reportes/aplicacion/test_ejecucion.py`
+- `tests/modulos/reportes/aplicacion/test_nuevo_reporte.py`
 - `tests/modulos/reportes/aplicacion/test_rutas.py`
 - `tests/modulos/reportes/aplicacion/test_verificacion.py`
 - `tests/modulos/reportes/catalogo/test_formatos_reportes.py`

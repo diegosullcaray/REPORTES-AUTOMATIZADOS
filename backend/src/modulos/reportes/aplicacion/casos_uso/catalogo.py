@@ -8,6 +8,8 @@ from __future__ import annotations
 from datetime import date
 from functools import lru_cache
 from importlib import import_module
+from importlib.util import find_spec
+from pathlib import Path
 
 from modulos.notificaciones.aplicacion import destinatarios
 from modulos.reportes.aplicacion.cortes import resolver_corte
@@ -85,6 +87,29 @@ def detalle(nombre: str) -> dto_reportes.ReporteDetalle:
     return dto_reportes.ReporteDetalle(**_resumen(r), corte=corte, tablas=tablas, chat_destinatarios=destinos,
                             correo_para=destinatarios.leer(entregas.variable_correo_para(nombre)),
                             correo_cc=destinatarios.leer(entregas.variable_correo_cc(nombre)))
+
+
+def _archivo_script(nombre: str) -> Path:
+    return Path(find_spec(reporte(nombre).modulo).origin)  # solo sale del registro REPORTES, nunca de la petición
+
+
+def script(nombre: str) -> dto_reportes.Script:
+    """Código fuente del módulo del reporte: el T-SQL y la lógica que ejecuta."""
+    ruta = f"backend/src/{reporte(nombre).modulo.replace('.', '/')}.py"
+    return dto_reportes.Script(ruta=ruta, codigo=_archivo_script(nombre).read_text(encoding="utf-8"))
+
+
+def guardar_script(nombre: str, p: dto_reportes.PedidoScript) -> dto_reportes.Script:
+    """Sobrescribe el módulo del reporte si compila. Rige desde la siguiente ejecución (git guarda la versión anterior)."""
+    try:
+        compile(p.codigo, nombre, "exec")
+    except SyntaxError as exc:
+        raise PeticionInvalida(f"Error de sintaxis en la línea {exc.lineno}: {exc.msg}") from exc
+    archivo = _archivo_script(nombre)
+    temporal = archivo.with_suffix(".py.tmp")
+    temporal.write_text(p.codigo, encoding="utf-8", newline="")
+    temporal.replace(archivo)  # atómico: nunca queda un módulo a medio escribir
+    return script(nombre)
 
 
 def guardar_chat(nombre: str, p: dto_reportes.PedidoChat) -> dto_reportes.ReporteDetalle:
