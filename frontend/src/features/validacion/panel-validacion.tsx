@@ -145,18 +145,18 @@ export function PanelVerificacion({ grupo, corte, reportes, resultado, onResulta
       <div className="flex flex-wrap items-center gap-3 rounded-lg border bg-card p-4">
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
           <span className="text-sm font-medium">{propios.length} reportes mensuales</span>
-          <span className="truncate text-xs text-muted-foreground">{propios.map((r) => titulo(r.nombre)).join(" · ") || "—"}</span>
+          <span className="truncate text-xs text-muted-foreground" title={propios.map((r) => titulo(r.nombre)).join(" · ")}>Pasa el cursor para ver cuáles</span>
         </div>
         <Button onClick={verificar} disabled={cargando || !!invalido || !corte}>
           <ShieldCheck /> {cargando ? "Verificando…" : vigente ? "Verificar de nuevo" : `Verificar al ${corte ? fecha(corte) : "corte"}`}
         </Button>
       </div>
       {invalido && <p className="-mt-3 text-sm text-[var(--mis-danger)]">{invalido}</p>}
-      {cargando && <p className="-mt-3 text-sm text-muted-foreground">Consultando los servidores a la vez (solo lectura). Si alguno no responde puede tardar hasta un minuto.</p>}
+      {cargando && <p className="-mt-3 text-sm text-muted-foreground">Consultando los servidores (solo lectura)…</p>}
 
       {error ? <ErrorEnLinea titulo="No se pudo verificar" detalle={error} onReintentar={verificar} />
         : vigente ? <Resultado v={vigente} grupo={grupo} onRecargar={verificar} />
-        : !cargando && <p className="text-sm text-muted-foreground">Cada tabla se consulta una sola vez aunque la usen varios reportes y, si falta alguna, obtienes un único mensaje para Producción.</p>}
+        : !cargando && <p className="text-sm text-muted-foreground">Una consulta por tabla; si falta alguna, un solo mensaje para Producción.</p>}
     </div>
   );
 }

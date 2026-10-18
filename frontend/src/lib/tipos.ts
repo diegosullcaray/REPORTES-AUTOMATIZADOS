@@ -130,6 +130,7 @@ export interface PedidoEjecucion {
   correo?: Correo;
   conforme?: boolean;
   chat?: boolean;
+  fase?: "operaciones" | "provisiones" | "generar"; // solo cmg-mora
 }
 
 export type EstadoEjecucion = "en_cola" | "ejecutando" | "ok" | "error" | "configuracion" | "tablas_desactualizadas";

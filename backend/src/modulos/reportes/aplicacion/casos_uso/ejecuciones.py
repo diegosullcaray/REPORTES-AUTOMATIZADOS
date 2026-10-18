@@ -32,6 +32,10 @@ def argumentos(p: dto_reportes.PedidoEjecucion) -> list[str]:
         if p.forzar or p.confirmar_escritura or p.correo == "todos":
             raise PeticionInvalida(f"«{nombre}» tiene lógica propia: no admite forzar, confirmar escritura ni envío de correo.")
         args = [nombre, "--mes", f"{corte:%Y-%m}"] if nombre in USAN_MES else [nombre, "--fecha-corte", f"{corte:%Y-%m-%d}"]
+        if p.fase:
+            if nombre != "cmg-mora":
+                raise PeticionInvalida(f"«{nombre}» no funciona por fases.")
+            args += ["--fase", p.fase]
         if p.chat:
             if not destinatarios.leer(entregas.variable_chat(nombre)):
                 raise PeticionInvalida("Indica a quién enviar por Google Chat (pestaña General) o desmarca el envío.")

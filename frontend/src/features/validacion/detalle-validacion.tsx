@@ -36,7 +36,7 @@ export function DetalleValidacion({ grupo }: { grupo: Grupo }) {
   return (
     <Pagina>
       <Marco icono={<ShieldCheck />} titulo={`Validación · ${GRUPOS[grupo]}`}
-        descripcion="¿Llegaron las tablas al corte? Se verifican las de todos sus reportes mensuales, sin ejecutar nada (solo lectura).">
+        descripcion="¿Llegaron las tablas al corte? Solo lectura.">
         {reportes.error ? <ErrorEnLinea titulo="No se pudo cargar el catálogo" detalle={reportes.error} onReintentar={reportes.recargar} /> : (
           <Tabs value={pestana} onValueChange={(v) => irA(v as Pestana)}>
             <TabsList className="w-full justify-start overflow-x-auto no-scrollbar sm:w-fit">

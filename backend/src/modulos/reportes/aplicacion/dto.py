@@ -158,6 +158,7 @@ class PedidoEjecucion(BaseModel):
     correo: Literal["no", "prueba", "todos"] = "prueba"   # solo reportes con envío de correo
     conforme: bool = False                                 # obligatorio con correo = todos
     chat: bool = False                                     # enviar el archivo generado por Google Chat (reportes con envia_chat)
+    fase: Literal["operaciones", "provisiones", "generar"] | None = None  # solo cmg-mora: una etapa del flujo por fases
 
 
 class Ejecucion(BaseModel):

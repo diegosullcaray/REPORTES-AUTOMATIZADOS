@@ -18,10 +18,21 @@ import { ESTADO_EJECUCION, TIPO, enCurso, titulo } from "@/lib/formato";
 import { PanelArchivos } from "./panel-archivos";
 import { PanelCorreo } from "./panel-correo";
 import { PanelEnvioArchivos } from "./panel-envio-archivos";
+import { PanelFlujo } from "./panel-flujo";
 import { PanelGeneral } from "./panel-general";
 
-const PESTANAS = ["general", "ejecuciones", "archivos", "correo"] as const;
+const PESTANAS = ["general", "flujo", "ejecuciones", "archivos", "correo"] as const;
 type Pestana = (typeof PESTANAS)[number];
+
+/** Sección plegada por defecto para no obligar a bajar hasta el final de la pestaña. */
+function Desplegable({ titulo, children }: { titulo: string; children: React.ReactNode }) {
+  return (
+    <details className="rounded-lg border">
+      <summary className="cursor-pointer px-4 py-3 text-sm font-semibold">{titulo}</summary>
+      <div className="border-t p-3">{children}</div>
+    </details>
+  );
+}
 
 /** Reporte con la estructura de un servicio en Dokploy: encabezado (ícono + estado, nombre, insignias) y pestañas en la URL. */
 export function DetalleReporte({ nombre }: { nombre: string }) {
@@ -83,6 +94,7 @@ export function DetalleReporte({ nombre }: { nombre: string }) {
               <Tabs value={pestana} onValueChange={(v) => irA(v as Pestana)}>
                 <TabsList className="w-full justify-start overflow-x-auto no-scrollbar sm:w-fit">
                   <TabsTrigger value="general">General</TabsTrigger>
+                  {r.nombre === "cmg-mora" && <TabsTrigger value="flujo">Flujo</TabsTrigger>}
                   <TabsTrigger value="ejecuciones">Ejecuciones</TabsTrigger>
                   <TabsTrigger value="archivos">Archivos</TabsTrigger>
                   <TabsTrigger value="correo">Correo</TabsTrigger>
@@ -90,6 +102,7 @@ export function DetalleReporte({ nombre }: { nombre: string }) {
                 <TabsContent value="general" className="pt-3">
                   <PanelGeneral reporte={r} corte={corte} />
                 </TabsContent>
+                <TabsContent value="flujo" className="pt-3"><PanelFlujo reporte={r} corte={corte} /></TabsContent>
                 <TabsContent value="ejecuciones" className="pt-3"><ListaEjecuciones reporte={r.nombre} /></TabsContent>
                 <TabsContent value="archivos" className="pt-3">
                   <Tarjeta titulo="Archivos" descripcion={`Carpeta de salida: data/outputs/${r.carpeta}`}>
@@ -98,11 +111,13 @@ export function DetalleReporte({ nombre }: { nombre: string }) {
                 </TabsContent>
                 <TabsContent value="correo" className="flex flex-col gap-4 pt-3">
                   {r.envia_correo && (
-                    <Tarjeta titulo="Envío a la lista" descripcion="Prueba → conforme → envío a toda la lista, con la cuenta MIS.">
-                      <PanelCorreo reporte={r} corte={corte} />
-                    </Tarjeta>
+                    <Desplegable titulo="Envío a la lista">
+                      <Tarjeta titulo="Envío a la lista" descripcion="Prueba → conforme → envío a toda la lista, con la cuenta MIS.">
+                        <PanelCorreo reporte={r} corte={corte} />
+                      </Tarjeta>
+                    </Desplegable>
                   )}
-                  <PanelEnvioArchivos reporte={r} />
+                  <Desplegable titulo="Enviar archivos por correo"><PanelEnvioArchivos reporte={r} /></Desplegable>
                 </TabsContent>
               </Tabs>
             )}
