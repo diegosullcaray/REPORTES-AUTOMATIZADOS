@@ -80,3 +80,24 @@ def test_modulo_y_test_generados_compilan_y_el_modulo_declara_el_lote():
     compile(modulo, "m", "exec")
     assert "comando='mi-reporte'" in modulo and "def main(argv" in modulo
     compile(nr.render_test("mi-reporte", "modulos.reportes.catalogo.mensuales.piero.r10_mi_reporte", "mensual"), "t", "exec")
+
+
+@pytest.mark.parametrize("sql", [
+    "select * from storage.com_act.t where f = '@@F@@'",
+    "select a into #t from storage.x.y; select * from #t",
+    "insert into #t select 1; delete from #t; update #t set a = 2",
+    "drop table if exists #t; truncate table #t; create table #t (a int)",
+    "select 'delete from x', 'drop table y' -- update z\n/* insert into w */",
+])
+def test_sql_de_solo_lectura_se_acepta(sql):
+    nr.rechazar_escritura(sql)
+
+
+@pytest.mark.parametrize("sql", [
+    "delete from storage.dbo.t", "update storage.dbo.t set a = 1", "select a into dbo.t from x", "insert into dbo.t select 1",
+    "drop table dbo.t", "drop table if exists dbo.t", "truncate table dbo.t", "alter table dbo.t add b int", "create table dbo.t (a int)",
+    "merge dbo.t using x on 1=1", "drop procedure p", "create view v as select 1", "select 1;\nDELETE\nFROM dbo.t",
+])
+def test_sql_que_escribe_en_la_base_se_rechaza(sql):
+    with pytest.raises(PeticionInvalida, match="solo lee"):
+        nr.rechazar_escritura(sql)

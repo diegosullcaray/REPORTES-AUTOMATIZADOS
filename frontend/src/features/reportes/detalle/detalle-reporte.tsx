@@ -1,20 +1,22 @@
 "use client";
 
-import { ArrowLeft, Database, FileSpreadsheet, Mail, Server } from "lucide-react";
+import { ArrowLeft, Database, FileSpreadsheet, Mail, Server, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
 import { EsqueletoFilas, ErrorEnLinea, Punto } from "@/components/estados";
 import { useCorte } from "@/components/fecha-cierre";
 import { Hace } from "@/components/hace";
 import { Pagina } from "@/components/pagina";
 import { Tarjeta } from "@/components/tarjeta";
 import { Badge } from "@/components/ui/badge";
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ListaEjecuciones } from "@/features/ejecuciones/lista-ejecuciones";
 import { useConsulta } from "@/hooks/use-consulta";
 import { api } from "@/lib/api";
 import { ESTADO_EJECUCION, TIPO, enCurso, titulo } from "@/lib/formato";
+import { EliminarReporte } from "../eliminar-reporte";
 import { PanelArchivos } from "./panel-archivos";
 import { PanelCorreo } from "./panel-correo";
 import { PanelEnvioArchivos } from "./panel-envio-archivos";
@@ -46,6 +48,7 @@ export function DetalleReporte({ nombre }: { nombre: string }) {
   const pestana: Pestana = pedida && PESTANAS.includes(pedida) ? pedida : "general";
   const irA = (p: Pestana) => router.replace(p === "general" ? ruta : `${ruta}?tab=${p}`, { scroll: false });
 
+  const [eliminar, setEliminar] = useState(false);
   const corte = useCorte(r?.frecuencia ?? "mensual", r?.corte.fecha); // se elige en la cabecera (Fecha de cierre)
   const ultima = ultimas?.[0];
   const estado = ultima ? ESTADO_EJECUCION[ultima.estado] : null;
@@ -81,6 +84,10 @@ export function DetalleReporte({ nombre }: { nombre: string }) {
               <span className="text-xs text-muted-foreground">
                 {ultima && estado ? <>Última ejecución: {estado.texto.toLowerCase()} · <Hace iso={ultima.inicio} /></> : "Sin ejecuciones desde la web"}
               </span>
+              <Button variant="ghost" size="icon" aria-label="Eliminar reporte" className="group hover:bg-[var(--mis-danger-light)]" onClick={() => setEliminar(true)}>
+                <Trash2 className="size-4 group-hover:text-[var(--mis-danger)]" />
+              </Button>
+              <EliminarReporte nombre={nombre} abierto={eliminar} onAbierto={setEliminar} />
               <Link href="/reportes" className={`${buttonVariants({ variant: "ghost", size: "sm" })} sm:hidden`}><ArrowLeft /> Reportes</Link>
             </div>
           </header>

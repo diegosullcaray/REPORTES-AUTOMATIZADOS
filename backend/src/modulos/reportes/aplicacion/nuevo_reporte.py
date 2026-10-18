@@ -10,6 +10,13 @@ from core.excepciones import ConfiguracionError, PeticionInvalida
 from core.servidores import BASES_DE, servidor_de_base
 from modulos.reportes.dominio.fechas import Cortes
 
+MARCA_WEB = "Creado desde la web"  # va en el docstring del módulo; `eliminar` solo borra los que la traen
+MARCA_PLANTILLA = "select 1 as pendiente"  # mientras el SQL la lleve, el reporte no se ejecuta
+PLANTILLA_SQL = "use storage;\ngo\n-- Reemplaza esta consulta en la pestaña Script; la fecha va solo con tokens (@@F@@, @@F_ISO@@…)\n" + MARCA_PLANTILLA + " -- @@F@@"
+# (?>…) = grupo atómico: sin él, «DELETE FROM #t» retrocede a «DELETE» y «FROM» parece una tabla permanente.
+_ESCRITURA = re.compile(
+    r"\b(?>INSERT\s+INTO|DELETE\s+FROM|DELETE|UPDATE|INTO)\s+(?![#@])|"
+    r"\b(?>DROP|TRUNCATE)\s+(?>TABLE\s+)?+(?>IF\s+EXISTS\s+)?+(?![#@])|\b(?:ALTER|CREATE|MERGE)\b(?!\s+TABLE\s+[#@])", re.I)
 SLUG = re.compile(r"[a-z0-9]+(-[a-z0-9]+)*")
 ORDEN = re.compile(r"\d{2}(\.\d{1,2})?")
 FECHA_FIJA = re.compile(r"'(20\d{6}|20\d\d-\d\d-\d\d)'")  # misma regla que la compuerta fechas-fijas-en-sql
@@ -34,12 +41,21 @@ def id_de_grupo(nombre: str) -> str:
     return id_
 
 
+def rechazar_escritura(sql: str) -> None:
+    """Los reportes creados en la web son de solo lectura: se escribe únicamente en tablas temporales (#) o variables (@)."""
+    texto = re.sub(r"'(?:[^']|'')*'", "''", re.sub(r"--[^\n]*", "", re.sub(r"/\*.*?\*/", "", sql, flags=re.S)))
+    if m := _ESCRITURA.search(texto):
+        raise PeticionInvalida(f"El T-SQL escribe en la base ({' '.join(m.group(0).split())} …): un reporte creado en la web solo lee; "
+                               "solo se puede escribir en tablas temporales (#). Si necesitas escribir, hazlo como un reporte del legado.")
+
+
 def validar_sql(sql: str, frecuencia: str, servidor: str) -> list[str]:
     """Comprueba el T-SQL como lo hará el ejecutor y devuelve las tablas que consulta (normalizadas, en minúsculas)."""
     if not sql.strip():
         raise PeticionInvalida("Pega el T-SQL del reporte.")
     if '"""' in sql:
         raise PeticionInvalida('El T-SQL no puede contener """ (rompería el módulo).')
+    rechazar_escritura(sql)
     sin_comentarios = re.sub(r"--.*", "", re.sub(r"/\*.*?\*/", "", sql, flags=re.S))
     if FECHA_FIJA.search(sin_comentarios):
         raise PeticionInvalida("El T-SQL trae una fecha literal: usa un token (@@F@@, @@F_ISO@@, @@F_ANT@@…).")
@@ -90,7 +106,7 @@ def render_modulo(nombre: str, descripcion: str, frecuencia: str, servidor: str,
     return f'''"""{descripcion}
 
 Comando: python main.py {nombre} --fecha-corte AAAA-MM-DD
-Creado desde la web. T-SQL con tokens de fecha (@@F@@…); el ejecutor común valida tablas al corte, ejecuta,
+{MARCA_WEB}. T-SQL con tokens de fecha (@@F@@…); el ejecutor común valida tablas al corte, ejecuta,
 valida datos y exporta a data/outputs/. Tablas: ver tablas.USO["{nombre}"].
 """
 
@@ -181,6 +197,22 @@ def insertar_grupo(texto: str, id_: str, nombre: str, frecuencia: str) -> str:
     if ancla not in texto:
         raise PeticionInvalida("No pude ubicar _GRUPOS_EXTRA en dominio/reportes.py; regístralo a mano.")
     return texto.replace(ancla, ancla + f"    ({id_!r}, {nombre!r}, {frecuencia!r}),\n", 1)
+
+
+def quitar_reporte(texto: str, patron: str, donde: str) -> str:
+    """Quita de `texto` el bloque del reporte que casa con `patron` (el inverso de insertar_definicion/tablas/reglas)."""
+    nuevo, n = re.subn(patron, "", texto, count=1, flags=re.M | re.S)
+    if not n:
+        raise PeticionInvalida(f"No encontré el reporte en {donde}; quítalo a mano.")
+    return nuevo
+
+
+def patrones_de_reporte(nombre: str) -> tuple[str, str, str]:
+    """Bloques del reporte en (_DEFINICION de reportes.py, USO de tablas.py, REGLAS de reglas_fecha.py)."""
+    n = re.escape(repr(nombre))
+    return (rf"^    \({n}, .*?\),\n(?=    \(|\])",
+            rf"^    {n}: \(\n(?:        [^\n]*\n)*?    \),\n",
+            rf"^    {n}: \{{\n(?:        [^\n]*\n)*?    \}},\n")
 
 
 def quitar_grupo(texto: str, id_: str) -> str:

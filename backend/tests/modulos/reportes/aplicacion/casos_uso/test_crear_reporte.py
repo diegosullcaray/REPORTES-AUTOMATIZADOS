@@ -1,6 +1,8 @@
 """Crear un reporte desde la web escribe módulo, test y registro en un árbol aislado (nunca en el repo real)."""
 
 import shutil
+from pathlib import Path
+from types import SimpleNamespace
 from datetime import date
 
 import pytest
@@ -119,6 +121,41 @@ def test_la_frecuencia_se_elige_por_reporte_en_los_grupos_propios(raiz, dominio_
     assert "frecuencia='diaria'" in (raiz / "src/modulos/reportes/catalogo/grupos/mixto/r01_mi_reporte.py").read_text(encoding="utf-8")
 
 
+def test_la_base_sale_del_use_del_sql(raiz):
+    sin_base = {k: v for k, v in PEDIDO.items() if k != "base"}
+    crear_reporte.crear(PedidoReporteNuevo(**sin_base), raiz=raiz, en_vivo=False)
+    assert "base='storage'" in (raiz / "src/modulos/reportes/catalogo/mensuales/piero/r99_mi_reporte.py").read_text(encoding="utf-8")
+    with pytest.raises(PeticionInvalida, match="use <base>"):
+        crear_reporte.crear(PedidoReporteNuevo(**{**sin_base, "nombre": "otro", "sql": "select '@@F@@'"}), raiz=raiz, en_vivo=False)
+
+
+@pytest.fixture
+def sin_ejecuciones(monkeypatch):
+    """El historial real de data/outputs no interviene: por defecto, ningún reporte tiene ejecuciones."""
+    monkeypatch.setattr(crear_reporte, "puertos", lambda: SimpleNamespace(cola=SimpleNamespace(historial=lambda nombre: [])))
+
+
+def test_eliminar_reporte_deja_el_registro_como_estaba(raiz, dominio_aislado, sin_ejecuciones):
+    antes = {f: (raiz / "src/modulos/reportes/dominio" / f).read_bytes() for f in ("reportes.py", "tablas.py", "reglas_fecha.py")}
+    crear_reporte.crear(PedidoReporteNuevo(**PEDIDO), raiz=raiz)
+    crear_reporte.eliminar("mi-reporte", raiz=raiz)
+    assert "mi-reporte" not in dominio.REPORTES and not (raiz / "src/modulos/reportes/catalogo/mensuales/piero/r99_mi_reporte.py").exists()
+    assert not (raiz / "tests/modulos/reportes/catalogo/mensuales/piero/test_r99_mi_reporte.py").exists()
+    for f, b in antes.items():
+        assert (raiz / "src/modulos/reportes/dominio" / f).read_bytes().replace(b"    ('storage.zz.tabla_nueva', 'referencia', None, 'por_confirmar'),\n", b"") == b, f
+    dominio_tablas.TABLAS.pop("storage.zz.tabla_nueva", None)
+
+
+def test_no_se_eliminan_reportes_del_legado(raiz):
+    with pytest.raises(PeticionInvalida, match="legado"):
+        crear_reporte.eliminar("cartera-sin-asignar", raiz=crear_reporte.BACK)
+
+
+def test_sin_sql_se_crea_con_plantilla(raiz):
+    crear_reporte.crear(PedidoReporteNuevo(**{k: v for k, v in PEDIDO.items() if k not in ("base", "sql")}), raiz=raiz, en_vivo=False)
+    assert "pendiente" in (raiz / "src/modulos/reportes/catalogo/mensuales/piero/r99_mi_reporte.py").read_text(encoding="utf-8")
+
+
 def test_los_grupos_del_legado_no_admiten_otra_frecuencia(raiz):
     with pytest.raises(PeticionInvalida, match="solo admite"):
         crear_reporte.crear(PedidoReporteNuevo(**{**PEDIDO, "frecuencia": "diaria"}), raiz=raiz, en_vivo=False)
@@ -137,3 +174,44 @@ def test_grupo_con_etiquetas_y_borrado_las_suelta(raiz, dominio_aislado):
     assert puertos().etiquetas.leer().grupos == {}
     with pytest.raises(PeticionInvalida, match="desconocidas"):
         crear_reporte.crear_grupo(PedidoGrupo(nombre="Otro", etiquetas=["no-existe"]), raiz=raiz, en_vivo=False)
+
+
+def test_eliminar_con_ejecucion_en_curso_se_niega(raiz, dominio_aislado, monkeypatch):
+    monkeypatch.setattr(crear_reporte, "puertos", lambda: SimpleNamespace(cola=SimpleNamespace(historial=lambda n: [SimpleNamespace(estado="ejecutando")])))
+    crear_reporte.crear(PedidoReporteNuevo(**PEDIDO), raiz=raiz)
+    try:
+        with pytest.raises(PeticionInvalida, match="en curso"):
+            crear_reporte.eliminar("mi-reporte", raiz=raiz)
+        assert "mi-reporte" in dominio.REPORTES
+    finally:
+        monkeypatch.setattr(crear_reporte, "puertos", lambda: SimpleNamespace(cola=SimpleNamespace(historial=lambda n: [])))
+        crear_reporte.eliminar("mi-reporte", raiz=raiz)
+        dominio_tablas.TABLAS.pop("storage.zz.tabla_nueva", None)
+
+
+def test_si_falla_la_escritura_el_registro_vuelve_a_como_estaba(raiz, monkeypatch):
+    registro = {f: (raiz / "src/modulos/reportes/dominio" / f).read_bytes() for f in ("reportes.py", "tablas.py", "reglas_fecha.py")}
+    escribir, fallos = Path.write_text, []
+
+    def falla_una_vez(self, *a, **k):
+        if self.name == "reglas_fecha.py" and not fallos:
+            fallos.append(1)
+            raise OSError("disco lleno")
+        return escribir(self, *a, **k)
+
+    monkeypatch.setattr(Path, "write_text", falla_una_vez)
+    with pytest.raises(OSError):
+        crear_reporte.crear(PedidoReporteNuevo(**PEDIDO), raiz=raiz, en_vivo=False)
+    assert registro == {f: (raiz / "src/modulos/reportes/dominio" / f).read_bytes() for f in registro}
+    assert not (raiz / "src/modulos/reportes/catalogo/mensuales/piero/r99_mi_reporte.py").exists()
+
+
+def test_al_eliminar_el_ultimo_reporte_de_un_grupo_propio_no_queda_su_carpeta(raiz, dominio_aislado, sin_ejecuciones):
+    crear_reporte.crear_grupo(PedidoGrupo(nombre="Temporal"), raiz=raiz)
+    crear_reporte.crear(PedidoReporteNuevo(**{**PEDIDO, "grupo": "temporal", "orden": "01"}), raiz=raiz)
+    assert (raiz / "src/modulos/reportes/catalogo/grupos/temporal").is_dir()
+    crear_reporte.eliminar("mi-reporte", raiz=raiz)
+    dominio_tablas.TABLAS.pop("storage.zz.tabla_nueva", None)
+    for base in ("src", "tests"):
+        grupos = raiz / base / "modulos/reportes/catalogo/grupos"
+        assert not (grupos / "temporal").exists() and (grupos / "__init__.py").exists()

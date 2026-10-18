@@ -1,6 +1,7 @@
 "use client";
 
-import { Bell, Bot, Tag, ChevronRight, ChevronsUpDown, Database, FileSpreadsheet, Folder, FolderOpen, History, House, LogOut, Mail, Plug, ShieldCheck, SlidersHorizontal, UserRound } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { Bell, Bot, Tag, ChevronRight, ChevronsUpDown, Database, FileSpreadsheet, History, House, LogOut, Plug, ShieldCheck, SlidersHorizontal, UserRound } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -13,87 +14,22 @@ import {
   Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuAction,
   SidebarMenuBadge, SidebarMenuButton, SidebarMenuItem, SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem, SidebarRail, useSidebar,
 } from "@/components/ui/sidebar";
+import { ModoTema } from "@/components/modo-tema";
 import { useConsulta } from "@/hooks/use-consulta";
-import { useGrupos } from "@/hooks/use-grupos";
 import { api, irALogin } from "@/lib/api";
-import { agruparPorCarpeta, enCurso, iniciales, titulo } from "@/lib/formato";
-import type { ReporteResumen } from "@/lib/tipos";
+import { useAvatar } from "@/hooks/use-avatar";
+import { enCurso, iniciales } from "@/lib/formato";
+import { cn } from "@/lib/utils";
 
-// Sin precarga: el árbol muestra hasta 22 enlaces a la vez y precargarlos todos satura el servidor de Next.
-const enlace = (r: ReporteResumen) => <Link href={`/reportes/${r.nombre}`} title={r.descripcion} prefetch={false} />;
-const rutaDe = (r: ReporteResumen) => `/reportes/${r.nombre}`;
-
-function Hoja({ r, ruta, num }: { r: ReporteResumen; ruta: string; num?: string }) {
+/** Ítem plano del menú (como los de Home/Settings de Dokploy): fondo `bg-border` y ícono de marca cuando la ruta está activa. */
+function Item({ destino, texto, icono: Icono, activo, insignia }: { destino: string; texto: string; icono: LucideIcon; activo: boolean; insignia?: number }) {
   return (
-    <SidebarMenuSubItem>
-      <SidebarMenuSubButton isActive={ruta === rutaDe(r)} render={enlace(r)}>
-        <FileSpreadsheet className="size-3.5 shrink-0" />
-        <span className="w-7 shrink-0 text-[11px] text-sidebar-foreground/60 tabular-nums">{num ?? r.orden}</span>
-        <span className="min-w-0 flex-1 truncate">{titulo(r.nombre)}</span>
-        {r.escribe_en_bd && <Database aria-label="escribe en BD" className="size-3.5 shrink-0 text-[var(--mis-warning)]!" />}
-        {r.envia_correo && <Mail aria-label="envía correo" className="size-3.5 shrink-0" />}
-      </SidebarMenuSubButton>
-    </SidebarMenuSubItem>
-  );
-}
-
-/** Carpeta plegable dentro del árbol (`numerar`: numera 01, 02… por posición en vez de usar el número del legado): categoría (Diarios, Piero, Erick) o carpeta del legado con sub-reportes (09 → 09.1, 09.2). */
-function Carpeta({ etiqueta, orden, reportes, ruta, abierta, numerar }: { etiqueta: string; orden?: string; reportes: ReporteResumen[]; ruta: string; abierta?: boolean; numerar?: boolean }) {
-  const contieneActivo = reportes.some((r) => ruta === rutaDe(r));
-  const [elegido, setElegido] = useState<boolean | null>(null); // null = sigue a la ruta hasta que el usuario la pliegue o despliegue
-  const open = elegido ?? (!!abierta || contieneActivo);
-  const IconoCarpeta = open ? FolderOpen : Folder;
-  return (
-    <Collapsible open={open} onOpenChange={setElegido} className="group/carpeta" render={<SidebarMenuSubItem />}>
-      {/* SidebarMenuSubButton es un <a> por defecto; para plegar hace falta un <button> real (teclado y lectores de pantalla). */}
-      <CollapsibleTrigger render={<SidebarMenuSubButton className="w-full text-left" render={<button type="button" />} />} title={etiqueta}>
-        <IconoCarpeta className="size-3.5 shrink-0" />
-        {orden && <span className="w-7 shrink-0 text-[11px] text-sidebar-foreground/60 tabular-nums">{orden}</span>}
-        <span className="min-w-0 flex-1 truncate">{etiqueta}</span>
-        <ChevronRight className="size-3.5 shrink-0 transition-transform duration-150 group-data-[open]/carpeta:rotate-90" />
-      </CollapsibleTrigger>
-      <CollapsibleContent>
-        <SidebarMenuSub className="mr-0 pr-0">
-          {/* Una carpeta del legado (con `orden`) ya es un grupo: sus reportes van directo; agruparla de nuevo no termina nunca. */}
-          {orden ? reportes.map((r) => <Hoja key={r.nombre} r={r} ruta={ruta} />)
-            : numerar ? reportes.map((r, i) => <Hoja key={r.nombre} r={r} ruta={ruta} num={String(i + 1).padStart(2, "0")} />)
-            : agruparPorCarpeta(reportes).map((e) => e.tipo === "reporte"
-              ? <Hoja key={e.r.nombre} r={e.r} ruta={ruta} />
-              : <Carpeta key={e.orden} etiqueta={e.titulo} orden={e.orden} reportes={e.reportes} ruta={ruta} />)}
-        </SidebarMenuSub>
-      </CollapsibleContent>
-    </Collapsible>
-  );
-}
-
-/** «Reportes» como menú plegable del sidebar principal (como los ítems con sub-menú de Dokploy). */
-function MenuReportes({ ruta }: { ruta: string }) {
-  const { datos } = useConsulta("reportes", api.reportes);
-  const { datos: grupos } = useGrupos();
-  const de = (g: string) => datos?.filter((r) => r.grupo === g) ?? [];
-  const [elegido, setElegido] = useState<boolean | null>(null); // null = abierto mientras estés en Reportes
-  const open = elegido ?? ruta.startsWith("/reportes");
-  return (
-    <Collapsible open={open} onOpenChange={setElegido} className="group/reportes" render={<SidebarMenuItem />}>
-      <SidebarMenuButton isActive={ruta === "/reportes"} tooltip="Reportes" render={<Link href="/reportes" />}>
-        {open ? <FolderOpen /> : <Folder />}
-        <span>Reportes</span>
+    <SidebarMenuItem>
+      <SidebarMenuButton isActive={activo} tooltip={texto} className={cn(activo && "bg-border")} render={<Link href={destino} prefetch={false} />}>
+        <Icono className={cn(activo && "text-[var(--mis-primary-text)]")} /><span>{texto}</span>
       </SidebarMenuButton>
-      <CollapsibleTrigger render={<SidebarMenuAction aria-label="Mostrar u ocultar la lista de reportes" />}>
-        <ChevronRight className="transition-transform duration-150 group-data-[open]/reportes:rotate-90" />
-      </CollapsibleTrigger>
-      <CollapsibleContent>
-        {/* Las carpetas se montan con el catálogo ya cargado: así ven desde el inicio qué reporte está abierto. */}
-        {datos && (
-          <SidebarMenuSub>
-            <Carpeta etiqueta="Diarios" reportes={de("diarias")} ruta={ruta} abierta numerar />
-            <Carpeta etiqueta="Heredados de Piero" reportes={de("piero")} ruta={ruta} />
-            <Carpeta etiqueta="Heredados de Erick" reportes={de("erick")} ruta={ruta} />
-            {grupos?.filter((g) => g.propio).map((g) => <Carpeta key={g.id} etiqueta={g.nombre} reportes={de(g.id)} ruta={ruta} numerar />)}
-          </SidebarMenuSub>
-        )}
-      </CollapsibleContent>
-    </Collapsible>
+      {!!insignia && <SidebarMenuBadge>{insignia}</SidebarMenuBadge>}
+    </SidebarMenuItem>
   );
 }
 
@@ -140,11 +76,12 @@ function MenuUsuario({ enMarcha, apiCaida }: { enMarcha: number; apiCaida: boole
   const { isMobile } = useSidebar();
   const { datos: sesion } = useConsulta("sesion", api.sesion);
   const usuario = sesion?.usuario ?? "…";
+  const color = useAvatar();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger render={<SidebarMenuButton size="lg" className="data-popup-open:bg-sidebar-accent" />}>
         <Avatar>
-          <AvatarFallback className="bg-primary text-xs font-semibold text-primary-foreground">{iniciales(usuario)}</AvatarFallback>
+          <AvatarFallback style={color ? { background: color } : undefined} className="bg-primary text-xs font-semibold text-primary-foreground">{iniciales(usuario)}</AvatarFallback>
           <AvatarBadge aria-label={apiCaida ? "API sin conexión" : "API conectada"} className={`ring-sidebar ${apiCaida ? "bg-[var(--mis-danger)]" : "bg-[var(--mis-success)]"} ${!apiCaida && enMarcha > 0 ? "animate-pulse" : ""}`} />
         </Avatar>
         <span className="grid flex-1 text-left text-sm leading-tight">
@@ -154,12 +91,15 @@ function MenuUsuario({ enMarcha, apiCaida }: { enMarcha: number; apiCaida: boole
         <ChevronsUpDown className="ml-auto size-4" />
       </DropdownMenuTrigger>
       <DropdownMenuContent side={isMobile ? "bottom" : "right"} align="end" sideOffset={4} className="min-w-56 rounded-lg">
-        <DropdownMenuGroup>
-          <DropdownMenuLabel className="flex flex-col">
-            Mi cuenta
-            <span className="text-xs font-normal text-muted-foreground">{usuario}</span>
-          </DropdownMenuLabel>
-        </DropdownMenuGroup>
+        <div className="flex items-center justify-between px-2 py-1.5">
+          <DropdownMenuGroup>
+            <DropdownMenuLabel className="flex flex-col">
+              Mi cuenta
+              <span className="text-xs font-normal text-muted-foreground">{usuario}</span>
+            </DropdownMenuLabel>
+          </DropdownMenuGroup>
+          <ModoTema />
+        </div>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem onClick={() => router.push("/perfil")}><UserRound /> Perfil</DropdownMenuItem>
@@ -171,7 +111,7 @@ function MenuUsuario({ enMarcha, apiCaida }: { enMarcha: number; apiCaida: boole
   );
 }
 
-/** Sidebar principal (como el de Dokploy): flotante, retráctil a íconos, con el árbol de reportes y el menú de usuario al pie. */
+/** Sidebar principal (como el de Dokploy): flotante, retráctil a íconos, con ítems planos (Principal y Configuración) y el menú de usuario al pie. */
 export function AppSidebar() {
   const ruta = usePathname();
   const { datos, error } = useConsulta("sidebar/ejecuciones", () => api.ejecuciones(undefined, 20), () => true, 5000);
@@ -196,24 +136,17 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupLabel>Principal</SidebarGroupLabel>
           <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton isActive={ruta === "/"} tooltip="Inicio" render={<Link href="/" />}><House /><span>Inicio</span></SidebarMenuButton>
-            </SidebarMenuItem>
-            <MenuReportes ruta={ruta} />
+            <Item destino="/" texto="Inicio" icono={House} activo={ruta === "/"} />
+            <Item destino="/reportes" texto="Reportes" icono={FileSpreadsheet} activo={ruta.startsWith("/reportes")} />
             <MenuValidacion ruta={ruta} />
-            <SidebarMenuItem>
-              <SidebarMenuButton isActive={ruta.startsWith("/ejecuciones")} tooltip="Ejecuciones" render={<Link href="/ejecuciones" />}><History /><span>Ejecuciones</span></SidebarMenuButton>
-              {enMarcha > 0 && <SidebarMenuBadge>{enMarcha}</SidebarMenuBadge>}
-            </SidebarMenuItem>
+            <Item destino="/ejecuciones" texto="Ejecuciones" icono={History} activo={ruta.startsWith("/ejecuciones")} insignia={enMarcha} />
           </SidebarMenu>
         </SidebarGroup>
         <SidebarGroup>
           <SidebarGroupLabel>Configuración</SidebarGroupLabel>
-          <SidebarMenu>
-            {AJUSTES.map(({ ruta: destino, texto, icono: Icono }) => (
-              <SidebarMenuItem key={destino}>
-                <SidebarMenuButton isActive={ruta === destino || (destino !== "/configuracion" && ruta.startsWith(`${destino}/`))} tooltip={texto} render={<Link href={destino} />}><Icono /><span>{texto}</span></SidebarMenuButton>
-              </SidebarMenuItem>
+          <SidebarMenu className="gap-1">
+            {AJUSTES.map(({ ruta: destino, texto, icono }) => (
+              <Item key={destino} destino={destino} texto={texto} icono={icono} activo={ruta === destino || (destino !== "/configuracion" && ruta.startsWith(`${destino}/`))} />
             ))}
           </SidebarMenu>
         </SidebarGroup>

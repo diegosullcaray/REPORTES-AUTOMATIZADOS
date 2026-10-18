@@ -53,3 +53,13 @@ def test_cmg_mora_con_chat_exige_destinatario(monkeypatch):
     assert ejecuciones.argumentos(pedido) == ["cmg-mora", "--fecha-corte", "2026-10-07", "--chat"]
     with pytest.raises(PeticionInvalida, match="no envía"):
         ejecuciones.argumentos(PedidoEjecucion(reporte="saca-tu-garra", fecha_corte=date(2026, 6, 30), chat=True))
+
+
+def test_reporte_con_la_plantilla_sin_completar_no_se_ejecuta(monkeypatch):
+    from types import SimpleNamespace
+
+    from modulos.reportes.aplicacion.nuevo_reporte import PLANTILLA_SQL
+
+    monkeypatch.setattr(ejecuciones, "lote", lambda _: SimpleNamespace(sql=PLANTILLA_SQL, escribe_en_bd=False, entrega=None))
+    with pytest.raises(PeticionInvalida, match="Completa el T-SQL"):
+        ejecuciones.argumentos(PedidoEjecucion(reporte="saca-tu-garra", fecha_corte=date(2026, 6, 30)))

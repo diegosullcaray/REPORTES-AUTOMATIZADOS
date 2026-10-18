@@ -65,10 +65,10 @@ class PedidoReporteNuevo(BaseModel):
     nombre: str                   # comando: minúsculas y guiones
     grupo: str                    # id de un grupo existente (diarias, piero, erick o uno creado desde la web)
     orden: str                    # número del legado: "07" o "07.1"
-    base: str                     # base de datos del reporte; de ella sale el servidor
+    base: str | None = None       # None = la del `use <base>` del T-SQL; de ella sale el servidor
     descripcion: str
     frecuencia: Literal["diaria", "mensual"] | None = None   # None = la del grupo; los grupos del legado no admiten otra
-    sql: str                      # T-SQL con tokens de fecha
+    sql: str = ""                 # T-SQL con tokens de fecha; vacío = plantilla, se completa en la pestaña Script
 
 
 class ReporteCreado(BaseModel):

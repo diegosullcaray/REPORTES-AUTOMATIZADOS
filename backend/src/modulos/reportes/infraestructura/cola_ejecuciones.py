@@ -82,11 +82,28 @@ def eliminar(ids: list[str]) -> int:
     return len(xs)
 
 
+_cache: dict[Path, tuple[int, dto_reportes.Ejecucion]] = {}  # ruta -> (mtime del .json, ejecución ya leída)
+
+
+def _todas() -> list[dto_reportes.Ejecucion]:
+    """Cada consulta solo vuelve a leer los .json que cambiaron desde la anterior (el sidebar y las listas consultan cada pocos segundos)."""
+    global _cache
+    nuevo: dict[Path, tuple[int, dto_reportes.Ejecucion]] = {}
+    for p in DIR.glob("*.json"):
+        try:
+            t = p.stat().st_mtime_ns
+            previo = _cache.get(p)
+            nuevo[p] = previo if previo and previo[0] == t else (t, _leer(p.stem))
+        except (OSError, KeyError):
+            continue  # se borró mientras se listaba
+    _cache = nuevo
+    return [x for _, x in nuevo.values()]
+
+
 def historial(reporte: str | None = None, limite: int = 100) -> list[dto_reportes.Ejecucion]:
     if not DIR.is_dir():
         return []
-    # ponytail: lee todos los .json en cada consulta; pasar a SQLite si el historial crece a miles
-    todas = sorted((_leer(p.stem) for p in DIR.glob("*.json")), key=lambda x: x.inicio, reverse=True)
+    todas = sorted(_todas(), key=lambda x: x.inicio, reverse=True)
     return [x for x in todas if reporte in (None, x.reporte)][:limite]
 
 

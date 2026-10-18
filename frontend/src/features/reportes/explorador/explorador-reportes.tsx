@@ -11,6 +11,7 @@ import { useConsulta, type Consulta } from "@/hooks/use-consulta";
 import { api } from "@/lib/api";
 import { EtiquetaBadge } from "@/features/etiquetas/etiquetas";
 import { MenuGrupo } from "./menu-grupo";
+import { MenuReporte } from "./menu-reporte";
 import { ESTADO_EJECUCION, agruparPorCarpeta, enCurso, titulo } from "@/lib/formato";
 import type { Ejecucion, Grupo, GrupoReportes, ReporteResumen } from "@/lib/tipos";
 
@@ -38,7 +39,7 @@ export function ExploradorReportes({ reportes, grupos }: { reportes: Consulta<Re
     const x = ultima.get(r.nombre);
     const e = x && ESTADO_EJECUCION[x.estado];
     return (
-      <Tarjeta key={r.nombre} href={`/reportes/${r.nombre}`} icono={FileSpreadsheet} titulo={`${r.orden} · ${titulo(r.nombre)}`} descripcion={r.descripcion}
+      <Tarjeta key={r.nombre} href={`/reportes/${r.nombre}`} icono={FileSpreadsheet} titulo={`${r.orden} · ${titulo(r.nombre)}`} descripcion={r.descripcion} acciones={<MenuReporte nombre={r.nombre} />}
         estado={<Punto tono={e?.tono ?? "neutro"} etiqueta={e?.texto ?? "Sin ejecutar"} latido={!!x && enCurso(x.estado)} />}
         pie={<>
           <span className="flex items-center gap-1.5"><Server className="size-3" />{r.servidores.join(", ")}{r.escribe_en_bd && <Database aria-label="escribe en BD" className="size-3 text-[var(--mis-warning)]" />}{r.envia_correo && <Mail aria-label="envía correo" className="size-3" />}</span>

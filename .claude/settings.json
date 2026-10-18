@@ -1,0 +1,6 @@
+{
+  "enabledPlugins": {
+    "agent-router@agent-router-tools": true,
+    "keepalive@agent-router-tools": true
+  }
+}

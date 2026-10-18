@@ -158,7 +158,7 @@ def main() -> int:
             return 1
     procesos = {
         "api": lanzar("api", [python_del_backend(), "manage.py", "runserver", f"127.0.0.1:{args.puerto_api}", "--noreload"], BACKEND),
-        "web": lanzar("web", [npm, "run", "start" if args.prod else "dev", "--", "-p", str(args.puerto_web)], FRONTEND, {"REPORTES_API_URL": url_api}),
+        "web": lanzar("web", [npm, "run", "start" if args.prod else "dev", "--", "-p", str(args.puerto_web), "-H", "127.0.0.1"], FRONTEND, {"REPORTES_API_URL": url_api}),
     }
     try:
         if esperar(f"{url_api}/api/sesion", procesos["api"]) and esperar(f"{url_web}/login", procesos["web"]):

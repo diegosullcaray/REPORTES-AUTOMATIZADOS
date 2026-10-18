@@ -22,6 +22,10 @@ class Detalle(View):
     def get(self, request: HttpRequest, nombre: str) -> HttpResponse:
         return h.json(catalogo.detalle(nombre))
 
+    def delete(self, request: HttpRequest, nombre: str) -> HttpResponse:
+        crear_reporte.eliminar(nombre)
+        return h.json({"ok": True})
+
 
 class Script(View):
     def get(self, request: HttpRequest, nombre: str) -> HttpResponse:

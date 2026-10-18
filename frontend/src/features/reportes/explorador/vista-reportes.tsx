@@ -20,7 +20,7 @@ export function VistaReportes() {
   return (
     <Pagina>
       <Marco icono={<FileSpreadsheet />} titulo="Reportes" descripcion="Entra por grupo y carpeta hasta el reporte."
-        acciones={grupos.datos && (actual ? <NuevoReporte grupo={actual.id} nombreGrupo={actual.nombre} frecuenciaLibre={actual.propio} /> : !grupo && <NuevoGrupo />)}>
+        acciones={grupos.datos && (actual ? <NuevoReporte grupo={actual.id} nombreGrupo={actual.nombre} /> : !grupo && <NuevoGrupo />)}>
         <ExploradorReportes reportes={reportes} grupos={grupos} />
       </Marco>
     </Pagina>

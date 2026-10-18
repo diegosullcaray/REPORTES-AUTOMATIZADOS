@@ -90,3 +90,11 @@ def test_cuenta_rechaza_valores_invalidos(monkeypatch, tmp_path, cuerpo, fragmen
     r = c.put("/api/cuenta", json={"clave_actual": "buena-clave", **cuerpo})
     assert r.status_code == 422 and fragmento in r.json()["detail"]
     assert ruta.read_text(encoding="utf-8") == antes
+
+
+def test_cambiar_la_clave_invalida_las_cookies_emitidas_antes(monkeypatch):
+    monkeypatch.setenv("WEB_CLAVE", "clave-uno")
+    cookie = sesion.emitir("ana")
+    assert sesion.leer(cookie) == "ana"
+    monkeypatch.setenv("WEB_CLAVE", "clave-dos")
+    assert sesion.leer(cookie) is None

@@ -13,6 +13,7 @@ from modulos.notificaciones.dominio import entregas
 from modulos.reportes.aplicacion.casos_uso.archivos import carpeta_de
 from modulos.reportes.aplicacion.casos_uso.catalogo import ENVIAN_CHAT, lote, validar_corte
 from modulos.reportes.aplicacion import dto as dto_reportes
+from modulos.reportes.aplicacion import nuevo_reporte as nr
 from modulos.reportes.aplicacion.puertos import puertos
 
 # Reportes de Erick que reciben el mes (AAAA-MM) en lugar de la fecha de corte.
@@ -28,6 +29,8 @@ def argumentos(p: dto_reportes.PedidoEjecucion) -> list[str]:
     if p.chat and nombre not in ENVIAN_CHAT:
         raise PeticionInvalida(f"«{nombre}» no envía su archivo por Google Chat.")
     lt = lote(nombre)
+    if lt is not None and nr.MARCA_PLANTILLA in lt.sql.lower():
+        raise PeticionInvalida("Completa el T-SQL del reporte en la pestaña Script antes de ejecutarlo.")
     if lt is None:
         if p.forzar or p.confirmar_escritura or p.correo == "todos":
             raise PeticionInvalida(f"«{nombre}» tiene lógica propia: no admite forzar, confirmar escritura ni envío de correo.")

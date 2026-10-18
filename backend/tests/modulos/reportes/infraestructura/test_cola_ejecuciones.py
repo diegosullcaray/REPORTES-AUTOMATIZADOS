@@ -57,3 +57,23 @@ def test_eliminar_borra_estado_y_log_pero_no_las_en_curso(tmp_path, monkeypatch)
         ejecuciones.eliminar(["a1"])
     with pytest.raises(KeyError):
         ejecuciones.eliminar(["../../.env"])
+
+
+def test_historial_solo_vuelve_a_leer_lo_que_cambio(tmp_path, monkeypatch):
+    import os
+
+    from modulos.reportes.aplicacion.dto import Ejecucion
+
+    monkeypatch.setattr(ejecuciones, "DIR", tmp_path)
+    monkeypatch.setattr(ejecuciones, "_cache", {})
+    leidas, leer = [], ejecuciones._leer
+    monkeypatch.setattr(ejecuciones, "_leer", lambda id_: leidas.append(id_) or leer(id_))
+    for i in range(2):
+        ejecuciones._guardar(Ejecucion(id=f"e{i}", reporte="saca-tu-garra", argumentos=[], estado="ok", codigo=0, inicio=f"2026-10-0{i + 1}T10:00:00", fin=None))
+    ejecuciones.historial()
+    ejecuciones.historial()
+    assert leidas == ["e0", "e1"]  # la segunda consulta salió del caché
+    ruta = tmp_path / "e1.json"
+    os.utime(ruta, ns=(ruta.stat().st_atime_ns, ruta.stat().st_mtime_ns + 10**9))
+    ejecuciones.historial()
+    assert leidas == ["e0", "e1", "e1"]

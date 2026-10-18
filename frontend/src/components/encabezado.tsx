@@ -8,7 +8,6 @@ import {
 } from "@/components/ui/breadcrumb";
 import { FiltroCierre } from "@/components/fecha-cierre";
 import { Hora } from "@/components/hace";
-import { ModoTema } from "@/components/modo-tema";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useConsulta } from "@/hooks/use-consulta";
 import { api } from "@/lib/api";
@@ -71,7 +70,6 @@ export function Encabezado() {
       </Breadcrumb>
       <FiltroCierre />
       <Hora />
-      <ModoTema />
     </header>
   );
 }

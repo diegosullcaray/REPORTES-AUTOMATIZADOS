@@ -189,10 +189,10 @@ export interface PedidoReporteNuevo {
   nombre: string;
   grupo: Grupo;
   orden: string;
-  base: string;
+  base?: string;
   descripcion: string;
   frecuencia?: Frecuencia;
-  sql: string;
+  sql?: string;
 }
 
 export interface ReporteCreado {

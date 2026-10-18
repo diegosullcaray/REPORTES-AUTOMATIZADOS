@@ -78,6 +78,10 @@ export const api = {
     return pedir<ReporteCreado>("/reportes", enviar(p));
   },
   reporte: (nombre: string) => pedir<ReporteDetalle>(r(nombre)),
+  eliminarReporte: (nombre: string) => {
+    catalogo = null;
+    return pedir<{ ok: boolean }>(r(nombre), { method: "DELETE" });
+  },
   guardarChatReporte: (nombre: string, destinatarios: string) => pedir<ReporteDetalle>(`${r(nombre)}/chat`, { method: "PUT", body: JSON.stringify({ destinatarios }) }),
   guardarDestinosCorreo: (nombre: string, para: string, cc: string) => pedir<ReporteDetalle>(`${r(nombre)}/correo-destinos`, { method: "PUT", body: JSON.stringify({ para, cc }) }),
   enviarArchivosCorreo: (nombre: string, pedido: PedidoEnvioArchivos) => pedir<PruebaNotificacion>(`${r(nombre)}/correo/enviar`, enviar(pedido)),

@@ -5,6 +5,7 @@ Las validaciones lanzan `PeticionInvalida` (422) o `NoEncontrado` (404); la capa
 
 from __future__ import annotations
 
+import re
 from datetime import date
 from functools import lru_cache
 from importlib import import_module
@@ -23,6 +24,7 @@ from modulos.reportes.dominio.reportes import DIA_ANTERIOR_SIMPLE, REPORTES, Rep
 from modulos.reportes.dominio.tablas import tablas_de
 from modulos.reportes.dominio.verificacion import nombre_resuelto
 from modulos.reportes.aplicacion import dto as dto_reportes
+from modulos.reportes.aplicacion import nuevo_reporte as nr
 
 
 def reporte(nombre: str) -> Reporte:
@@ -106,6 +108,11 @@ def guardar_script(nombre: str, p: dto_reportes.PedidoScript) -> dto_reportes.Sc
     except SyntaxError as exc:
         raise PeticionInvalida(f"Error de sintaxis en la línea {exc.lineno}: {exc.msg}") from exc
     archivo = _archivo_script(nombre)
+    if nr.MARCA_WEB in p.codigo and nr.MARCA_WEB not in archivo.read_text(encoding="utf-8"):
+        raise PeticionInvalida(f"«{nr.MARCA_WEB}» solo la llevan los reportes creados así: no se puede agregar a otro.")
+    if nr.MARCA_WEB in p.codigo:  # los creados en la web son de solo lectura también al editar su Script
+        for sql in re.findall(r'SQL = r"""(.*?)"""', p.codigo, re.S):
+            nr.rechazar_escritura(sql)
     temporal = archivo.with_suffix(".py.tmp")
     temporal.write_text(p.codigo, encoding="utf-8", newline="")
     temporal.replace(archivo)  # atómico: nunca queda un módulo a medio escribir

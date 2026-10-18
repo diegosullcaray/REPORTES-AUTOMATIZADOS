@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { useConsulta } from "@/hooks/use-consulta";
 import { api, irALogin } from "@/lib/api";
 import { iniciales } from "@/lib/formato";
+import { COLORES_AVATAR, guardarAvatar, useAvatar } from "@/hooks/use-avatar";
 
 function Campo({ id, etiqueta, ayuda, children }: { id: string; etiqueta: string; ayuda?: string; children: ReactNode }) {
   return (
@@ -80,7 +81,26 @@ function FormularioCuenta({ usuario }: { usuario: string }) {
   );
 }
 
-/** Perfil (como la página «Profile» de Dokploy): tarjeta de la cuenta con su formulario y tarjeta de la sesión. */
+/** Selector de avatar (como el de «Account» en Dokploy): iniciales sobre el color elegido. */
+function SelectorAvatar({ usuario }: { usuario: string }) {
+  const color = useAvatar();
+  return (
+    <div className="flex flex-col gap-1.5">
+      <Label>Avatar</Label>
+      <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Color del avatar">
+        {COLORES_AVATAR.map((c) => (
+          <button key={c || "marca"} type="button" role="radio" aria-checked={color === c} aria-label={c ? `Color ${c}` : "Color de marca"} onClick={() => guardarAvatar(c)}
+            style={{ background: c || "var(--mis-primary)" }}
+            className={`flex size-12 items-center justify-center rounded-full text-sm font-semibold text-primary-foreground ${color === c ? "ring-2 ring-offset-2 ring-offset-background ring-[var(--mis-primary-text)]" : "hover:ring-2 hover:ring-border"}`}>
+            {iniciales(usuario)}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** Perfil (como «Account» de Dokploy): un solo marco con la cuenta (avatar, usuario, contraseña) y, en el encabezado, cerrar sesión. */
 export function PanelCuenta() {
   const sesion = useConsulta("sesion", api.sesion);
   const perfil = useConsulta("perfil", api.perfil);
@@ -89,20 +109,11 @@ export function PanelCuenta() {
 
   return (
     <Pagina>
-      <Marco icono={<UserRound />} titulo="Cuenta" descripcion="Cambia el usuario y la contraseña con que entras a la web. Se guardan en el .env de la API.">
-        <div className="flex items-center gap-4">
-          <span className="flex size-14 items-center justify-center rounded-xl bg-primary text-lg font-semibold text-primary-foreground">{iniciales(usuario ?? "…")}</span>
-          <div className="flex flex-col">
-            <span className="text-lg font-semibold">{usuario ?? "…"}</span>
-            <span className="text-sm text-muted-foreground">Sesión activa · el correo y los avisos se configuran en Configuración › Notificaciones</span>
-          </div>
-        </div>
-        {usuario && <FormularioCuenta key={usuario} usuario={usuario} />}
-      </Marco>
-
-      <Marco icono={<LogOut />} titulo="Sesión" descripcion={p ? `La API corre en ${p.equipo} como ${p.usuario}. La sesión dura 8 horas.` : "La sesión dura 8 horas."}
+      <Marco icono={<UserRound />} titulo="Cuenta"
+        descripcion={`Cambia los datos con que entras a la web; se guardan en el .env de la API.${p ? ` La API corre en ${p.equipo} como ${p.usuario}; la sesión dura 8 horas.` : ""}`}
         acciones={<Button variant="outline" size="sm" onClick={() => api.cerrarSesion().finally(irALogin)}><LogOut /> Cerrar sesión</Button>}>
-        <p className="text-sm text-muted-foreground">Al cerrar sesión tendrás que volver a escribir tu usuario y contraseña para entrar.</p>
+        {usuario && <SelectorAvatar usuario={usuario} />}
+        {usuario && <FormularioCuenta key={usuario} usuario={usuario} />}
       </Marco>
     </Pagina>
   );

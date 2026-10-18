@@ -54,7 +54,8 @@ def iniciar(usuario: str, clave: str) -> str | None:
 
 
 def _firma(carga: str) -> str:
-    return hmac.new(_secreto(), carga.encode(), hashlib.sha256).hexdigest()
+    # La clave entra en la firma: al cambiarla, las cookies emitidas antes dejan de valer.
+    return hmac.new(_secreto() + nucleo().entorno.leer("WEB_CLAVE").encode(), carga.encode(), hashlib.sha256).hexdigest()
 
 
 def emitir(usuario: str) -> str:
