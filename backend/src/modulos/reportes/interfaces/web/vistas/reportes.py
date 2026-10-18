@@ -7,7 +7,7 @@ from django.views import View
 
 from core import http as h
 from modulos.reportes.aplicacion import dto as dto_reportes
-from modulos.reportes.aplicacion.casos_uso import archivos, catalogo, correo_reporte, ejecuciones, verificacion
+from modulos.reportes.aplicacion.casos_uso import archivos, catalogo, correo_reporte, ejecuciones, secciones, verificacion
 
 
 class Catalogo(View):
@@ -66,3 +66,17 @@ class Envio(View):
 
     def get(self, request: HttpRequest, nombre: str) -> HttpResponse:
         return h.json(ejecuciones.estado_envio(nombre, h.fecha(request, "fecha_corte")))
+
+
+class Secciones(View):
+    def get(self, request: HttpRequest) -> HttpResponse:
+        return h.json(secciones.listar())
+
+    def post(self, request: HttpRequest) -> HttpResponse:
+        return h.json(secciones.crear(h.cuerpo(request, dto_reportes.PedidoSeccion)), status=201)
+
+
+class SeccionDetalle(View):
+    def delete(self, request: HttpRequest, id_: str) -> HttpResponse:
+        secciones.eliminar(id_)
+        return h.json({"ok": True})

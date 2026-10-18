@@ -32,6 +32,11 @@ class HistorialValidacion(Protocol):
     def listar(self, grupo: str, limite: int) -> list[dto.EntradaValidacion]: ...
 
 
+class AlmacenSecciones(Protocol):
+    def leer(self) -> list[dto.Seccion]: ...
+    def escribir(self, secciones: list[dto.Seccion]) -> None: ...
+
+
 class LectorArchivos(Protocol):
     def hojas_excel(self, ruta: Path, max_filas: int) -> list[dto.HojaPrevia]: ...
 
@@ -42,6 +47,7 @@ class Puertos:
     cola: ColaEjecuciones
     historial_validacion: HistorialValidacion
     lector_archivos: LectorArchivos
+    secciones: AlmacenSecciones
 
 
 puertos: Registro[Puertos] = Registro("reportes")

@@ -21,3 +21,11 @@ def _historial_de_validacion_aislado(tmp_path, monkeypatch):
     from modulos.reportes.infraestructura import historial_validacion
 
     monkeypatch.setattr(historial_validacion, "DIR", tmp_path / "validaciones")
+
+
+@pytest.fixture(autouse=True)
+def _secciones_aisladas(tmp_path, monkeypatch):
+    """Ninguna prueba escribe las secciones de /reportes en data/outputs."""
+    from modulos.reportes.infraestructura import secciones
+
+    monkeypatch.setattr(secciones, "RUTA", tmp_path / "secciones.json")

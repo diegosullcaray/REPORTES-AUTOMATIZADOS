@@ -210,3 +210,15 @@ class EstadoEnvio(BaseModel):
     prueba: str | None            # fecha-hora de la prueba enviada
     todos: str | None             # fecha-hora del envío a la lista
     excel: str | None
+
+
+class PedidoSeccion(BaseModel):
+    nombre: str
+    descripcion: str = ""
+    reportes: list[str] = []
+
+
+class Seccion(PedidoSeccion):
+    """Carpeta visual de /reportes definida por la persona: solo agrupa tarjetas, no cambia ningún reporte."""
+
+    id: str

@@ -6,8 +6,8 @@ import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { Aviso } from "@/components/estados";
 import { Button } from "@/components/ui/button";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { api } from "@/lib/api";
 
 /** Usuario y contraseña definidos en el .env de la API; ella los valida y deja la cookie de sesión. */
@@ -33,23 +33,31 @@ export function FormularioLogin() {
   };
 
   return (
-    <form onSubmit={entrar} className="flex flex-col gap-4">
-      {error && <Aviso tono="peligro">{error}</Aviso>}
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="usuario">Usuario</Label>
-        <Input id="usuario" name="usuario" autoComplete="username" required autoFocus />
-      </div>
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="clave">Contraseña</Label>
-        <div className="relative">
-          <Input id="clave" name="clave" type={visible ? "text" : "password"} autoComplete="current-password" className="pr-10" required />
-          <Button type="button" variant="ghost" size="icon-sm" className="absolute top-1/2 right-1 -translate-y-1/2"
-            aria-label={visible ? "Ocultar contraseña" : "Mostrar contraseña"} aria-pressed={visible} onClick={() => setVisible((v) => !v)}>
-            {visible ? <EyeOff /> : <Eye />}
-          </Button>
+    <form onSubmit={entrar}>
+      <FieldGroup>
+        <div className="flex flex-col items-center gap-2 text-center">
+          <h1 className="text-2xl font-bold">Iniciar sesión</h1>
+          <p className="text-balance text-muted-foreground">Entra con tu usuario y contraseña para gestionar los reportes.</p>
         </div>
-      </div>
-      <Button type="submit" className="w-full" disabled={enviando}><LogIn /> {enviando ? "Verificando…" : "Iniciar sesión"}</Button>
+        {error && <Aviso tono="peligro">{error}</Aviso>}
+        <Field>
+          <FieldLabel htmlFor="usuario">Usuario</FieldLabel>
+          <Input id="usuario" name="usuario" autoComplete="username" required autoFocus />
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="clave">Contraseña</FieldLabel>
+          <div className="relative">
+            <Input id="clave" name="clave" type={visible ? "text" : "password"} autoComplete="current-password" className="pr-10" required />
+            <Button type="button" variant="ghost" size="icon-sm" className="absolute top-1/2 right-1 -translate-y-1/2"
+              aria-label={visible ? "Ocultar contraseña" : "Mostrar contraseña"} aria-pressed={visible} onClick={() => setVisible((v) => !v)}>
+              {visible ? <EyeOff /> : <Eye />}
+            </Button>
+          </div>
+        </Field>
+        <Field>
+          <Button type="submit" disabled={enviando}><LogIn /> {enviando ? "Verificando…" : "Iniciar sesión"}</Button>
+        </Field>
+      </FieldGroup>
     </form>
   );
 }

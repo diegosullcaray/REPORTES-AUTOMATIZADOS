@@ -26,8 +26,6 @@ export const ESTADO_TABLA: Record<EstadoTabla, Tono> = {
   "SIN CONTROL": "neutro",
 };
 
-/** Categoría del sidebar y de las migas: Diarios / Mensuales. */
-export const CATEGORIA: Record<Frecuencia, string> = { diaria: "Diarios", mensual: "Mensuales" };
 export const TIPO: Record<Frecuencia, string> = { diaria: "Diario", mensual: "Mensual" };
 
 /** "diego.sullcaray" → "DS", "24681" → "24" (avatar del menú de usuario). */

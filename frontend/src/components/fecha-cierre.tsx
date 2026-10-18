@@ -3,8 +3,8 @@
 import { CalendarDays, RotateCcw } from "lucide-react";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SelectorFecha } from "@/components/selector-fecha";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useConsulta } from "@/hooks/use-consulta";
@@ -49,7 +49,7 @@ function Campo({ id, etiqueta, frecuencia, valor, defecto, origen, aMano, onCamb
     <div className="flex flex-col gap-1.5">
       <Label htmlFor={id}>{etiqueta}</Label>
       <div className="flex gap-2">
-        <Input id={id} type="date" value={mostrado} onChange={(ev) => onCambio(ev.target.value || null)} aria-invalid={!!error} />
+        <SelectorFecha id={id} valor={mostrado} onCambio={onCambio} soloFinDeMes={frecuencia === "mensual"} invalido={!!error} />
         <Button type="button" variant="ghost" size="icon" aria-label={`Volver al valor por defecto (${etiqueta})`} disabled={valor === null}
           onClick={() => onCambio(null)}><RotateCcw /></Button>
       </div>

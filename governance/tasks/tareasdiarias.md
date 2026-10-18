@@ -68,7 +68,7 @@ Adapta el código para usar el ecosistema shadcn/ui:
 ## Estado (2026-10-07)
 
 - [x] 1. Estética plana tipo Dokploy (Geist, `bg-background`/`bg-muted`, bordes finos, sin wallpaper ni vidrio). La paleta sigue saliendo de los tokens de MIS.
-- [x] 2.1 Sidebar primario retráctil (`components/app-sidebar.tsx`: Reportes · Ejecuciones · Configuración) y secundario retráctil solo en Reportes (`features/reportes/sidebar-reportes.tsx`: Diarios · Mensuales).
+- [x] 2.1 Sidebar primario retráctil (`components/app-sidebar.tsx`: Reportes · Ejecuciones · Configuración) y secundario retráctil solo en Reportes (`components/app-sidebar.tsx`: Diarios · Mensuales).
 - [x] 2.2 Encabezado con `SidebarTrigger` y migas dinámicas (`components/encabezado.tsx`).
 - [x] 3.1 Vista de reporte limpia: título + tipo, parámetros, «Ejecutar reporte» y log en vivo tipo terminal (`components/terminal.tsx`).
 - [x] 3.2 `app/conexiones` eliminado; `app/configuracion` › Bases de datos con «Test de conexión» por servidor y aviso (toast).

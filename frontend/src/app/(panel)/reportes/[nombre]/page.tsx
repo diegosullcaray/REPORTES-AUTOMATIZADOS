@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { DetalleReporte } from "@/features/reportes/detalle-reporte";
+import { DetalleReporte } from "@/features/reportes/detalle/detalle-reporte";
 
 export default async function PaginaReporte({ params }: PageProps<"/reportes/[nombre]">) {
   const { nombre } = await params;

@@ -1,6 +1,6 @@
 // Transporte: única puerta hacia la API de Python (proxy /api en next.config.ts). Sin estado ni presentación.
 import type {
-  Archivo, ConfiguracionGeneral, DestinosChat, EntradaValidacion, FirmaGmail, PedidoEnvioArchivos, Ejecucion, EjecucionDetalle, EstadoEnvio, PedidoEjecucion, Notificaciones, Perfil, PedidoConfiguracion, PedidoCuenta, PedidoNotificaciones, PruebaConexion, PruebaNotificacion, ReporteDetalle, ReporteResumen,
+  Archivo, ConfiguracionGeneral, DestinosChat, EntradaValidacion, FirmaGmail, PedidoEnvioArchivos, Ejecucion, EjecucionDetalle, EstadoEnvio, PedidoEjecucion, Notificaciones, Perfil, PedidoConfiguracion, PedidoCuenta, PedidoNotificaciones, PruebaConexion, PruebaNotificacion, ReporteDetalle, ReporteResumen, Seccion,
   GoogleMcp, PedidoGoogleMcp, PruebaMcp, Servidor, Sesion, Solicitud, Verificacion, VerificacionGrupo, VistaPrevia,
 } from "./tipos";
 
@@ -64,6 +64,9 @@ export const api = {
   sesion: () => pedir<Sesion>("/sesion"),
   actualizarCuenta: (cambios: PedidoCuenta) => pedir<Sesion>("/cuenta", { method: "PUT", body: JSON.stringify(cambios) }),
   cerrarSesion: () => fetch("/api/sesion", { method: "DELETE" }),
+  secciones: () => pedir<Seccion[]>("/secciones"),
+  crearSeccion: (s: Omit<Seccion, "id">) => pedir<Seccion>("/secciones", enviar(s)),
+  eliminarSeccion: (id: string) => pedir<{ ok: boolean }>(`/secciones/${encodeURIComponent(id)}`, { method: "DELETE" }),
   reportes: () => (catalogo ??= pedir<ReporteResumen[]>("/reportes").catch((e) => { catalogo = null; throw e; })),
   reporte: (nombre: string) => pedir<ReporteDetalle>(r(nombre)),
   guardarChatReporte: (nombre: string, destinatarios: string) => pedir<ReporteDetalle>(`${r(nombre)}/chat`, { method: "PUT", body: JSON.stringify({ destinatarios }) }),

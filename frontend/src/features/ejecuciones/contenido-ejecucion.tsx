@@ -7,7 +7,7 @@ import { Aviso, Chip, EsqueletoFilas, ErrorEnLinea } from "@/components/estados"
 import { Hace } from "@/components/hace";
 import { Terminal } from "@/components/terminal";
 import { Button } from "@/components/ui/button";
-import { DialogoVistaPrevia, type ArchivoAbierto } from "@/features/reportes/vista-previa";
+import { DialogoVistaPrevia, type ArchivoAbierto } from "@/features/reportes/detalle/vista-previa";
 import { useConsulta } from "@/hooks/use-consulta";
 import { api } from "@/lib/api";
 import { ESTADO_EJECUCION, corteDe, duracion, enCurso, fecha } from "@/lib/formato";

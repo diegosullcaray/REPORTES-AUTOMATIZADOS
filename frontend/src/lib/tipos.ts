@@ -20,6 +20,14 @@ export interface ReporteResumen {
   avisos: string[];
 }
 
+/** Carpeta visual de /reportes definida por la persona: solo agrupa tarjetas. */
+export interface Seccion {
+  id: string;
+  nombre: string;
+  descripcion: string;
+  reportes: string[];
+}
+
 export interface Corte {
   fecha: string | null;
   origen: string;

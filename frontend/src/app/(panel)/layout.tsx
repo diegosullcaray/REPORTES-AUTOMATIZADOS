@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Encabezado } from "@/components/encabezado";
 import { ProveedorCierre } from "@/components/fecha-cierre";
@@ -10,7 +11,7 @@ export default function PanelLayout({ children }: LayoutProps<"/">) {
       <SidebarProvider style={{ "--sidebar-width": "17.5rem" } as React.CSSProperties}>
         <AppSidebar />
         <SidebarInset className="min-w-0">
-          <Encabezado />
+          <Suspense><Encabezado /></Suspense>
           <main className="flex min-h-0 flex-1">{children}</main>
         </SidebarInset>
       </SidebarProvider>

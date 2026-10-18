@@ -6,6 +6,8 @@ from .vistas import ejecuciones, firma, reportes, validacion
 
 urlpatterns = [
     path("api/reportes", reportes.Catalogo.as_view()),
+    path("api/secciones", reportes.Secciones.as_view()),
+    path("api/secciones/<str:id_>", reportes.SeccionDetalle.as_view()),
     path("api/reportes/<str:nombre>", reportes.Detalle.as_view()),
     path("api/reportes/<str:nombre>/chat", reportes.Chat.as_view()),
     path("api/reportes/<str:nombre>/correo-destinos", reportes.CorreoDestinos.as_view()),

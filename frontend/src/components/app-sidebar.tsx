@@ -4,14 +4,14 @@ import { Bell, ChevronRight, ChevronsUpDown, Database, FileSpreadsheet, History,
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { Punto } from "@/components/estados";
+import { Avatar, AvatarBadge, AvatarFallback } from "@/components/ui/avatar";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
   Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuAction,
-  SidebarMenuBadge, SidebarMenuButton, SidebarMenuItem, SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem, SidebarRail,
+  SidebarMenuBadge, SidebarMenuButton, SidebarMenuItem, SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem, SidebarRail, useSidebar,
 } from "@/components/ui/sidebar";
 import { useConsulta } from "@/hooks/use-consulta";
 import { api, irALogin } from "@/lib/api";
@@ -127,24 +127,23 @@ const AJUSTES = [
 /** Menú de usuario en el pie (como el UserNav de Dokploy): perfil, configuración y estado de la API. */
 function MenuUsuario({ enMarcha, apiCaida }: { enMarcha: number; apiCaida: boolean }) {
   const router = useRouter();
+  const { isMobile } = useSidebar();
   const { datos: sesion } = useConsulta("sesion", api.sesion);
   const usuario = sesion?.usuario ?? "…";
   return (
     <DropdownMenu>
       <DropdownMenuTrigger render={<SidebarMenuButton size="lg" className="data-popup-open:bg-sidebar-accent" />}>
-        <span className="relative flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-xs font-semibold text-primary-foreground">
-          {iniciales(usuario)}
-          <span className="absolute -right-0.5 -bottom-0.5 rounded-full ring-2 ring-sidebar">
-            <Punto tono={apiCaida ? "peligro" : "exito"} etiqueta={apiCaida ? "API sin conexión" : "API conectada"} latido={!apiCaida && enMarcha > 0} />
-          </span>
-        </span>
+        <Avatar>
+          <AvatarFallback className="bg-primary text-xs font-semibold text-primary-foreground">{iniciales(usuario)}</AvatarFallback>
+          <AvatarBadge aria-label={apiCaida ? "API sin conexión" : "API conectada"} className={`ring-sidebar ${apiCaida ? "bg-[var(--mis-danger)]" : "bg-[var(--mis-success)]"} ${!apiCaida && enMarcha > 0 ? "animate-pulse" : ""}`} />
+        </Avatar>
         <span className="grid flex-1 text-left text-sm leading-tight">
           <span className="truncate font-semibold">{usuario}</span>
           <span className="truncate text-xs text-sidebar-foreground/60">{apiCaida ? "API sin conexión" : enMarcha ? `${enMarcha} en curso` : "API conectada"}</span>
         </span>
         <ChevronsUpDown className="ml-auto size-4" />
       </DropdownMenuTrigger>
-      <DropdownMenuContent side="top" align="start" className="w-64">
+      <DropdownMenuContent side={isMobile ? "bottom" : "right"} align="end" sideOffset={4} className="min-w-56 rounded-lg">
         <DropdownMenuGroup>
           <DropdownMenuLabel className="flex flex-col">
             Mi cuenta

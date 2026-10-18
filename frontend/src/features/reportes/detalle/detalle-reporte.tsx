@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Database, FileSpreadsheet, Mail, Server, UserRound } from "lucide-react";
+import { ArrowLeft, Database, FileSpreadsheet, Mail, Server } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { EsqueletoFilas, ErrorEnLinea, Punto } from "@/components/estados";
@@ -75,7 +75,6 @@ export function DetalleReporte({ nombre }: { nombre: string }) {
                 <div className="flex flex-wrap gap-2">
                   <Badge>{TIPO[r.frecuencia]}</Badge>
                   <Badge variant="outline" className="gap-1"><Server className="size-3" />{r.servidores.join(", ")}</Badge>
-                  {r.grupo !== "diarias" && <Badge variant="outline" className="gap-1"><UserRound className="size-3" />{r.grupo === "piero" ? "Piero" : "Erick"} · {r.orden}</Badge>}
                 </div>
               )}
               <span className="text-xs text-muted-foreground">
