@@ -215,3 +215,11 @@ def test_al_eliminar_el_ultimo_reporte_de_un_grupo_propio_no_queda_su_carpeta(ra
     for base in ("src", "tests"):
         grupos = raiz / base / "modulos/reportes/catalogo/grupos"
         assert not (grupos / "temporal").exists() and (grupos / "__init__.py").exists()
+
+
+def test_eliminar_limpia_el_registro_aunque_el_modulo_ya_no_este(raiz, dominio_aislado, sin_ejecuciones):
+    crear_reporte.crear(PedidoReporteNuevo(**PEDIDO), raiz=raiz)
+    (raiz / "src/modulos/reportes/catalogo/mensuales/piero/r99_mi_reporte.py").unlink()
+    crear_reporte.eliminar("mi-reporte", raiz=raiz)
+    dominio_tablas.TABLAS.pop("storage.zz.tabla_nueva", None)
+    assert "mi-reporte" not in dominio.REPORTES and "mi-reporte" not in (raiz / "src/modulos/reportes/dominio/reportes.py").read_text(encoding="utf-8")

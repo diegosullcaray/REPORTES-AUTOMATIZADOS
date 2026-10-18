@@ -1,6 +1,6 @@
 # Catálogo de datos
 
-Qué origen consume cada reporte. **El detalle tabla por tabla (con columna de fecha y reportes que la usan) está en el [inventario de tablas](./tables-inventory.md)**, generado desde `src/dominio/tablas.py`. La lista de reportes y SQL se **genera** en el [inventario](../architecture/module-inventory.md); aquí vive el significado.
+Qué origen consume cada reporte. **El detalle tabla por tabla (con columna de fecha y reportes que la usan) está en el [inventario de tablas](./tables-inventory.md)**, generado desde `backend/src/modulos/reportes/dominio/tablas.py`. La lista de reportes y SQL se **genera** en el [inventario](../architecture/module-inventory.md); aquí vive el significado.
 
 | Reporte | Servidor / base | Tablas / orígenes principales | Corte |
 |---|---|---|---|

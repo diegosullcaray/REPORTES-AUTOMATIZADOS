@@ -49,7 +49,7 @@ def leer() -> dto_integraciones.GoogleMcp:
     oauth = {"clientId": _env("GOOGLE_OAUTH_CLIENT_ID") or "<client-id>", "clientSecret": SECRETO}
     servidores: dict = {f"gws-{s}": {"serverUrl": _g().SERVICIOS[s].url, "oauth": oauth} for s in activos}
     if herramientas_envio.herramientas():
-        servidores["google-envio"] = {"command": "python", "args": [str(nucleo().entorno.raiz() / "src" / "interfaces" / "mcp" / "servidor.py")]}
+        servidores["google-envio"] = {"command": sys.executable, "args": [str(nucleo().entorno.raiz() / "src" / "modulos" / "integraciones" / "interfaces" / "mcp" / "servidor.py")]}
     return dto_integraciones.GoogleMcp(
         client_id=_env("GOOGLE_OAUTH_CLIENT_ID"), secreto_configurado=bool(_env("GOOGLE_OAUTH_CLIENT_SECRET")),
         redirect_uri=_env("GOOGLE_OAUTH_REDIRECT_URI"), cuenta=_env("USER_GOOGLE_EMAIL"), autorizado=autorizado,

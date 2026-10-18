@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 
 from core.excepciones import ErrorIntegracion
+from core.puertos import nucleo
 from modulos.integraciones.aplicacion.puertos import puertos
 
 MAX_TEXTO = 4000
@@ -45,14 +46,31 @@ def _texto(valor: object, campo: str) -> str:
     return valor
 
 
+def _destino_permitido(destino: str) -> None:
+    """Un cliente MCP (p. ej. un agente de IA) solo escribe dentro de la organización de la cuenta autorizada o a CORREO_PRUEBA;
+    el envío a la lista pasa por prueba → conforme en la web."""
+    if destino.startswith("spaces/"):
+        return
+    entorno = nucleo().entorno
+    dominio = entorno.leer("USER_GOOGLE_EMAIL").strip().lower().rpartition("@")[2]
+    prueba = entorno.leer("CORREO_PRUEBA").strip().lower()
+    for c in (x.strip().lower() for x in destino.split(",")):
+        if c != prueba and not (dominio and c.rpartition("@")[2] == dominio):
+            raise ErrorIntegracion(f"«{c}» no es de tu organización{f' (@{dominio})' if dominio else ''} ni el correo de prueba: este servidor MCP no envía fuera.")
+
+
 def ejecutar(nombre: str, a: dict) -> str:
     google = puertos().google
     token = google.token_de_acceso()
     if nombre == "enviar_correo":
-        google.enviar_correo(token, _texto(a.get("para"), "para"), _texto(a.get("asunto"), "asunto"), _texto(a.get("cuerpo"), "cuerpo"))
+        para, asunto, cuerpo = _texto(a.get("para"), "para"), _texto(a.get("asunto"), "asunto"), _texto(a.get("cuerpo"), "cuerpo")
+        _destino_permitido(para)
+        google.enviar_correo(token, para, asunto, cuerpo)
         return f"Correo enviado a {a['para']}."
     if nombre == "enviar_mensaje_chat":
-        google.enviar_chat(token, _texto(a.get("para"), "para"), _texto(a.get("texto"), "texto"))
+        para, texto = _texto(a.get("para"), "para"), _texto(a.get("texto"), "texto")
+        _destino_permitido(para)
+        google.enviar_chat(token, para, texto)
         return f"Mensaje de Google Chat enviado a {a['para']}."
     if nombre == "listar_espacios_chat":
         return json.dumps(google.espacios_chat(token), ensure_ascii=False)

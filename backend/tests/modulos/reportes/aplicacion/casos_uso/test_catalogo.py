@@ -41,3 +41,13 @@ def test_script_de_reporte_web_no_puede_escribir_en_la_base(tmp_path, monkeypatc
     monkeypatch.setattr(catalogo, "_archivo_script", lambda _: archivo)
     with pytest.raises(PeticionInvalida, match="solo lee"):
         catalogo.guardar_script("saca-tu-garra", PedidoScript(codigo='"""Creado desde la web."""\nSQL = r"""\ndelete from dbo.t\n"""\n'))
+
+
+def test_olvidar_descarta_la_copia_del_modulo_en_memoria():
+    import sys
+
+    catalogo.lote("saca-tu-garra")
+    modulo = catalogo.reporte("saca-tu-garra").modulo
+    assert modulo in sys.modules and catalogo.lote.cache_info().currsize
+    catalogo.olvidar("saca-tu-garra")  # tras editar o borrar el Script, la próxima consulta lo vuelve a importar
+    assert modulo not in sys.modules and catalogo.lote.cache_info().currsize == 0

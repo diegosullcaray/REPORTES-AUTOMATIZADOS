@@ -1,6 +1,8 @@
 """API del MCP de Google Workspace: guardar en el .env sin devolver secretos, autorizar con código y probar cada servicio."""
 
 import os
+import sys
+from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 import pytest
@@ -38,6 +40,8 @@ def test_guardar_no_devuelve_secretos_y_arma_el_json(env):
     assert [s["id"] for s in c["servicios"] if s["activo"]] == ["drive", "chat"]
     srv = c["configuracion"]["mcpServers"]
     assert list(srv) == ["gws-drive", "gws-chat", "google-envio"]
+    envio = srv["google-envio"]  # el cliente MCP lo lanza tal cual: el Python del entorno y un archivo que existe
+    assert envio["command"] == sys.executable and Path(envio["args"][0]).is_file()
     assert srv["gws-chat"] == {"serverUrl": "https://chatmcp.googleapis.com/mcp/v1", "oauth": {"clientId": ID, "clientSecret": mcp.SECRETO}}
     texto = env.read_text(encoding="utf-8")
     assert "GOOGLE_OAUTH_CLIENT_SECRET=GOCSPX-xyz" in texto and "GOOGLE_MCP_SERVICIOS=drive,chat" in texto and "RCC_PASSWORD=secreto" in texto

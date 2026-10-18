@@ -2,7 +2,7 @@
 
 El `.env` define **3 conexiones = 3 servidores**. La **base de datos no se fija en el `.env`: la elige cada reporte**, porque en un mismo servidor viven varias bases y cada reporte usa las suyas (por `base=`, por su propio `USE` o por nombres de 3 partes).
 
-Se definen en `src/infraestructura/configuracion.py` (`SERVIDORES`); el único código autorizado a abrirlas es `src/infraestructura/bd.py` (regla `conexion-solo-en-db`).
+Se definen en `backend/src/core/configuracion.py` (`SERVIDORES`); el único código autorizado a abrirlas es `backend/src/core/bd.py` (regla `conexion-solo-en-db`).
 
 | Conexión | Servidor | Autenticación | Variables `.env` | Bases que usan los reportes |
 |---|---|---|---|---|

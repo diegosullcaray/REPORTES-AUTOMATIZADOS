@@ -110,10 +110,15 @@ class EntregaCorreoResumen:
             if not excel.exists() or not imagen.exists():
                 print("✗ Faltan el Excel o la imagen de la prueba aprobada; vuelve a ejecutar la prueba.")
                 return SALIDA_CONFIG
-            destinatarios = self._enviar(cortes, excel, imagen, prueba=False)
             ahora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             estado["todos"] = ahora
-            self._guardar_estado(cortes, estado)
+            self._guardar_estado(cortes, estado)  # antes de enviar: si luego no se pudiera guardar, repetir el comando no reenviaría a la lista
+            try:
+                destinatarios = self._enviar(cortes, excel, imagen, prueba=False)
+            except Exception:
+                estado["todos"] = None  # no salió ningún correo: se puede reintentar
+                self._guardar_estado(cortes, estado)
+                raise
             print(f"✓ Correo enviado a {len(destinatarios)} destinatarios con la cuenta MIS: {excel.name}")
             self._avisar_chat(cortes, excel, destinatarios, ahora)
             return SALIDA_OK

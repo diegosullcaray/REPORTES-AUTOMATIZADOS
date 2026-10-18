@@ -14,6 +14,7 @@ from modulos.integraciones.interfaces.mcp import servidor
 @pytest.fixture
 def env(monkeypatch):
     monkeypatch.setenv("GOOGLE_MCP_SERVICIOS", "gmail,chat,drive")
+    monkeypatch.setenv("USER_GOOGLE_EMAIL", "yo@x.pe")
     monkeypatch.setattr(g, "token_de_acceso", lambda: "tok")
 
 

@@ -6,6 +6,7 @@ Las validaciones lanzan `PeticionInvalida` (422) o `NoEncontrado` (404); la capa
 from __future__ import annotations
 
 import re
+import sys
 from datetime import date
 from functools import lru_cache
 from importlib import import_module
@@ -38,6 +39,12 @@ def lote(nombre: str) -> ReporteLote | None:
     """El `ReporteLote` del módulo, o None si el reporte tiene lógica propia (cmg-mora, bancarizados…)."""
     valor = getattr(import_module(reporte(nombre).modulo), "REPORTE", None)
     return valor if isinstance(valor, ReporteLote) else None
+
+
+def olvidar(nombre: str) -> None:
+    """El código del módulo cambió o se borró: la próxima consulta lo vuelve a importar en vez de usar la copia en memoria."""
+    lote.cache_clear()
+    sys.modules.pop(reporte(nombre).modulo, None)
 
 
 # Reportes con lógica propia (sin ReporteLote): lo que la pantalla debe advertir antes de ejecutar.
@@ -116,6 +123,7 @@ def guardar_script(nombre: str, p: dto_reportes.PedidoScript) -> dto_reportes.Sc
     temporal = archivo.with_suffix(".py.tmp")
     temporal.write_text(p.codigo, encoding="utf-8", newline="")
     temporal.replace(archivo)  # atómico: nunca queda un módulo a medio escribir
+    olvidar(nombre)
     return script(nombre)
 
 

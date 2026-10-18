@@ -145,3 +145,24 @@ def test_el_codigo_no_trae_secretos():
     texto = "\n".join(p.read_text(encoding="utf-8") for p in (Path(__file__).resolve().parents[5] / "src").rglob("*.py"))
     # La base de la API de Chat (infraestructura/google) es pública; lo que no debe aparecer es un webhook (…/v1/spaces/<id>/messages?key=…).
     assert "smtp.gmail.com" in texto and "chat.googleapis.com/v1/spaces/" not in texto and "AIzaSy" not in texto
+
+
+def test_si_el_envio_a_todos_falla_no_queda_marcado_como_enviado(entorno, monkeypatch):
+    assert ejecutor.correr(REPORTE, FECHA) == 0
+    FakeSMTP.enviados.clear()
+
+    def falla(self, usuario, clave):
+        raise smtplib.SMTPAuthenticationError(535, b"bad credentials")
+
+    monkeypatch.setattr(FakeSMTP, "login", falla)
+    assert ejecutor.correr(REPORTE, FECHA + ["--correo", "todos", "--conforme"]) == ejecutor.SALIDA_ERROR
+    monkeypatch.setattr(FakeSMTP, "login", lambda self, usuario, clave: None)
+    assert ejecutor.correr(REPORTE, FECHA + ["--correo", "todos", "--conforme"]) == 0  # sin --reenviar: el fallo no cuenta como envío
+    assert len(FakeSMTP.enviados) == 1
+
+
+def test_avisa_de_las_tablas_cuya_fecha_nadie_controla(entorno, monkeypatch, capsys):
+    t = Tabla("storage.zz.tabla_nueva", "referencia", None, "por_confirmar")
+    monkeypatch.setattr(ejecutor, "verificar_reporte", lambda c, f: [Resultado(t, Estado.SIN_CONTROL)])
+    assert ejecutor.correr(REPORTE, FECHA + ["--correo", "no"]) == ejecutor.SALIDA_OK
+    assert "AVISO: sin control de fecha" in capsys.readouterr().out

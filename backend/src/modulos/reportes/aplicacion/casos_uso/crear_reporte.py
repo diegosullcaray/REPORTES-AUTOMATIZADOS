@@ -12,7 +12,7 @@ from core.excepciones import ConfiguracionError, NoEncontrado, PeticionInvalida
 from core.servidores import servidor_de_base
 from modulos.reportes.aplicacion import dto as dto_reportes
 from modulos.reportes.aplicacion import nuevo_reporte as nr
-from modulos.reportes.aplicacion.casos_uso import etiquetas
+from modulos.reportes.aplicacion.casos_uso import catalogo, etiquetas
 from modulos.reportes.aplicacion.puertos import puertos
 from modulos.reportes.dominio import reglas_fecha, reportes as dominio, tablas as dominio_tablas
 
@@ -119,7 +119,7 @@ def eliminar(nombre: str, raiz: Path = BACK, en_vivo: bool = True) -> None:
         raise NoEncontrado(f"No existe el reporte «{nombre}».")
     ruta_mod = r.modulo.replace(".", "/") + ".py"
     destino = raiz / "src" / ruta_mod
-    if nr.MARCA_WEB not in destino.read_text(encoding="utf-8"):
+    if destino.exists() and nr.MARCA_WEB not in destino.read_text(encoding="utf-8"):
         raise PeticionInvalida("Solo se eliminan reportes creados desde la web; los del legado no.")
     if any(x.estado in {"en_cola", "ejecutando"} for x in puertos().cola.historial(nombre)):
         raise PeticionInvalida("El reporte tiene una ejecución en curso: espera a que termine para eliminarlo.")
@@ -130,7 +130,7 @@ def eliminar(nombre: str, raiz: Path = BACK, en_vivo: bool = True) -> None:
     try:
         for f, t in nuevos.items():
             f.write_text(t, encoding="utf-8", newline="")
-        destino.unlink()
+        destino.unlink(missing_ok=True)
         prueba.unlink(missing_ok=True)
     except OSError:
         for f, t in originales.items():
@@ -138,6 +138,7 @@ def eliminar(nombre: str, raiz: Path = BACK, en_vivo: bool = True) -> None:
         raise
     _limpiar_grupo(destino.parent, raiz / "src/modulos/reportes/catalogo/grupos")
     _limpiar_grupo(prueba.parent, raiz / "tests/modulos/reportes/catalogo/grupos")
+    catalogo.olvidar(nombre)
     if en_vivo:
         dominio.REPORTES.pop(nombre, None)
         dominio_tablas.USO.pop(nombre, None)

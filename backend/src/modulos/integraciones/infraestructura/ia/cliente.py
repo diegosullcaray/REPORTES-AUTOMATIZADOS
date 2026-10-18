@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import json
 import urllib.error
-import urllib.parse
 import urllib.request
 
 from core.excepciones import ErrorIntegracion
@@ -48,7 +47,8 @@ def modelos(api_url: str, api_key: str) -> list[str]:
         cabeceras |= {"x-api-key": api_key, "anthropic-version": "2023-06-01"}
         url = f"{base}/models"
     elif proveedor == "gemini":
-        url = f"{base}/models?key={urllib.parse.quote(api_key)}"
+        cabeceras["x-goog-api-key"] = api_key  # en la cabecera, no en la URL: así no queda en registros del proxy
+        url = f"{base}/models"
     elif proveedor == "ollama":
         url = f"{base}/api/tags"
         if api_key:

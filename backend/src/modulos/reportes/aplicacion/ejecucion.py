@@ -174,6 +174,8 @@ def correr(r: ReporteLote, argv: list[str] | None = None) -> int:
             print(f"▶ Verificando tablas de «{r.comando}» al corte {cortes.corte:%Y-%m-%d}…")
             verificacion = verificar_reporte(r.comando, cortes.corte)
             _imprimir_verificacion(r, cortes, verificacion)
+            if sin_fecha := [x.tabla.nombre for x in verificacion if x.estado is Estado.SIN_CONTROL and x.tabla.confianza == "por_confirmar"]:
+                print(f"AVISO: sin control de fecha (columna por confirmar en tablas.py): {', '.join(sin_fecha)}. Nadie comprobó que estén al corte.")
             controlables = [x for x in verificacion if x.estado is not Estado.SIN_CONTROL]
             if controlables and all(x.estado is Estado.ERROR for x in controlables):
                 raise ConfiguracionError(
