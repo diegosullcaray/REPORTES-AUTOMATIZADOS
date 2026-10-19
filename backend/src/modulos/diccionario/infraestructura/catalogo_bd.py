@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 import time
 
 from core import bd
@@ -22,7 +23,7 @@ def reporte_de_fila(codigo: object, descripcion: object, rtprep: object) -> dict
     """
     try:
         sp = json.loads(str(rtprep))
-        procedimiento = str(sp.get("name") or "").strip()
+        procedimiento = re.sub(r'[\[\]"]', "", str(sp.get("name") or "")).strip()   # [mod_rep].[com].[SP] -> mod_rep.com.SP: la base no se llama «[mod_rep]»
         parametros = [str(p["name"]) for p in sorted(sp.get("params") or [], key=lambda p: p.get("order", 0))]
     except (ValueError, TypeError, KeyError, AttributeError):
         procedimiento, parametros = "", []

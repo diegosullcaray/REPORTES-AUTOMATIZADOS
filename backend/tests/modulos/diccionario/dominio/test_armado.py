@@ -98,3 +98,8 @@ def test_un_objeto_sin_tipo_no_se_acusa_de_faltar():
     assert d["tablas"][0]["existe"] is None
     assert [(h["regla"], h["nivel"]) for h in d["hallazgos"]] == [("objeto-no-resuelto", "aviso")]
 
+
+def test_una_base_con_distinta_mayuscula_es_la_misma():
+    dep = [_dep("SP1", ref_base="STORAGE", ref_esquema="x", ref_entidad="T1", ref_objeto_tipo="USER_TABLE"), _dep("SP1", ref_base="storage", ref_esquema="x", ref_entidad="T2", ref_objeto_tipo="USER_TABLE")]
+    assert tablas_referidas(dep) == {"storage": {("x", "T1"), ("x", "T2")}}
+

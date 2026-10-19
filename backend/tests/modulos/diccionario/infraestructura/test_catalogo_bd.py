@@ -78,3 +78,8 @@ def test_si_la_mayoria_no_trae_procedimiento_es_un_error_no_un_catalogo_vacio(mo
     monkeypatch.setattr(catalogo_bd.bd, "leer_sql", lambda *a, **k: df)
     with pytest.raises(ValueError, match="¿cambió el formato"):
         catalogo_bd.leer()
+
+
+def test_los_nombres_con_corchetes_se_leen_sin_ellos():
+    r = reporte_de_fila("R1", "x", '{"name":"[mod_rep].[com].[SP_X]","params":[]}')
+    assert r["procedimiento"] == "mod_rep.com.SP_X"

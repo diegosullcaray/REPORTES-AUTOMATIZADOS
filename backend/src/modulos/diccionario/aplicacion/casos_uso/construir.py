@@ -35,7 +35,7 @@ def construir(emitir: Callable[[str], None]) -> int:
     for r in reportes:
         partes = r["procedimiento"].split(".")
         if len(partes) == 3 and all(partes):
-            sps[partes[0]].add((partes[1], partes[2]))
+            sps[partes[0].lower()].add((partes[1], partes[2]))
     emitir(f"✓ {len(reportes)} reportes · {sum(len(v) for v in sps.values())} procedimientos en {len(sps)} bases\n")
 
     dependencias: list[dict] = []

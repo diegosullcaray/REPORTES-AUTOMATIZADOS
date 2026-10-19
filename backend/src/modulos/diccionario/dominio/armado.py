@@ -41,7 +41,7 @@ def tablas_referidas(dependencias: list[dict]) -> dict[str, set[tuple[str, str]]
     for f in dependencias:
         r = _referencia(f, f["sp_base"])
         if r and r[4] != "SQL_STORED_PROCEDURE" and "FUNCTION" not in r[4]:
-            por_base[r[1]].add((r[2], r[3]))
+            por_base[r[1].lower()].add((r[2], r[3]))   # STORAGE y storage son la misma base
     return dict(por_base)
 
 
