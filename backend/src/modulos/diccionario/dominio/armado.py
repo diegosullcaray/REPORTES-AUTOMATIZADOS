@@ -93,6 +93,59 @@ def _confianza(fuentes: set[str]) -> str:
     return "inferida"
 
 
+def _revisar_a(a: dict, nombre: str, esquema: str, codigos: list[str], params_de: dict[str, list[str]], hallazgo) -> None:
+    """Lo que el análisis del código dice del SP: esquema, firma contra lo que envía el catálogo, SQL dinámico y resultados."""
+    decl = a["procedimiento"] or {}
+    if decl.get("esquema") and decl["esquema"].lower() != esquema.lower():
+        hallazgo("esquema-distinto", nombre, f"el CREATE declara el esquema {decl['esquema']}")
+    firma = decl.get("parametros") or []
+    for codigo in sorted(codigos) if a["procedimiento"] else []:   # sin CREATE no se conoce la firma
+        enviados = params_de.get(codigo, [])
+        if len(enviados) > len(firma):
+            hallazgo("parametros-de-mas", codigo, f"el catálogo envía {len(enviados)} y {nombre} declara {len(firma)}")
+            continue
+        obligatorios = sum(1 for p in firma if p["porDefecto"] is None and not p["salida"])
+        if len(enviados) < obligatorios:
+            hallazgo("parametros-faltantes", codigo, f"el catálogo envía {len(enviados)} y {nombre} exige {obligatorios} sin valor por defecto")
+        for i, p in enumerate(enviados):
+            if i < len(firma) and _norm(firma[i]["nombre"]) != _norm(p):
+                hallazgo("parametro-nombre-distinto", codigo, f"posición {i + 1}: `{p}` en el catálogo, `{firma[i]['nombre']}` en el SP")
+    if a["sql_dinamico"]:
+        hallazgo("sql-dinamico", nombre, "revisar a mano las tablas del texto dinámico")
+    for adv in a["advertencias"]:
+        hallazgo("analisis-aproximado", nombre, adv)
+    if len(a["resultados"]) > 1:
+        hallazgo("varios-resultados", nombre, f"devuelve {len(a['resultados'])} conjuntos de resultados")
+
+
+def _tablas_finales(usos_tabla: dict, cols_reales: dict, tipo_objeto: dict, bases_con_estructura: set[str], hallazgo) -> list[dict]:
+    """Cada tabla usada contra la estructura real de su base: existencia, tipos y columnas que no están."""
+    # Tabla de trabajo: algún SP la crea o la borra en cada ejecución, así que no se exige que exista.
+    trabajo = {(k[0], k[2]) for k, g in usos_tabla.items() if g["usos"] & {"crea", "elimina-objeto"}}
+
+    tablas_out: list[dict] = []
+    for k, g in sorted(usos_tabla.items()):
+        reales = cols_reales.get(k, {})
+        existe = True if reales else (False if k[0] in bases_con_estructura else None)
+        if existe is False:
+            if (k[0], k[2]) in trabajo:
+                hallazgo("tabla-de-trabajo", g["nombre"], f"la crea y borra {', '.join(sorted(g['procs']))}")
+            else:
+                hallazgo("tabla-inexistente", g["nombre"], f"la usa {', '.join(sorted(g['procs']))} (o la cuenta de lectura no la ve)")
+        columnas = []
+        for kc, c in sorted(g["columnas"].items()):
+            real = reales.get(kc)
+            if reales and real is None and c["nombre"] != "*":
+                calificada = bool(c["fuentes"] & {"exacta", "motor"})
+                hallazgo("columna-inexistente" if calificada else "columna-inferida-inexistente", f"{g['nombre']}.{c['nombre']}", f"la usa {', '.join(sorted(c['procs']))}")
+            columnas.append({"nombre": c["nombre"], "tipo": real.get("tipo") if real else None, "aceptaNulos": (str(real.get("acepta_nulos")).upper() == "YES") if real else None,
+                             "existe": True if real else (False if reales else None), "confianza": _confianza(c["fuentes"]), "descripcion": None, "procedimientos": sorted(c["procs"])})
+        nombre_real = g["nombre"].split(".")
+        tablas_out.append({"nombre": g["nombre"], "base": nombre_real[0], "esquema": nombre_real[1], "tabla": nombre_real[2], "tipo": g["tipo"] or tipo_objeto.get(k),
+                           "existe": existe, "columnasReales": len(reales) if reales else None, "descripcion": None, "ficha": None, "columnas": columnas})
+    return tablas_out
+
+
 def armar(reportes: list[dict], dependencias: list[dict], parametros: list[dict], estructura: list[dict], bases_con_sp: set[str], bases_con_estructura: set[str],
           analisis: dict[tuple, dict] | None = None) -> dict:
     """`bases_con_sp` y `bases_con_estructura` (en minúsculas) son las que se alcanzaron a consultar: sin ellas, la ausencia de un dato no prueba nada."""
@@ -215,27 +268,7 @@ def armar(reportes: list[dict], dependencias: list[dict], parametros: list[dict]
                     hallazgo("discrepancia-motor", nombre, f"{t['nombre']} aparece en el análisis y no en el motor")
 
         if a:
-            decl = a["procedimiento"] or {}
-            if decl.get("esquema") and decl["esquema"].lower() != esquema.lower():
-                hallazgo("esquema-distinto", nombre, f"el CREATE declara el esquema {decl['esquema']}")
-            firma = decl.get("parametros") or []
-            for codigo in sorted(codigos) if a["procedimiento"] else []:   # sin CREATE no se conoce la firma
-                enviados = params_de.get(codigo, [])
-                if len(enviados) > len(firma):
-                    hallazgo("parametros-de-mas", codigo, f"el catálogo envía {len(enviados)} y {nombre} declara {len(firma)}")
-                    continue
-                obligatorios = sum(1 for p in firma if p["porDefecto"] is None and not p["salida"])
-                if len(enviados) < obligatorios:
-                    hallazgo("parametros-faltantes", codigo, f"el catálogo envía {len(enviados)} y {nombre} exige {obligatorios} sin valor por defecto")
-                for i, p in enumerate(enviados):
-                    if i < len(firma) and _norm(firma[i]["nombre"]) != _norm(p):
-                        hallazgo("parametro-nombre-distinto", codigo, f"posición {i + 1}: `{p}` en el catálogo, `{firma[i]['nombre']}` en el SP")
-            if a["sql_dinamico"]:
-                hallazgo("sql-dinamico", nombre, "revisar a mano las tablas del texto dinámico")
-            for adv in a["advertencias"]:
-                hallazgo("analisis-aproximado", nombre, adv)
-            if len(a["resultados"]) > 1:
-                hallazgo("varios-resultados", nombre, f"devuelve {len(a['resultados'])} conjuntos de resultados")
+            _revisar_a(a, nombre, esquema, codigos, params_de, hallazgo)
 
         uso_sp = []
         for k, t in sorted(tablas.items()):
@@ -279,29 +312,7 @@ def armar(reportes: list[dict], dependencias: list[dict], parametros: list[dict]
             continue
         hallazgo("columna-sin-resolver", nombre, f"`{s['columna']}`" + (f" podría ser de {' o '.join(s['candidatas'])}" if s["candidatas"] else ""))
 
-    # Tabla de trabajo: algún SP la crea o la borra en cada ejecución, así que no se exige que exista.
-    trabajo = {(k[0], k[2]) for k, g in usos_tabla.items() if g["usos"] & {"crea", "elimina-objeto"}}
-
-    tablas_out: list[dict] = []
-    for k, g in sorted(usos_tabla.items()):
-        reales = cols_reales.get(k, {})
-        existe = True if reales else (False if k[0] in bases_con_estructura else None)
-        if existe is False:
-            if (k[0], k[2]) in trabajo:
-                hallazgo("tabla-de-trabajo", g["nombre"], f"la crea y borra {', '.join(sorted(g['procs']))}")
-            else:
-                hallazgo("tabla-inexistente", g["nombre"], f"la usa {', '.join(sorted(g['procs']))} (o la cuenta de lectura no la ve)")
-        columnas = []
-        for kc, c in sorted(g["columnas"].items()):
-            real = reales.get(kc)
-            if reales and real is None and c["nombre"] != "*":
-                calificada = bool(c["fuentes"] & {"exacta", "motor"})
-                hallazgo("columna-inexistente" if calificada else "columna-inferida-inexistente", f"{g['nombre']}.{c['nombre']}", f"la usa {', '.join(sorted(c['procs']))}")
-            columnas.append({"nombre": c["nombre"], "tipo": real.get("tipo") if real else None, "aceptaNulos": (str(real.get("acepta_nulos")).upper() == "YES") if real else None,
-                             "existe": True if real else (False if reales else None), "confianza": _confianza(c["fuentes"]), "descripcion": None, "procedimientos": sorted(c["procs"])})
-        nombre_real = g["nombre"].split(".")
-        tablas_out.append({"nombre": g["nombre"], "base": nombre_real[0], "esquema": nombre_real[1], "tabla": nombre_real[2], "tipo": g["tipo"] or tipo_objeto.get(k),
-                           "existe": existe, "columnasReales": len(reales) if reales else None, "descripcion": None, "ficha": None, "columnas": columnas})
+    tablas_out = _tablas_finales(usos_tabla, cols_reales, tipo_objeto, bases_con_estructura, hallazgo)
 
     hallazgos.sort(key=lambda h: (_ORDEN_NIVEL[h["nivel"]], h["regla"], h["objeto"]))
     return {

@@ -14,50 +14,45 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useConsulta } from "@/hooks/use-consulta";
 import { api } from "@/lib/api";
 import type { DicBase, DicDatos, DicHallazgo, DicOrigenCatalogo, DicPotencial } from "@/lib/tipos";
+import { avancePorBase, porRegla } from "./calidad";
 import { EnlaceTabla, enlaceTabla } from "./comun";
 
 const EJES = (c: Colores) => ({ axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: c.tenue }, splitLine: { lineStyle: { color: c.linea } } });
 
-/** Cuánto de los procedimientos de cada base está validado, extraído sin validar o pendiente. */
+/** Cuánto de los procedimientos de cada base está validado, extraído sin validar o pendiente (en %, para que una base chica se vea igual que una grande). */
 function Avance({ bases }: { bases: DicBase[] }) {
-  const con = useMemo(() => bases.filter((b) => b.procedimientos > 0).sort((a, b) => b.procedimientos - a.procedimientos), [bases]);
+  const con = useMemo(() => avancePorBase(bases), [bases]);
   const opcion = useMemo(() => (c: Colores) => {
-    const etiqueta = (color: string) => ({ show: true, color, formatter: (p: { value: number }) => (p.value ? String(p.value) : "") });
-    const serie = (name: string, data: number[], color: string, texto: string) => ({
-      name, type: "bar", stack: "sp", data, itemStyle: { color }, barMaxWidth: 28, label: etiqueta(texto), emphasis: { focus: "series" },
+    const serie = (name: string, pct: "pctValidados" | "pctExtraidos" | "pctPendientes", n: "validados" | "extraidos" | "pendientes", color: string, texto: string) => ({
+      name, type: "bar", stack: "sp", data: con.map((b) => ({ value: b[pct], n: b[n] })), itemStyle: { color }, barMaxWidth: 28, emphasis: { focus: "series" },
+      label: { show: true, color: texto, formatter: (p: { data: { n: number } }) => (p.data.n ? String(p.data.n) : "") },
     });
     return {
       grid: { left: 8, right: 16, top: 36, bottom: 4, containLabel: true },
       legend: { top: 0, left: 0, textStyle: { color: c.tenue }, itemWidth: 12, itemHeight: 12 },
-      tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
-      xAxis: { type: "value", ...EJES(c) },
+      tooltip: {
+        trigger: "axis", axisPointer: { type: "shadow" },
+        formatter: (ps: { name: string; seriesName: string; data: { n: number } }[]) => `${ps[0].name}<br/>${ps.map((p) => `${p.seriesName}: ${p.data.n}`).join("<br/>")}`,
+      },
+      xAxis: { type: "value", max: 100, ...EJES(c), axisLabel: { color: c.tenue, formatter: "{value}%" } },
       yAxis: { type: "category", inverse: true, data: con.map((b) => b.base), axisLine: { lineStyle: { color: c.linea } }, axisTick: { show: false }, axisLabel: { color: c.texto } },
       series: [
-        serie("Validados", con.map((b) => b.validados), c.marca, c.superficie),
-        serie("Extraídos, sin validar", con.map((b) => b.extraidos - b.validados), c.c("color-mix(in srgb, var(--mis-primary) 50%, var(--mis-surface))"), c.texto),
-        serie("Pendientes de extraer", con.map((b) => b.procedimientos - b.extraidos), c.c("color-mix(in srgb, var(--mis-primary) 14%, var(--mis-surface))"), c.texto),
+        serie("Validados", "pctValidados", "validados", c.marca, c.superficie),
+        serie("Extraídos, sin validar", "pctExtraidos", "extraidos", c.c("color-mix(in srgb, var(--mis-primary) 50%, var(--mis-surface))"), c.texto),
+        serie("Pendientes de extraer", "pctPendientes", "pendientes", c.c("color-mix(in srgb, var(--mis-primary) 14%, var(--mis-surface))"), c.texto),
       ],
     };
   }, [con]);
   return (
     <Grafico opcion={opcion} alto={Math.max(160, con.length * 56 + 48)}
-      resumen={`Procedimientos por base: ${con.map((b) => `${b.base} ${b.validados} de ${b.procedimientos} validados`).join("; ")}.`}
-      tabla={{ columnas: ["Base", "Validados", "Extraídos", "Procedimientos"], filas: con.map((b) => [b.base, b.validados, b.extraidos, b.procedimientos]) }} />
+      resumen={`Procedimientos por base: ${con.map((b) => `${b.base} ${b.validados} de ${b.total} validados`).join("; ")}.`}
+      tabla={{ columnas: ["Base", "Validados", "Extraídos", "Procedimientos"], filas: con.map((b) => [b.base, b.validados, b.validados + b.extraidos, b.total]) }} />
   );
 }
 
 /** Errores y avisos por regla de calidad (lo informativo no se muestra: no pide acción). */
 function Calidad({ hallazgos }: { hallazgos: DicHallazgo[] }) {
-  const reglas = useMemo(() => {
-    const m = new Map<string, { error: number; aviso: number }>();
-    for (const h of hallazgos) {
-      if (h.nivel !== "error" && h.nivel !== "aviso") continue;
-      const r = m.get(h.regla) ?? { error: 0, aviso: 0 };
-      r[h.nivel]++;
-      m.set(h.regla, r);
-    }
-    return [...m].sort((a, b) => b[1].error + b[1].aviso - (a[1].error + a[1].aviso));
-  }, [hallazgos]);
+  const reglas = useMemo(() => porRegla(hallazgos), [hallazgos]);
   const opcion = useMemo(() => (c: Colores) => {
     const serie = (name: string, data: number[], color: string) => ({ name, type: "bar", stack: "n", data, itemStyle: { color }, barMaxWidth: 22, label: { show: true, color: c.superficie, formatter: (p: { value: number }) => (p.value ? String(p.value) : "") } });
     return {
@@ -65,7 +60,7 @@ function Calidad({ hallazgos }: { hallazgos: DicHallazgo[] }) {
       legend: { top: 0, left: 0, textStyle: { color: c.tenue }, itemWidth: 12, itemHeight: 12 },
       tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
       xAxis: { type: "value", ...EJES(c) },
-      yAxis: { type: "category", inverse: true, data: reglas.map(([r]) => r), axisLine: { lineStyle: { color: c.linea } }, axisTick: { show: false }, axisLabel: { color: c.texto } },
+      yAxis: { type: "category", inverse: true, data: reglas.map(([r]) => r), axisLine: { lineStyle: { color: c.linea } }, axisTick: { show: false }, axisLabel: { color: c.texto, width: 150, overflow: "break" } },
       series: [serie("Errores", reglas.map(([, n]) => n.error), c.peligro), serie("Avisos", reglas.map(([, n]) => n.aviso), c.aviso)],
     };
   }, [reglas]);

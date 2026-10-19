@@ -74,7 +74,10 @@ export function Grafico({ opcion, alto, resumen, tabla, alClic }: {
 
   // Se repinta al cambiar los datos o el tema; `true` = reemplaza la configuración anterior en vez de mezclarla.
   useEffect(() => {
-    grafico.current?.setOption({ textStyle: { fontFamily: "inherit" }, ...opcion(leerColores()) }, true);
+    const c = leerColores();
+    const o = opcion(c) as { tooltip?: object };
+    // El tooltip toma los colores del tema (por defecto es blanco, también en oscuro).
+    grafico.current?.setOption({ textStyle: { fontFamily: "inherit" }, ...o, tooltip: { backgroundColor: c.superficie, borderColor: c.linea, textStyle: { color: c.texto }, ...o.tooltip } }, true);
   }, [opcion, resolvedTheme]);
 
   return (

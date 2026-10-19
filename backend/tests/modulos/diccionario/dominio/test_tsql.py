@@ -42,7 +42,7 @@ def test_una_columna_sin_calificar_con_dos_tablas_queda_sin_resolver():
 
 def test_cte_temporal_y_derivada_no_son_tablas_del_diccionario():
     a = analizar("CREATE PROCEDURE dbo.SP1 AS WITH c AS (SELECT a FROM dbo.real) SELECT c.a INTO #tmp FROM c; SELECT z FROM (SELECT 1 z) d JOIN #tmp t ON 1 = 1", base="b")
-    assert [t["completo"] for t in a["tablas"]] == ["b.dbo.real"] and a["ctes"] == ["c"] and a["temporales"] == ["#tmp"]
+    assert [t["completo"] for t in a["tablas"]] == ["b.dbo.real"] 
 
 
 def test_invocaciones_y_sql_dinamico():

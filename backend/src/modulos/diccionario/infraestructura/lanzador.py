@@ -46,10 +46,6 @@ def _leer(id_: str) -> dto.Ejecucion:
     return x
 
 
-def en_curso() -> bool:
-    return bool(_activos)
-
-
 def _podar() -> None:
     """Deja solo las fichas más recientes (el historial se lee completo en cada consulta)."""
     for vieja in sorted(DIR.glob("*.json"), key=lambda p: p.stat().st_mtime)[:-MAX_FICHAS]:

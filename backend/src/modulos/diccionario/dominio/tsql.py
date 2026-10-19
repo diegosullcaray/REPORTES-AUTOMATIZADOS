@@ -277,7 +277,7 @@ def analizar_procedimiento(texto: str, base: str | None = None, esquema: str = "
                        "columnas": sorted(t["columnas"].values(), key=lambda c: c["nombre"].lower())})
     return {"procedimiento": ctx.procedimiento, "tablas": tablas,
             "sin_resolver": [{**s, "candidatas": sorted(s["candidatas"])} for s in ctx.sin_resolver.values()],
-            "ctes": sorted(ctx.ctes), "temporales": sorted(ctx.temporales), "invocaciones": ctx.invocaciones,
+            "invocaciones": ctx.invocaciones,
             "resultados": ctx.resultados, "sql_dinamico": ctx.sql_dinamico, "advertencias": list(ctx.advertencias)}
 
 
@@ -655,7 +655,7 @@ def _saltar_exec(items: list, i: int) -> int:
 
 # ─── 4. Resolución de nombres ────────────────────────────────────────────────
 
-def resolver_nombre_tabla(partes: list[str], base: str | None, esquema_sp: str) -> dict:
+def _resolver_nombre_tabla(partes: list[str], base: str | None, esquema_sp: str) -> dict:
     """Nombre completo de una tabla con la base y el esquema implícitos del SP."""
     p = list(partes)
     servidor, esquema, implicito = None, esquema_sp or "dbo", False
@@ -674,7 +674,7 @@ def resolver_nombre_tabla(partes: list[str], base: str | None, esquema_sp: str) 
 
 
 def _obtener_tabla(ctx: _Ctx, partes: list[str]) -> dict:
-    n = resolver_nombre_tabla(partes, ctx.base, ctx.esquema)
+    n = _resolver_nombre_tabla(partes, ctx.base, ctx.esquema)
     return ctx.tablas.setdefault(n["clave"], {**n, "usos": set(), "columnas": {}})
 
 
@@ -683,7 +683,7 @@ def _registrar_tabla(ctx: _Ctx, partes: list[str], uso: str) -> None:
 
 
 def _registrar_funcion(ctx: _Ctx, partes: list[str]) -> None:
-    n = resolver_nombre_tabla(partes, ctx.base, ctx.esquema)
+    n = _resolver_nombre_tabla(partes, ctx.base, ctx.esquema)
     ctx.invocaciones.append({"nombre": n["completo"], "partes": partes, "argumentos": [], "funcion": True})
 
 
@@ -803,6 +803,6 @@ def _resolver_ref(ref: dict, bloque: _Bloque, padres: list, ctx: _Ctx) -> None:
         if reales[0]["clase"] == "tabla":
             _registrar_columna(ctx, reales[0]["partes"], columna, "inferida")
         return   # CTE, temporal o derivada: la columna no es de una tabla del diccionario
-    candidatas = [resolver_nombre_tabla(f["partes"], ctx.base, ctx.esquema)["completo"] for f in reales if f["clase"] == "tabla"]
+    candidatas = [_resolver_nombre_tabla(f["partes"], ctx.base, ctx.esquema)["completo"] for f in reales if f["clase"] == "tabla"]
     if candidatas:
         _agregar_sin_resolver(ctx, columna, candidatas)

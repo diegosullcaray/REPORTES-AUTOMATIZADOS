@@ -31,7 +31,7 @@ Solo se corre uno a la vez; el botón se deshabilita y, si dos peticiones llegan
 
 ### Cómo se lee el log de «Generar»
 
-`▶` inicia un paso y `✓` lo termina (entre ellos «Analizando el código de N procedimientos»); `✗ base: …` es una base que no contestó (se sigue con las demás) y `AVISO` una base cuya estructura o cuyo código no se pudo leer (el diccionario sale igual, con lo que dice el motor). Si una base dice «rechazó el inicio de sesión», la cuenta del `.env` no tiene acceso a esa base: pídelo al administrador del servidor; sus procedimientos quedan «pendiente». Si ninguna contesta no se guarda nada.
+`▶` inicia un paso y `✓` lo termina (entre ellos «Analizando el código de N procedimientos»); `✗ base: …` es una base que no contestó (se sigue con las demás) y `AVISO` una base cuya estructura o cuyo código no se pudo leer (el diccionario sale igual, con lo que dice el motor). Si una base dice «rechazó el inicio de sesión», la cuenta del `.env` no tiene acceso a esa base: pídelo al administrador del servidor; sus procedimientos quedan «pendiente». Si ninguna contesta no se guarda nada. La generación tiene un tope de 10 minutos en total (`PRESUPUESTO` en `construir.py`): pasado el tiempo deja de pedir bases (`✗ Tiempo agotado`), y guarda lo que ya contestó si alguna respondió.
 
 ## Qué hacer con lo que muestra
 

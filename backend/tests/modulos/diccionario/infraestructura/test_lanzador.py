@@ -12,7 +12,7 @@ from modulos.diccionario.infraestructura import lanzador
 
 def _esperar_fin():
     for _ in range(100):
-        if not lanzador.en_curso():
+        if not lanzador._activos:
             return
         time.sleep(0.1)
     pytest.fail("el proceso no terminó")
@@ -85,7 +85,7 @@ def test_si_la_tarea_revienta_no_queda_ejecutando(monkeypatch, tmp_path):
     x = lanzador.ejecutar_tarea("bases", rota)
     _esperar_fin()
     d = lanzador.obtener(x.id)
-    assert d.estado == "error" and "boom" in d.log and not lanzador.en_curso()
+    assert d.estado == "error" and "boom" in d.log and not lanzador._activos
 
 
 def test_si_la_tarea_revienta_conserva_lo_que_ya_habia_escrito(monkeypatch, tmp_path):

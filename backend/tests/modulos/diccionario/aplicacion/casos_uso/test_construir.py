@@ -102,3 +102,41 @@ def test_sin_permiso_para_leer_el_codigo_el_diccionario_sale_igual_y_lo_avisa():
     assert construir.construir(log.append) == 0
     assert "AVISO mod_rep: no pude leer el código" in "".join(log) and len(guardado) == 1
 
+
+
+def test_lo_que_se_guarda_es_json_de_verdad(monkeypatch, tmp_path):
+    import json
+
+    from modulos.diccionario.infraestructura import lector
+
+    monkeypatch.setattr(lector, "DIR_OUTPUTS", tmp_path)
+    monkeypatch.setattr(lector, "_cache", None)
+    guardado = _registrar(Generador())
+    assert construir.construir(lambda _: None) == 0
+    lector.guardar(guardado[0])                                   # un set escondido en el resultado fallaría aquí y no con el lector falso
+    assert json.loads(lector._archivo().read_text(encoding="utf-8"))["resumen"]["reportes"] == 3
+
+
+def test_sin_tiempo_no_se_pide_nada_y_no_se_guarda(monkeypatch):
+    monkeypatch.setattr(construir, "PRESUPUESTO", -1)
+    guardado = _registrar(Generador())
+    log = []
+    assert construir.construir(log.append) == 1
+    assert guardado == [] and "Tiempo agotado" in "".join(log)
+
+
+def test_si_el_tiempo_se_acaba_a_mitad_se_guarda_lo_que_ya_contesto(monkeypatch):
+    g = Generador()
+    pedir = g.dependencias
+
+    def lenta(base, sps):
+        r = pedir(base, sps)
+        monkeypatch.setattr(construir, "PRESUPUESTO", -1)         # la primera base (mod_rep) agota el tiempo
+        return r
+
+    g.dependencias = lenta
+    guardado = _registrar(g)
+    log = []
+    assert construir.construir(log.append) == 0
+    assert "Tiempo agotado" in "".join(log) and "AVISO tiempo agotado" in "".join(log) and len(guardado) == 1
+    assert {p["nombre"]: p["estado"] for p in guardado[0]["procedimientos"]}["strategos.dbo.SP2"] == "pendiente"

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import time
 from collections import defaultdict
 from collections.abc import Callable
 
@@ -10,6 +11,9 @@ from core.servidores import servidor_de_base
 from modulos.diccionario.aplicacion.puertos import puertos
 from modulos.diccionario.dominio.armado import analizar, armar, tablas_referidas
 from modulos.reportes.dominio.verificacion import causa_de
+
+
+PRESUPUESTO = 600   # segundos en total: una base lenta no puede dejar el módulo ocupado una hora (cada consulta ya tiene su tope de 180 s)
 
 
 def _causa(exc: Exception, base: str) -> str:
@@ -25,6 +29,11 @@ def construir(emitir: Callable[[str], None]) -> int:
     Va escribiendo su avance. Código 0 si se guardó; 1 si no se pudo leer el catálogo o ninguna base contestó (entonces no se toca el diccionario anterior).
     """
     g = puertos().generador
+    inicio = time.monotonic()
+
+    def agotado() -> bool:
+        return time.monotonic() - inicio > PRESUPUESTO
+
     emitir("▶ Leyendo el catálogo de reportes (mod_rep.rep.RREGREP01)…\n")
     try:
         reportes = puertos().catalogo.leer(forzar=True)
@@ -43,6 +52,9 @@ def construir(emitir: Callable[[str], None]) -> int:
     cuerpos: dict[tuple[str, str, str], str] = {}
     con_sp: set[str] = set()
     for base, lista in sorted(sps.items()):
+        if agotado():
+            emitir(f"✗ Tiempo agotado ({PRESUPUESTO} s): se omiten las bases que faltaban desde {base}\n")
+            break
         emitir(f"▶ {base}: dependencias y parámetros de {len(lista)} procedimientos…\n")
         try:
             filas, pars = g.dependencias(base, sorted(lista)), g.parametros(base)
@@ -67,6 +79,9 @@ def construir(emitir: Callable[[str], None]) -> int:
     estructura: list[dict] = []
     con_estructura: set[str] = set()
     for base, tablas in sorted(tablas_referidas(dependencias, analisis).items()):
+        if agotado():
+            emitir(f"AVISO tiempo agotado: se omite la estructura desde {base}\n")
+            break
         try:
             servidor_de_base(base)
         except ConfiguracionError:
