@@ -23,7 +23,7 @@ tablas, ejecución, vista previa de las salidas y envío de correo) con el estil
    un grupo **Configuración** con una página por ajuste —General, Notificaciones, Bases de datos— como «Settings» en Dokploy y,
    al pie, el menú de usuario con Perfil y Cerrar sesión; el sidebar secundario se retiró el 2026-10-07), encabezado con
    `SidebarTrigger`, migas y botón de tema, vista de reporte limpia (título, tipo, parámetros, botón y log tipo terminal) y
-   Bases de datos con test de conexión por servidor. Sin wallpaper ni vidrio. Los colores siguen saliendo de
+   Bases de datos con test de conexión por servidor (página retirada el 2026-10-18: la validación pasó al proceso «Validar las bases de datos» del Diccionario, [ADR-0017](./ADR-0017-modulo-diccionario.md)). Sin wallpaper ni vidrio. Los colores siguen saliendo de
    `frontend/src/app/tokens.css` (copia de `MIS-angular-front/src/app/theme/tokens.css`): las variables de shadcn solo reexportan
    tokens `--mis-*`; los únicos valores propios son los de la terminal, definidos una vez en `globals.css`.
 6. **Patrones de Dokploy** (análisis de su código, 2026-10-07): sidebar flotante con grupos y pie de estado, tarjeta

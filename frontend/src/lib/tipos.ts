@@ -211,22 +211,6 @@ export interface VistaPrevia {
   texto: string | null;
 }
 
-export interface Servidor {
-  nombre: string;
-  servidor: string;
-  autenticacion: "Windows" | "SQL";
-  credenciales_en_env: boolean;
-  descripcion: string;
-  bases: string[];
-}
-
-export interface PruebaConexion {
-  nombre: string;
-  ok: boolean;
-  detalle: string;
-  milisegundos: number;
-}
-
 export interface Perfil {
   usuario: string;
   equipo: string;
@@ -397,7 +381,7 @@ export interface DicHallazgo { nivel: string; regla: string; origen: string; obj
 export interface DicBase { base: string; procedimientos: number; extraidos: number; validados: number; tablas: number }
 export interface DicOrigenCatalogo { fuente: string; motivo: string | null; nuevos: string[]; retirados: string[] }
 export interface DicResumen {
-  carpeta: string; generado: string; reportes: number; procedimientos: number; extraidos: number; validados: number; tablas: number; columnas: number;
+  reportes: number; procedimientos: number; extraidos: number; validados: number; tablas: number; columnas: number;
   errores: number; avisos: number; errores_nuevos: number; catalogo: DicOrigenCatalogo; bases: DicBase[];
 }
 export interface DicBaseFila { base: string; procedimientos: number; validados: number; reportes: number; tablas_propias: number; tablas_usadas: number }
@@ -417,6 +401,10 @@ export interface DicTablaDetalle extends DicTablaFila { descripcion: string | nu
 export interface DicSugerenciaFecha { tabla: string; actual: string | null; confianza: string; motivo: string; candidatas: string[] }
 export interface DicTablaDisponible { nombre: string; reportes_mis: number; columnas: number; fechas: string[] }
 export interface DicPotencial { tablas_registradas: number; en_diccionario: number; faltan_en_diccionario: string[]; fechas: DicSugerenciaFecha[]; disponibles: DicTablaDisponible[] }
-export interface DicProceso { id: string; nombre: string; descripcion: string; comando: string; escribe: string }
+export interface DicProceso { id: string; nombre: string; descripcion: string; comando: string; escribe: string; genera: boolean }
+export interface DicScriptArchivo { ruta: string; codigo: string }
+export interface DicArchivoProceso { ruta: string; tamano: number; modificado: string; tipo: "texto" | "otro" }
+export interface DicVistaArchivo { ruta: string; texto: string; recortado: boolean }
+export interface DicProcesoDetalle extends DicProceso { scripts: DicScriptArchivo[]; archivos: DicArchivoProceso[] }
 export interface DicEjecucion { id: string; proceso: string; estado: "ejecutando" | "ok" | "error"; inicio: string; fin: string | null; codigo: number | null }
 export interface DicEjecucionDetalle extends DicEjecucion { log: string }

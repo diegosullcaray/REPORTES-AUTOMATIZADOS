@@ -51,7 +51,7 @@ Estado de las compuertas al cierre de las correcciones: `python governance/scrip
 | «Avance» usa números absolutos: `mod_rep` (259) tapa a las demás bases | **Abierto** — graficar el porcentaje de cada base |
 | Las etiquetas de los trozos chicos se pisan | **Abierto** |
 | Un nombre largo de regla se corta por la izquierda | **Abierto** |
-| Código sin uso tras quitar las tarjetas (`Indicador`, `generado`/`carpeta` del resumen, `?nivel=`) | **Abierto** |
+| Código sin uso tras quitar las tarjetas (`Indicador`, `generado`/`carpeta` del resumen, `?nivel=`) | Cerrado — borrado, junto con los campos de `InfoServidor` que solo usaba la página «Bases de datos» |
 | El tooltip es blanco en tema oscuro; la agrupación de los gráficos no tiene prueba | **Abierto** |
 
 No se revisó: el SQL de los reportes de `catalogo/`, `cmg-mora`, el dibujo del Excel, la subida de adjuntos a Chat, el tema oscuro de los gráficos ni la web con sesión iniciada en un navegador.

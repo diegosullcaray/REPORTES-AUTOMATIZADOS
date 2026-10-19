@@ -80,8 +80,4 @@ def driver_odbc() -> str:
 
 
 def servidores() -> list[InfoServidor]:
-    return [
-        InfoServidor(nombre=s.nombre, servidor=s.servidor, autenticacion="SQL" if (s.usuario or not s.windows_auth_defecto) else "Windows",
-                     credenciales_en_env=bool(s.usuario and s.clave), descripcion=s.descripcion)
-        for s in cfg.SERVIDORES.values()
-    ]
+    return [InfoServidor(nombre=s.nombre, servidor=s.servidor) for s in cfg.SERVIDORES.values()]

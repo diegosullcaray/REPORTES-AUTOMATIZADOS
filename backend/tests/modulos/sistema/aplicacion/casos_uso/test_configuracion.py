@@ -1,13 +1,21 @@
-"""Casos de uso de configuración: bases de datos y pruebas de conexión (sin tocar los servidores reales)."""
+"""Ajustes editables de la web: lo que se guarda en el .env se valida antes (sin tocar el archivo real)."""
 
+import pytest
+
+from core.excepciones import PeticionInvalida
 from modulos.sistema.aplicacion.casos_uso import configuracion
-from core import bd
 
 
-def test_prueba_de_servidor_informa_el_error(monkeypatch):
-    def falla(*_):
-        raise RuntimeError("sin red")
+@pytest.mark.parametrize("campo,valor,frag", [
+    ("dir_inputs", "relativa/ruta", "ruta completa"),
+    ("dir_outputs", "C:/datos # comentario", "no admite"),
+    ("corte_mensual", "2999-12-31", "futuro"),
+    ("corte_mensual", "2026-06-15", "fin de mes"),
+])
+def test_un_ajuste_invalido_se_rechaza_antes_de_guardarlo(campo, valor, frag):
+    with pytest.raises(PeticionInvalida, match=frag):
+        configuracion._validar_ajuste(campo, valor)
 
-    monkeypatch.setattr(bd, "leer_sql", falla)
-    p = configuracion.probar_servidor("mish")
-    assert (p.ok, p.detalle) == (False, "RuntimeError: sin red")
+
+def test_un_ajuste_vacio_quita_la_variable():
+    assert configuracion._validar_ajuste("corte_diario", "") == ""

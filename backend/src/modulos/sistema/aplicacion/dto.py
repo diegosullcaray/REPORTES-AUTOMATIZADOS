@@ -1,30 +1,10 @@
-"""Contratos del módulo de sistema (sesión, cuenta, ajustes y servidores). Solo forma de los datos: sin lógica."""
+"""Contratos del módulo de sistema (sesión, cuenta y ajustes). Solo forma de los datos: sin lógica."""
 
 from __future__ import annotations
-
-from typing import Literal
 
 from pydantic import BaseModel, Field
 
 from modulos.reportes.aplicacion.dto import Corte
-
-
-class Servidor(BaseModel):
-    """Una de las 3 conexiones, sin secretos: solo si hay credenciales configuradas."""
-
-    nombre: str
-    servidor: str
-    autenticacion: Literal["Windows", "SQL"]
-    credenciales_en_env: bool
-    descripcion: str
-    bases: list[str]
-
-
-class PruebaConexion(BaseModel):
-    nombre: str
-    ok: bool
-    detalle: str
-    milisegundos: int
 
 
 class PedidoSesion(BaseModel):

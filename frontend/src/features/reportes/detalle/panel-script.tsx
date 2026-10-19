@@ -9,13 +9,13 @@ import { useConsulta } from "@/hooks/use-consulta";
 import { api } from "@/lib/api";
 
 /** Código resaltado con Shiki (carga perezosa: no entra en el bundle inicial). Sale ya escapado: solo viaja texto del repo. */
-function Codigo({ codigo }: { codigo: string }) {
+export function Codigo({ codigo, lang = "python" }: { codigo: string; lang?: string }) {
   const [html, setHtml] = useState<string | null>(null);
   useEffect(() => {
     let vigente = true;
-    import("shiki").then(({ codeToHtml }) => codeToHtml(codigo, { lang: "python", theme: "github-dark" })).then((h) => vigente && setHtml(h));
+    import("shiki").then(({ codeToHtml }) => codeToHtml(codigo, { lang, theme: "github-dark" })).then((h) => vigente && setHtml(h));
     return () => { vigente = false; };
-  }, [codigo]);
+  }, [codigo, lang]);
   // Mientras carga, el texto plano evita el salto de layout.
   return html
     ? <div className="script-codigo" dangerouslySetInnerHTML={{ __html: html }} />

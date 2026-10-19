@@ -1,7 +1,7 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
-import { BookOpen, FileText, Play, Bell, Bot, Tag, ChevronRight, ChevronsUpDown, Database, FileSpreadsheet, History, House, LogOut, Plug, ShieldCheck, SlidersHorizontal, UserRound } from "lucide-react";
+import { BookOpen, FileText, Play, Bell, Bot, Tag, ChevronRight, ChevronsUpDown, FileSpreadsheet, History, House, LogOut, Plug, ShieldCheck, SlidersHorizontal, UserRound } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -74,7 +74,6 @@ const AJUSTES = [
   { ruta: "/configuracion/mcp", texto: "MCP", icono: Plug },
   { ruta: "/configuracion/ia", texto: "Inteligencia artificial", icono: Bot },
   { ruta: "/configuracion/etiquetas", texto: "Etiquetas", icono: Tag },
-  { ruta: "/servidores", texto: "Bases de datos", icono: Database },
 ] as const;
 
 /** Menú de usuario en el pie (como el UserNav de Dokploy): perfil, configuración y estado de la API. */

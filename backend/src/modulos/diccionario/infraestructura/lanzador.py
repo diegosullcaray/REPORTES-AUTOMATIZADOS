@@ -7,6 +7,7 @@ import shutil
 import subprocess
 import threading
 import uuid
+from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
 
@@ -62,18 +63,14 @@ def _podar() -> None:
             vieja.with_suffix(".log").unlink(missing_ok=True)
 
 
-def _correr(x: dto.Ejecucion, comando: tuple[str, ...], carpeta: Path) -> None:
+def _terminar(x: dto.Ejecucion, correr: Callable[[], int]) -> None:
+    """Corre el proceso (`correr` escribe su log y devuelve el código de salida) y deja el estado final, pase lo que pase."""
     try:
-        exe = shutil.which(comando[0])
-        with _ruta(x.id, "log").open("w", encoding="utf-8") as log:
-            if exe is None:
-                log.write(f"✗ No encuentro «{comando[0]}»: instálalo y vuelve a abrir la API.\n")
-                codigo = 127
-            else:
-                codigo = subprocess.run([exe, *comando[1:]], cwd=carpeta, stdout=log, stderr=subprocess.STDOUT, env={k: v for k, v in os.environ.items() if k.upper() in _ENTORNO_MINIMO}).returncode
-        x.codigo, x.estado = codigo, "ok" if codigo == 0 else "error"
-    except OSError as exc:
-        _ruta(x.id, "log").write_text(f"✗ No se pudo lanzar el proceso: {exc}\n", encoding="utf-8")
+        x.codigo = correr()
+        x.estado = "ok" if x.codigo == 0 else "error"
+    except Exception as exc:  # noqa: BLE001 - el hilo no puede morir con el estado en «ejecutando»
+        with _ruta(x.id, "log").open("a", encoding="utf-8") as log:  # al final: lo que ya se escribió sirve para saber qué pasó
+            log.write(f"✗ No se pudo correr el proceso: {exc}\n")
         x.codigo, x.estado = 1, "error"
     finally:
         x.fin = _ahora()
@@ -81,7 +78,33 @@ def _correr(x: dto.Ejecucion, comando: tuple[str, ...], carpeta: Path) -> None:
         _activos.discard(x.id)
 
 
-def ejecutar(proceso: str, comando: tuple[str, ...], carpeta: Path) -> dto.Ejecucion:
+def _comando(x: dto.Ejecucion, comando: tuple[str, ...], carpeta: Path) -> int:
+    exe = shutil.which(comando[0])
+    with _ruta(x.id, "log").open("w", encoding="utf-8") as log:
+        if exe is None:
+            log.write(f"✗ No encuentro «{comando[0]}»: instálalo y vuelve a abrir la API.\n")
+            return 127
+        return subprocess.run([exe, *comando[1:]], cwd=carpeta, stdout=log, stderr=subprocess.STDOUT, env={k: v for k, v in os.environ.items() if k.upper() in _ENTORNO_MINIMO}).returncode
+
+
+def _tarea(x: dto.Ejecucion, tarea: Callable[[Callable[[str], None]], int]) -> int:
+    """Corre una tarea propia de la API; lo que emite va al log al instante (la pantalla lo ve mientras corre)."""
+    candado, abierto = threading.Lock(), [True]
+    with _ruta(x.id, "log").open("w", encoding="utf-8") as log:
+        def emitir(texto: str) -> None:
+            with candado:
+                if abierto[0]:  # un hilo rezagado no escribe en un archivo ya cerrado
+                    log.write(texto)
+                    log.flush()
+
+        try:
+            return tarea(emitir)
+        finally:
+            with candado:
+                abierto[0] = False
+
+
+def _arrancar(proceso: str, correr: Callable[[dto.Ejecucion], int]) -> dto.Ejecucion:
     DIR.mkdir(parents=True, exist_ok=True)
     x = dto.Ejecucion(id=uuid.uuid4().hex[:12], proceso=proceso, estado="ejecutando", inicio=_ahora(), fin=None, codigo=None)
     with _lanzar:  # comprobar y anotar de una vez: dos peticiones casi juntas no pueden lanzar dos procesos
@@ -90,8 +113,18 @@ def ejecutar(proceso: str, comando: tuple[str, ...], carpeta: Path) -> dto.Ejecu
         _activos.add(x.id)
     _podar()
     _guardar(x)
-    threading.Thread(target=_correr, args=(x.model_copy(), comando, carpeta), daemon=True, name=f"diccionario-{x.id}").start()
+    y = x.model_copy()
+    threading.Thread(target=_terminar, args=(y, lambda: correr(y)), daemon=True, name=f"diccionario-{x.id}").start()
     return x
+
+
+def ejecutar(proceso: str, comando: tuple[str, ...], carpeta: Path) -> dto.Ejecucion:
+    return _arrancar(proceso, lambda x: _comando(x, comando, carpeta))
+
+
+def ejecutar_tarea(proceso: str, tarea: Callable[[Callable[[str], None]], int]) -> dto.Ejecucion:
+    """Un proceso propio de la API (sin subproceso): `tarea(emitir)` escribe su log con `emitir(texto)` y devuelve el código de salida."""
+    return _arrancar(proceso, lambda x: _tarea(x, tarea))
 
 
 def historial(limite: int = 30) -> list[dto.Ejecucion]:

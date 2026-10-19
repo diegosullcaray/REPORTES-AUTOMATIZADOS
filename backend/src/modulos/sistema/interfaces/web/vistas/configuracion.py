@@ -21,13 +21,3 @@ class Configuracion(View):
 
     def put(self, request: HttpRequest) -> HttpResponse:
         return h.json(configuracion.guardar_configuracion(h.cuerpo(request, dto_sistema.PedidoConfiguracion)))
-
-
-class Servidores(View):
-    def get(self, request: HttpRequest) -> HttpResponse:
-        return h.json(configuracion.servidores())
-
-
-class ServidorPrueba(View):
-    def post(self, request: HttpRequest, nombre: str) -> HttpResponse:
-        return h.json(configuracion.probar_servidor(nombre))

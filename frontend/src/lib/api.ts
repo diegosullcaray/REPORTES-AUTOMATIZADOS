@@ -1,8 +1,8 @@
 // Transporte: única puerta hacia la API de Python (proxy /api en next.config.ts). Sin estado ni presentación.
 import type {
-  Archivo, ConfigIA, Etiqueta, GrupoReportes, ConfiguracionGeneral, ModelosIA, PedidoIA, DestinosChat, EntradaValidacion, FirmaGmail, PedidoEnvioArchivos, Ejecucion, EjecucionDetalle, EstadoEnvio, PedidoEjecucion, Notificaciones, Perfil, PedidoConfiguracion, PedidoCuenta, PedidoNotificaciones, PruebaConexion, PruebaNotificacion, ReporteDetalle, PedidoReporteNuevo, ReporteCreado, ReporteResumen, Script,
-  DicBaseDetalle, DicBaseFila, DicEjecucion, DicEjecucionDetalle, DicHallazgo, DicPotencial, DicProceso, DicReporteDetalle, DicResumen, DicTablaDetalle,
-  GoogleMcp, PedidoGoogleMcp, PruebaMcp, Servidor, Sesion, Solicitud, Verificacion, VerificacionGrupo, VistaPrevia,
+  Archivo, ConfigIA, Etiqueta, GrupoReportes, ConfiguracionGeneral, ModelosIA, PedidoIA, DestinosChat, EntradaValidacion, FirmaGmail, PedidoEnvioArchivos, Ejecucion, EjecucionDetalle, EstadoEnvio, PedidoEjecucion, Notificaciones, Perfil, PedidoConfiguracion, PedidoCuenta, PedidoNotificaciones, PruebaNotificacion, ReporteDetalle, PedidoReporteNuevo, ReporteCreado, ReporteResumen, Script,
+  DicBaseDetalle, DicBaseFila, DicEjecucion, DicEjecucionDetalle, DicHallazgo, DicPotencial, DicProceso, DicProcesoDetalle, DicVistaArchivo, DicReporteDetalle, DicResumen, DicTablaDetalle,
+  GoogleMcp, PedidoGoogleMcp, PruebaMcp, Sesion, Solicitud, Verificacion, VerificacionGrupo, VistaPrevia,
 } from "./tipos";
 
 export class ErrorApi extends Error {
@@ -110,14 +110,16 @@ export const api = {
   dic: {
     resumen: () => pedir<DicResumen>("/diccionario/resumen"),
     potencial: () => pedir<DicPotencial>("/diccionario/potencial"),
-    hallazgos: (nivel?: string) => pedir<DicHallazgo[]>(`/diccionario/hallazgos${nivel ? `?nivel=${nivel}` : ""}`),
+    hallazgos: () => pedir<DicHallazgo[]>("/diccionario/hallazgos"),
     bases: () => pedir<DicBaseFila[]>("/diccionario/bases"),
     base: (nombre: string) => pedir<DicBaseDetalle>(`/diccionario/bases/${encodeURIComponent(nombre)}`),
     reporte: (codigo: string) => pedir<DicReporteDetalle>(`/diccionario/reportes/${encodeURIComponent(codigo)}`),
     tabla: (nombre: string) => pedir<DicTablaDetalle>(`/diccionario/tablas/${encodeURIComponent(nombre)}`),
     procesos: () => pedir<DicProceso[]>("/diccionario/procesos"),
+    proceso: (id: string) => pedir<DicProcesoDetalle>(`/diccionario/procesos/${encodeURIComponent(id)}`),
+    archivoProceso: (id: string, ruta: string) => pedir<DicVistaArchivo>(`/diccionario/procesos/${encodeURIComponent(id)}/archivo?ruta=${encodeURIComponent(ruta)}`),
     ejecutar: (id: string) => pedir<DicEjecucion>(`/diccionario/procesos/${encodeURIComponent(id)}/ejecutar`, { method: "POST" }),
-    ejecuciones: () => pedir<DicEjecucion[]>("/diccionario/ejecuciones"),
+    ejecuciones: (proceso?: string) => pedir<DicEjecucion[]>(`/diccionario/ejecuciones${proceso ? `?proceso=${encodeURIComponent(proceso)}` : ""}`),
     ejecucion: (id: string) => pedir<DicEjecucionDetalle>(`/diccionario/ejecuciones/${encodeURIComponent(id)}`),
   },
   configuracion: () => pedir<ConfiguracionGeneral>("/configuracion"),
@@ -140,8 +142,6 @@ export const api = {
     pedir<PruebaNotificacion>(`/mcp/google/${encodeURIComponent(servicio)}/ejecutar`, enviar({ herramienta, argumentos })),
   enviarGoogle: (servicio: string, destinatario: string, texto: string) => pedir<PruebaNotificacion>(`/mcp/google/${encodeURIComponent(servicio)}/enviar`, enviar({ destinatario, texto })),
   probarNotificacion: (canal: "correo" | "chat") => pedir<PruebaNotificacion>(`/notificaciones/${canal}/prueba`, { method: "POST" }),
-  servidores: () => pedir<Servidor[]>("/servidores"),
-  probarServidor: (nombre: string) => pedir<PruebaConexion>(`/servidores/${encodeURIComponent(nombre)}/prueba`, { method: "POST" }),
 };
 
 /** URL directa de un archivo generado (descarga, o en línea para imágenes). */

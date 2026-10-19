@@ -21,7 +21,7 @@ class Potencial(View):
 
 class Hallazgos(View):
     def get(self, request: HttpRequest) -> HttpResponse:
-        return h.json(diccionario.hallazgos(request.GET.get("nivel") or None))
+        return h.json(diccionario.hallazgos())
 
 
 class Bases(View):
@@ -49,6 +49,16 @@ class Procesos(View):
         return h.json(procesos.catalogo())
 
 
+class ProcesoDetalle(View):
+    def get(self, request: HttpRequest, id_: str) -> HttpResponse:
+        return h.json(procesos.detalle(id_))
+
+
+class ProcesoArchivo(View):
+    def get(self, request: HttpRequest, id_: str) -> HttpResponse:
+        return h.json(procesos.archivo(id_, request.GET.get("ruta", "")))
+
+
 class ProcesoEjecutar(View):
     def post(self, request: HttpRequest, id_: str) -> HttpResponse:
         return h.json(procesos.ejecutar(id_), status=202)
@@ -56,7 +66,7 @@ class ProcesoEjecutar(View):
 
 class Ejecuciones(View):
     def get(self, request: HttpRequest) -> HttpResponse:
-        return h.json(procesos.historial())
+        return h.json(procesos.historial(request.GET.get("proceso") or None))
 
 
 class EjecucionDetalle(View):

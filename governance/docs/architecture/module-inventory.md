@@ -205,7 +205,7 @@ Monolito modular: cada módulo de negocio tiene sus capas (`dominio` ← `aplica
 | Módulo | Qué hace |
 |---|---|
 | `modulos/diccionario/aplicacion/casos_uso/diccionario.py` | Consultas al diccionario de datos de los reportes MIS: resumen, reportes, tablas, calidad y lo que aporta a los reportes propios |
-| `modulos/diccionario/aplicacion/casos_uso/procesos.py` | Procesos del repo DICCIONARIO que se lanzan desde la web (regenerar, verificar, probar): lista cerrada, uno a la vez, con su historial y log |
+| `modulos/diccionario/aplicacion/casos_uso/procesos.py` | Procesos del repo DICCIONARIO (regenerar, verificar, probar) y la validación de las bases: lista cerrada, uno a la vez, con su detalle, historial y log |
 | `modulos/diccionario/aplicacion/dto.py` | Contratos del módulo diccionario: lo que la web ve del diccionario de datos de los reportes MIS. Solo forma de los datos |
 | `modulos/diccionario/aplicacion/puertos.py` | Puertos del módulo diccionario: la lectura del diccionario.json y el lanzador de procesos del repo DICCIONARIO |
 
@@ -215,7 +215,7 @@ Monolito modular: cada módulo de negocio tiene sus capas (`dominio` ← `aplica
 |---|---|
 | `modulos/diccionario/infraestructura/catalogo_bd.py` | Lee el catálogo de reportes del MIS directo de `mod_rep.rep.RREGREP01`. Solo SELECT, con NOLOCK: esa tabla la usa Ant y un bloqueo la dejaría esperando |
 | `modulos/diccionario/infraestructura/lanzador.py` | Lanza los procesos del repo DICCIONARIO como subproceso (sin shell), uno a la vez, y deja su estado y log en data/outputs/diccionario/ |
-| `modulos/diccionario/infraestructura/lector.py` | Lee el diccionario.json del repo DICCIONARIO (carpeta hermana de REPORTES-AUTOMATIZADOS, o `DICCIONARIO_DIR` del .env) |
+| `modulos/diccionario/infraestructura/lector.py` | Lee el repo DICCIONARIO (carpeta hermana de REPORTES-AUTOMATIZADOS, o `DICCIONARIO_DIR` del .env): su diccionario.json, el código de sus scripts y los archivos que genera. Solo lectura |
 
 **`interfaces/`**
 
@@ -231,9 +231,9 @@ Monolito modular: cada módulo de negocio tiene sus capas (`dominio` ← `aplica
 
 | Módulo | Qué hace |
 |---|---|
-| `modulos/sistema/aplicacion/casos_uso/configuracion.py` | Configuración editable desde la web (cortes, carpetas, driver), cuenta de acceso, servidores de bases de datos y perfil |
+| `modulos/sistema/aplicacion/casos_uso/configuracion.py` | Configuración editable desde la web (cortes, carpetas, driver), cuenta de acceso y perfil |
 | `modulos/sistema/aplicacion/casos_uso/sesion.py` | Inicio de sesión con usuario y clave del .env, y cookie firmada |
-| `modulos/sistema/aplicacion/dto.py` | Contratos del módulo de sistema (sesión, cuenta, ajustes y servidores). Solo forma de los datos: sin lógica |
+| `modulos/sistema/aplicacion/dto.py` | Contratos del módulo de sistema (sesión, cuenta y ajustes). Solo forma de los datos: sin lógica |
 
 **`interfaces/`**
 

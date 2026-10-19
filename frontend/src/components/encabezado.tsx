@@ -17,7 +17,7 @@ import { agruparPorCarpeta, titulo } from "@/lib/formato";
 type Miga = { texto: string; href?: string };
 
 const AJUSTE: Record<string, string> = { notificaciones: "Notificaciones", ia: "Inteligencia artificial", etiquetas: "Etiquetas" };
-const SECCION: Record<string, string> = { reportes: "Reportes", ejecuciones: "Ejecuciones", perfil: "Perfil", diccionario: "Diccionario", configuracion: "Configuración", servidores: "Bases de datos", validacion: "Validación de tablas" };
+const SECCION: Record<string, string> = { reportes: "Reportes", ejecuciones: "Ejecuciones", perfil: "Perfil", diccionario: "Diccionario", configuracion: "Configuración", validacion: "Validación de tablas" };
 
 /** Migas según la ruta: Reportes > Diarios > Cartera sin asignar · Ejecuciones > a1b2c3… */
 function useMigas(): Miga[] {
@@ -35,7 +35,7 @@ function useMigas(): Miga[] {
   }
   if (!id) return [{ texto: raiz.texto }];
   if (seccion === "diccionario") { // Reportes del MIS > base > (reporte | tabla): las tablas viven dentro de su base
-    if (id === "procesos") return [raiz, { texto: "Procesos" }];
+    if (id === "procesos") return detalle ? [raiz, { texto: "Procesos", href: "/diccionario/procesos" }, { texto: decodeURIComponent(detalle) }] : [raiz, { texto: "Procesos" }];
     const bases = { texto: "Reportes del MIS", href: "/diccionario/reportes" };
     const base = id === "tablas" && detalle ? decodeURIComponent(detalle).split(".")[0] : params.get("base");
     const miga = base ? [{ texto: base, href: `/diccionario/reportes?base=${encodeURIComponent(base)}&seccion=${id === "tablas" ? "tablas" : "procedimientos"}` }] : [];

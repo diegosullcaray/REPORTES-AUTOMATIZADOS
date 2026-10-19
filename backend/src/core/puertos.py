@@ -26,13 +26,10 @@ class AccesoBD(Protocol):
 
 @dataclass(frozen=True)
 class InfoServidor:
-    """Lo que la pantalla de bases de datos muestra de un servidor (nunca las credenciales)."""
+    """Un servidor SQL del `.env` (nunca sus credenciales): su nombre y su dirección."""
 
     nombre: str
     servidor: str
-    autenticacion: str            # SQL | Windows
-    credenciales_en_env: bool
-    descripcion: str
 
 
 class Entorno(Protocol):

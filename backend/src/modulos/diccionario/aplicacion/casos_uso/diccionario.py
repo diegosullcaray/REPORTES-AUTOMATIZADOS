@@ -47,7 +47,6 @@ def resumen() -> dto.Resumen:
         b["tablas"].update(t["nombre"].lower() for t in p.get("tablas") or [])
     hallazgos_ = d["hallazgos"]
     return dto.Resumen(
-        carpeta=str(puertos().lector.carpeta()), generado=puertos().lector.generado(),
         reportes=len(d["reportes"]), procedimientos=len(sps), extraidos=sum(b["ext"] for b in bases.values()), validados=sum(b["val"] for b in bases.values()),
         tablas=len(d["tablas"]), columnas=sum(len(t["columnas"]) for t in d["tablas"]),
         errores=sum(h["nivel"] == "error" for h in hallazgos_), avisos=sum(h["nivel"] == "aviso" for h in hallazgos_),
@@ -56,9 +55,9 @@ def resumen() -> dto.Resumen:
     )
 
 
-def hallazgos(nivel: str | None = None) -> list[dto.Hallazgo]:
+def hallazgos() -> list[dto.Hallazgo]:
     orden = {"error": 0, "aviso": 1}
-    return sorted((_hallazgo(h) for h in _datos()["hallazgos"] if nivel in (None, h["nivel"])), key=lambda h: (orden.get(h.nivel, 2), h.regla, h.objeto))
+    return sorted((_hallazgo(h) for h in _datos()["hallazgos"]), key=lambda h: (orden.get(h.nivel, 2), h.regla, h.objeto))
 
 
 # ---------------------------------------------------------------- reportes

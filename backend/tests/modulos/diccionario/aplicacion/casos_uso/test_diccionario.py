@@ -45,7 +45,7 @@ def _sin_base():
 
 @pytest.fixture(autouse=True)
 def dic(monkeypatch):
-    lector = SimpleNamespace(leer=lambda: DICCIONARIO, carpeta=lambda: "carpeta", generado=lambda: "2026-10-18T10:00:00")
+    lector = SimpleNamespace(leer=lambda: DICCIONARIO, carpeta=lambda: "carpeta")
     puertos.registrar(Puertos(lector=lector, lanzador=SimpleNamespace(), catalogo=SimpleNamespace(leer=_sin_base, FUENTE="mod_rep.rep.RREGREP01")))
     monkeypatch.setattr(diccionario, "TABLAS", REGISTRO)
     monkeypatch.setattr(diccionario, "USO", {"mi-reporte": ("storage.com_act.hdgp001",)})
@@ -62,7 +62,6 @@ def test_resumen_cuenta_lo_que_hay():
 
 def test_hallazgos_van_primero_los_errores():
     assert [h.nivel for h in diccionario.hallazgos()] == ["error", "aviso"]
-    assert [h.regla for h in diccionario.hallazgos("aviso")] == ["sql-dinamico"]
 
 
 def test_reporte_al_detalle():

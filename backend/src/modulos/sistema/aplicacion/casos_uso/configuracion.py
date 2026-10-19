@@ -1,4 +1,4 @@
-"""Configuración editable desde la web (cortes, carpetas, driver), cuenta de acceso, servidores de bases de datos y perfil.
+"""Configuración editable desde la web (cortes, carpetas, driver), cuenta de acceso y perfil.
 
 Todo se guarda en el .env; las claves nunca vuelven al navegador. Los cortes rigen desde la próxima ejecución.
 """
@@ -7,16 +7,14 @@ from __future__ import annotations
 
 import getpass
 import platform
-import time
 from datetime import date
 from pathlib import Path
 
 from modulos.reportes.aplicacion.cortes import resolver_corte
-from core.excepciones import NoEncontrado, PeticionInvalida
+from core.excepciones import PeticionInvalida
 from modulos.notificaciones.dominio import entregas
 from core.excepciones import ConfiguracionError, ErrorIntegracion
 from modulos.reportes.dominio.fechas import Cortes, fecha_iso
-from core.servidores import BASES_DE
 
 from modulos.sistema.aplicacion.casos_uso import sesion
 from core.puertos import nucleo
@@ -125,24 +123,3 @@ def guardar_configuracion(p: dto_sistema.PedidoConfiguracion) -> dto_sistema.Con
     # Los cortes rigen ya (las ejecuciones heredan el entorno del proceso); carpetas y driver, al reiniciar la API.
     nucleo().entorno.guardar(cambios, al_proceso=[VARIABLES[c] for c in ("corte_mensual", "corte_diario") if c in p.model_fields_set])
     return configuracion()
-
-
-def servidores() -> list[dto_sistema.Servidor]:
-    return [
-        dto_sistema.Servidor(nombre=s.nombre, servidor=s.servidor, autenticacion=s.autenticacion, credenciales_en_env=s.credenciales_en_env,
-                   descripcion=s.descripcion, bases=list(BASES_DE[s.nombre]))
-        for s in nucleo().entorno.servidores()
-    ]
-
-
-def probar_servidor(nombre: str) -> dto_sistema.PruebaConexion:
-    """SELECT 1 contra un servidor (mismo camino que usan los reportes: db.leer_sql)."""
-    if nombre not in BASES_DE:
-        raise NoEncontrado(f"Servidor desconocido: {nombre}")
-    inicio = time.perf_counter()
-    try:
-        nucleo().bd.leer_sql(nombre, "SELECT 1 AS ok")
-        ok, detalle = True, "Conexión correcta"
-    except Exception as exc:  # noqa: BLE001 - diagnóstico para la pantalla, igual que probar_conexiones
-        ok, detalle = False, f"{type(exc).__name__}: {str(exc)[:200]}"
-    return dto_sistema.PruebaConexion(nombre=nombre, ok=ok, detalle=detalle, milisegundos=round((time.perf_counter() - inicio) * 1000))
