@@ -17,7 +17,7 @@ import { agruparPorCarpeta, titulo } from "@/lib/formato";
 type Miga = { texto: string; href?: string };
 
 const AJUSTE: Record<string, string> = { notificaciones: "Notificaciones", ia: "Inteligencia artificial", etiquetas: "Etiquetas" };
-const SECCION: Record<string, string> = { reportes: "Reportes", ejecuciones: "Ejecuciones", perfil: "Perfil", configuracion: "Configuración", servidores: "Bases de datos", validacion: "Validación de tablas" };
+const SECCION: Record<string, string> = { reportes: "Reportes", ejecuciones: "Ejecuciones", perfil: "Perfil", diccionario: "Diccionario", configuracion: "Configuración", servidores: "Bases de datos", validacion: "Validación de tablas" };
 
 /** Migas según la ruta: Reportes > Diarios > Cartera sin asignar · Ejecuciones > a1b2c3… */
 function useMigas(): Miga[] {
@@ -34,6 +34,14 @@ function useMigas(): Miga[] {
     return nodo?.tipo === "nodo" ? [raiz, { texto: grupos.nombre(g), href: `/reportes?grupo=${g}` }, { texto: `${nodo.orden} · ${nodo.titulo}` }] : [raiz, { texto: grupos.nombre(g) }];
   }
   if (!id) return [{ texto: raiz.texto }];
+  if (seccion === "diccionario") { // Reportes del MIS > base > (reporte | tabla): las tablas viven dentro de su base
+    if (id === "procesos") return [raiz, { texto: "Procesos" }];
+    const bases = { texto: "Reportes del MIS", href: "/diccionario/reportes" };
+    const base = id === "tablas" && detalle ? decodeURIComponent(detalle).split(".")[0] : params.get("base");
+    const miga = base ? [{ texto: base, href: `/diccionario/reportes?base=${encodeURIComponent(base)}&seccion=${id === "tablas" ? "tablas" : "procedimientos"}` }] : [];
+    if (detalle) return [raiz, bases, ...(id === "tablas" ? miga : []), { texto: decodeURIComponent(detalle) }];
+    return base ? [raiz, bases, { texto: base }] : [raiz, { texto: bases.texto }];
+  }
   if (seccion === "validacion") return [raiz, { texto: id === "piero" ? "Heredados de Piero" : id === "erick" ? "Heredados de Erick" : id }];
   if (seccion === "configuracion" && id === "mcp") return detalle ? [raiz, { texto: "MCP", href: "/configuracion/mcp" }, { texto: "Google Workspace" }] : [raiz, { texto: "MCP" }];
   if (seccion === "configuracion") return [raiz, { texto: AJUSTE[id] ?? id }];

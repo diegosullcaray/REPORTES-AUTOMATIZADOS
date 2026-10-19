@@ -2,30 +2,20 @@
 
 from __future__ import annotations
 
-import functools
 import re
 import shutil
-import threading
 from pathlib import Path
 
 from core.excepciones import ConfiguracionError, NoEncontrado, PeticionInvalida
 from core.servidores import servidor_de_base
 from modulos.reportes.aplicacion import dto as dto_reportes
 from modulos.reportes.aplicacion import nuevo_reporte as nr
+from modulos.reportes.aplicacion.exclusivo import exclusivo
 from modulos.reportes.aplicacion.casos_uso import catalogo, etiquetas
 from modulos.reportes.aplicacion.puertos import puertos
 from modulos.reportes.dominio import reglas_fecha, reportes as dominio, tablas as dominio_tablas
 
 BACK = Path(__file__).resolve().parents[5]
-_CANDADO = threading.RLock()  # alta y baja leen y reescriben los mismos archivos del registro: de a una
-
-
-def _exclusivo(f):
-    @functools.wraps(f)
-    def envuelta(*a, **k):
-        with _CANDADO:
-            return f(*a, **k)
-    return envuelta
 
 
 def _limpiar_grupo(carpeta: Path, tope: Path) -> None:
@@ -34,7 +24,7 @@ def _limpiar_grupo(carpeta: Path, tope: Path) -> None:
         shutil.rmtree(carpeta)
 
 
-@_exclusivo
+@exclusivo
 def crear(p: dto_reportes.PedidoReporteNuevo, raiz: Path = BACK, en_vivo: bool = True) -> dto_reportes.ReporteCreado:
     nombre, descripcion, sql = p.nombre.strip(), " ".join(p.descripcion.split()), p.sql.strip() or nr.PLANTILLA_SQL
     nr.validar_identidad(nombre, p.orden)
@@ -47,16 +37,14 @@ def crear(p: dto_reportes.PedidoReporteNuevo, raiz: Path = BACK, en_vivo: bool =
     if any(r.grupo == p.grupo and r.orden == p.orden for r in dominio.REPORTES.values()):
         raise PeticionInvalida(f"Ya hay un reporte {p.orden} en {p.grupo}.")
     usa = re.search(r"^\s*use\s+\[?(\w+)\]?", sql, re.I | re.M)
-    base = p.base or (usa.group(1).lower() if usa else "")
+    base = usa.group(1).lower() if usa else ""
     if not base:
         raise PeticionInvalida("El T-SQL debe empezar con `use <base>;` para saber a qué base conectarse.")
     try:
         servidor = servidor_de_base(base)
     except ConfiguracionError as exc:
         raise PeticionInvalida(str(exc)) from exc
-    frecuencia = p.frecuencia or dominio.FRECUENCIA_GRUPO[p.grupo]
-    if p.grupo in dominio.GRUPOS_BASE and frecuencia != dominio.FRECUENCIA_GRUPO[p.grupo]:
-        raise PeticionInvalida(f"El grupo «{dominio.NOMBRE_GRUPO[p.grupo]}» solo admite reportes {dominio.FRECUENCIA_GRUPO[p.grupo]}s.")
+    frecuencia = dominio.FRECUENCIA_GRUPO[p.grupo]  # la del grupo: ahí se elige, el reporte no la repite
     try:
         usadas = nr.validar_sql(sql, frecuencia, servidor)
     except ConfiguracionError as exc:
@@ -111,7 +99,7 @@ def crear(p: dto_reportes.PedidoReporteNuevo, raiz: Path = BACK, en_vivo: bool =
     return dto_reportes.ReporteCreado(nombre=nombre, ruta=f"backend/src/{ruta_mod}", tablas_nuevas=nuevas)
 
 
-@_exclusivo
+@exclusivo
 def eliminar(nombre: str, raiz: Path = BACK, en_vivo: bool = True) -> None:
     """Deshace `crear`: borra módulo, test y registro. Solo reportes creados desde la web; nunca los del legado."""
     r = dominio.REPORTES.get(nombre)
@@ -155,7 +143,7 @@ def listar_grupos() -> list[dto_reportes.Grupo]:
     return [_grupo(g, catalogo) for g in dominio.GRUPOS]
 
 
-@_exclusivo
+@exclusivo
 def crear_grupo(p: dto_reportes.PedidoGrupo, raiz: Path = BACK, en_vivo: bool = True) -> dto_reportes.Grupo:
     """Un grupo nuevo, con sus etiquetas, donde luego se crean reportes. Queda escrito en dominio/reportes.py."""
     nombre = " ".join(p.nombre.split())
@@ -177,7 +165,7 @@ def asignar_etiquetas(id_: str, p: dto_reportes.PedidoEtiquetasGrupo) -> dto_rep
     return _grupo(id_, puertos().etiquetas.leer())
 
 
-@_exclusivo
+@exclusivo
 def eliminar_grupo(id_: str, raiz: Path = BACK, en_vivo: bool = True) -> None:
     """Quita un grupo creado desde la web. Solo si está vacío (como en Dokploy: primero se borran sus servicios) y nunca los del legado."""
     if id_ not in dominio.GRUPOS:

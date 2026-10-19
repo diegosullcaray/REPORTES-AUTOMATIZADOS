@@ -1,6 +1,7 @@
 // Transporte: única puerta hacia la API de Python (proxy /api en next.config.ts). Sin estado ni presentación.
 import type {
   Archivo, ConfigIA, Etiqueta, GrupoReportes, ConfiguracionGeneral, ModelosIA, PedidoIA, DestinosChat, EntradaValidacion, FirmaGmail, PedidoEnvioArchivos, Ejecucion, EjecucionDetalle, EstadoEnvio, PedidoEjecucion, Notificaciones, Perfil, PedidoConfiguracion, PedidoCuenta, PedidoNotificaciones, PruebaConexion, PruebaNotificacion, ReporteDetalle, PedidoReporteNuevo, ReporteCreado, ReporteResumen, Script,
+  DicBaseDetalle, DicBaseFila, DicEjecucion, DicEjecucionDetalle, DicHallazgo, DicPotencial, DicProceso, DicReporteDetalle, DicResumen, DicTablaDetalle,
   GoogleMcp, PedidoGoogleMcp, PruebaMcp, Servidor, Sesion, Solicitud, Verificacion, VerificacionGrupo, VistaPrevia,
 } from "./tipos";
 
@@ -106,6 +107,19 @@ export const api = {
   eliminarEjecuciones: (ids: string[]) => pedir<{ eliminadas: number }>("/ejecuciones/eliminar", enviar({ ids })),
   ejecucion: (id: string) => pedir<EjecucionDetalle>(`/ejecuciones/${encodeURIComponent(id)}`),
   perfil: () => pedir<Perfil>("/perfil"),
+  dic: {
+    resumen: () => pedir<DicResumen>("/diccionario/resumen"),
+    potencial: () => pedir<DicPotencial>("/diccionario/potencial"),
+    hallazgos: (nivel?: string) => pedir<DicHallazgo[]>(`/diccionario/hallazgos${nivel ? `?nivel=${nivel}` : ""}`),
+    bases: () => pedir<DicBaseFila[]>("/diccionario/bases"),
+    base: (nombre: string) => pedir<DicBaseDetalle>(`/diccionario/bases/${encodeURIComponent(nombre)}`),
+    reporte: (codigo: string) => pedir<DicReporteDetalle>(`/diccionario/reportes/${encodeURIComponent(codigo)}`),
+    tabla: (nombre: string) => pedir<DicTablaDetalle>(`/diccionario/tablas/${encodeURIComponent(nombre)}`),
+    procesos: () => pedir<DicProceso[]>("/diccionario/procesos"),
+    ejecutar: (id: string) => pedir<DicEjecucion>(`/diccionario/procesos/${encodeURIComponent(id)}/ejecutar`, { method: "POST" }),
+    ejecuciones: () => pedir<DicEjecucion[]>("/diccionario/ejecuciones"),
+    ejecucion: (id: string) => pedir<DicEjecucionDetalle>(`/diccionario/ejecuciones/${encodeURIComponent(id)}`),
+  },
   configuracion: () => pedir<ConfiguracionGeneral>("/configuracion"),
   guardarConfiguracion: (cambios: PedidoConfiguracion) => pedir<ConfiguracionGeneral>("/configuracion", { method: "PUT", body: JSON.stringify(cambios) }),
   ia: () => pedir<ConfigIA[]>("/ia"),

@@ -189,9 +189,7 @@ export interface PedidoReporteNuevo {
   nombre: string;
   grupo: Grupo;
   orden: string;
-  base?: string;
   descripcion: string;
-  frecuencia?: Frecuencia;
   sql?: string;
 }
 
@@ -393,3 +391,31 @@ export interface PedidoCuenta {
 export interface Sesion {
   usuario: string;
 }
+
+// ---- Diccionario de datos (módulo diccionario del backend)
+export interface DicHallazgo { nivel: string; regla: string; origen: string; objeto: string; detalle: string; en_linea_base: boolean }
+export interface DicBase { base: string; procedimientos: number; extraidos: number; validados: number; tablas: number }
+export interface DicResumen {
+  carpeta: string; generado: string; reportes: number; procedimientos: number; extraidos: number; validados: number; tablas: number; columnas: number;
+  errores: number; avisos: number; errores_nuevos: number; bases: DicBase[];
+}
+export interface DicBaseFila { base: string; procedimientos: number; validados: number; reportes: number; tablas_propias: number; tablas_usadas: number }
+export interface DicProcedimientoFila { nombre: string; estado: string; reportes: string[]; parametros: number; tablas: number }
+export interface DicTablaDeBase { nombre: string; base: string; tipo: string | null; existe: boolean | null; columnas: number; propia: boolean; usada_por: number; en_registro: boolean }
+export interface DicBaseDetalle { base: string; procedimientos: DicProcedimientoFila[]; tablas: DicTablaDeBase[] }
+export interface DicReporteFila { codigo: string; descripcion: string; procedimiento: string; base: string; estado: string; parametros: number; tablas: number; front: string[] }
+export interface DicParametro { nombre: string; tipo: string | null; por_defecto: string | null; salida: boolean }
+export interface DicColumnaUso { nombre: string; confianza: string | null; es_fecha: boolean }
+export interface DicTablaUso { nombre: string; usos: string[]; columnas: DicColumnaUso[] }
+export interface DicProcedimiento { nombre: string; base: string; estado: string; parametros: DicParametro[]; resultados: string[][]; invoca: string[]; tablas: DicTablaUso[] }
+export interface DicReporteDetalle extends DicReporteFila { parametros_catalogo: string[]; procedimiento_detalle: DicProcedimiento | null; hallazgos: DicHallazgo[] }
+export interface DicRegistroTabla { tipo: string; col_fecha: string | null; confianza: string; reportes: string[] }
+export interface DicTablaFila { nombre: string; base: string; tipo: string | null; existe: boolean | null; columnas: number; procedimientos: number; en_registro: boolean }
+export interface DicColumna { nombre: string; tipo: string | null; acepta_nulos: boolean | null; confianza: string | null; es_fecha: boolean; procedimientos: string[] }
+export interface DicTablaDetalle extends DicTablaFila { descripcion: string | null; ficha: string | null; columnas_detalle: DicColumna[]; reportes_mis: string[]; registro: DicRegistroTabla | null }
+export interface DicSugerenciaFecha { tabla: string; actual: string | null; confianza: string; motivo: string; candidatas: string[] }
+export interface DicTablaDisponible { nombre: string; reportes_mis: number; columnas: number; fechas: string[] }
+export interface DicPotencial { tablas_registradas: number; en_diccionario: number; faltan_en_diccionario: string[]; fechas: DicSugerenciaFecha[]; disponibles: DicTablaDisponible[] }
+export interface DicProceso { id: string; nombre: string; descripcion: string; comando: string; escribe: string }
+export interface DicEjecucion { id: string; proceso: string; estado: "ejecutando" | "ok" | "error"; inicio: string; fin: string | null; codigo: number | null }
+export interface DicEjecucionDetalle extends DicEjecucion { log: string }

@@ -1,0 +1,171 @@
+"use client";
+
+import { BookOpen } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useMemo } from "react";
+import { Chip, ErrorEnLinea, EsqueletoFilas } from "@/components/estados";
+import { Grafico, type Colores } from "@/components/grafico";
+import { Marco } from "@/components/marco";
+import { Pagina } from "@/components/pagina";
+import { Tarjeta } from "@/components/tarjeta";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useConsulta } from "@/hooks/use-consulta";
+import { api } from "@/lib/api";
+import type { DicBase, DicHallazgo, DicPotencial } from "@/lib/tipos";
+import { EnlaceTabla, enlaceTabla } from "./comun";
+
+const EJES = (c: Colores) => ({ axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: c.tenue }, splitLine: { lineStyle: { color: c.linea } } });
+
+/** Cuánto de los procedimientos de cada base está validado, extraído sin validar o pendiente. */
+function Avance({ bases }: { bases: DicBase[] }) {
+  const con = useMemo(() => bases.filter((b) => b.procedimientos > 0).sort((a, b) => b.procedimientos - a.procedimientos), [bases]);
+  const opcion = useMemo(() => (c: Colores) => {
+    const etiqueta = (color: string) => ({ show: true, color, formatter: (p: { value: number }) => (p.value ? String(p.value) : "") });
+    const serie = (name: string, data: number[], color: string, texto: string) => ({
+      name, type: "bar", stack: "sp", data, itemStyle: { color }, barMaxWidth: 28, label: etiqueta(texto), emphasis: { focus: "series" },
+    });
+    return {
+      grid: { left: 8, right: 16, top: 36, bottom: 4, containLabel: true },
+      legend: { top: 0, left: 0, textStyle: { color: c.tenue }, itemWidth: 12, itemHeight: 12 },
+      tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
+      xAxis: { type: "value", ...EJES(c) },
+      yAxis: { type: "category", inverse: true, data: con.map((b) => b.base), axisLine: { lineStyle: { color: c.linea } }, axisTick: { show: false }, axisLabel: { color: c.texto } },
+      series: [
+        serie("Validados", con.map((b) => b.validados), c.marca, c.superficie),
+        serie("Extraídos, sin validar", con.map((b) => b.extraidos - b.validados), c.c("color-mix(in srgb, var(--mis-primary) 50%, var(--mis-surface))"), c.texto),
+        serie("Pendientes de extraer", con.map((b) => b.procedimientos - b.extraidos), c.c("color-mix(in srgb, var(--mis-primary) 14%, var(--mis-surface))"), c.texto),
+      ],
+    };
+  }, [con]);
+  return (
+    <Grafico opcion={opcion} alto={Math.max(160, con.length * 56 + 48)}
+      resumen={`Procedimientos por base: ${con.map((b) => `${b.base} ${b.validados} de ${b.procedimientos} validados`).join("; ")}.`}
+      tabla={{ columnas: ["Base", "Validados", "Extraídos", "Procedimientos"], filas: con.map((b) => [b.base, b.validados, b.extraidos, b.procedimientos]) }} />
+  );
+}
+
+/** Errores y avisos por regla de calidad (lo informativo no se muestra: no pide acción). */
+function Calidad({ hallazgos }: { hallazgos: DicHallazgo[] }) {
+  const reglas = useMemo(() => {
+    const m = new Map<string, { error: number; aviso: number }>();
+    for (const h of hallazgos) {
+      if (h.nivel !== "error" && h.nivel !== "aviso") continue;
+      const r = m.get(h.regla) ?? { error: 0, aviso: 0 };
+      r[h.nivel]++;
+      m.set(h.regla, r);
+    }
+    return [...m].sort((a, b) => b[1].error + b[1].aviso - (a[1].error + a[1].aviso));
+  }, [hallazgos]);
+  const opcion = useMemo(() => (c: Colores) => {
+    const serie = (name: string, data: number[], color: string) => ({ name, type: "bar", stack: "n", data, itemStyle: { color }, barMaxWidth: 22, label: { show: true, color: c.superficie, formatter: (p: { value: number }) => (p.value ? String(p.value) : "") } });
+    return {
+      grid: { left: 8, right: 16, top: 36, bottom: 4, containLabel: true },
+      legend: { top: 0, left: 0, textStyle: { color: c.tenue }, itemWidth: 12, itemHeight: 12 },
+      tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
+      xAxis: { type: "value", ...EJES(c) },
+      yAxis: { type: "category", inverse: true, data: reglas.map(([r]) => r), axisLine: { lineStyle: { color: c.linea } }, axisTick: { show: false }, axisLabel: { color: c.texto } },
+      series: [serie("Errores", reglas.map(([, n]) => n.error), c.peligro), serie("Avisos", reglas.map(([, n]) => n.aviso), c.aviso)],
+    };
+  }, [reglas]);
+  if (!reglas.length) return <p className="text-sm text-muted-foreground">Sin errores ni avisos.</p>;
+  return (
+    <Grafico opcion={opcion} alto={Math.max(160, reglas.length * 40 + 48)}
+      resumen={`Hallazgos por regla: ${reglas.map(([r, n]) => `${r} ${n.error} errores y ${n.aviso} avisos`).join("; ")}.`}
+      tabla={{ columnas: ["Regla", "Errores", "Avisos"], filas: reglas.map(([r, n]) => [r, n.error, n.aviso]) }} />
+  );
+}
+
+/** Las tablas que más reportes del MIS leen y que tus reportes aún no usan: se pulsa una barra para abrirla. */
+function Candidatas({ p }: { p: DicPotencial }) {
+  const router = useRouter();
+  const top = useMemo(() => p.disponibles.slice(0, 10), [p.disponibles]);
+  const opcion = useMemo(() => (c: Colores) => ({
+    grid: { left: 8, right: 36, top: 4, bottom: 4, containLabel: true },
+    tooltip: { trigger: "axis", axisPointer: { type: "shadow" }, valueFormatter: (v: number) => `${v} reportes del MIS` },
+    xAxis: { type: "value", ...EJES(c) },
+    yAxis: { type: "category", inverse: true, data: top.map((t) => t.nombre), axisLine: { lineStyle: { color: c.linea } }, axisTick: { show: false }, axisLabel: { color: c.texto } },
+    series: [{ type: "bar", data: top.map((t) => t.reportes_mis), itemStyle: { color: c.marca }, barMaxWidth: 20, label: { show: true, position: "right", color: c.tenue } }],
+  }), [top]);
+  if (!top.length) return <p className="text-sm text-muted-foreground">Tus reportes ya usan todas las tablas del diccionario.</p>;
+  return (
+    <Grafico opcion={opcion} alto={top.length * 32 + 24} alClic={(nombre) => router.push(enlaceTabla(nombre))}
+      resumen={`Tablas que más reportes del MIS leen: ${top.map((t) => `${t.nombre} ${t.reportes_mis}`).join("; ")}.`}
+      tabla={{ columnas: ["Tabla", "Reportes del MIS", "Fechas"], filas: top.map((t) => [t.nombre, t.reportes_mis, t.fechas.join(", ") || "—"]) }} />
+  );
+}
+
+/** Cuántas de las tablas de tus reportes tienen ficha en el diccionario. */
+function Cobertura({ p }: { p: DicPotencial }) {
+  const pct = p.tablas_registradas ? Math.round((p.en_diccionario / p.tablas_registradas) * 100) : 0;
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex items-baseline justify-between gap-3">
+        <span className="text-sm"><b className="text-2xl font-semibold tabular-nums">{p.en_diccionario}</b> de {p.tablas_registradas} tablas de tus reportes están en el diccionario</span>
+        <span className="text-sm text-muted-foreground tabular-nums">{pct} %</span>
+      </div>
+      <div role="meter" aria-valuenow={p.en_diccionario} aria-valuemin={0} aria-valuemax={p.tablas_registradas} aria-label="Cobertura del diccionario sobre tus tablas"
+        className="h-2.5 overflow-hidden rounded-full" style={{ background: "color-mix(in srgb, var(--mis-primary) 14%, var(--mis-surface))" }}>
+        <div className="h-full rounded-full" style={{ width: `${pct}%`, background: "var(--mis-primary)" }} />
+      </div>
+      {p.faltan_en_diccionario.length > 0 && (
+        <details className="text-xs text-muted-foreground">
+          <summary className="cursor-pointer">{p.faltan_en_diccionario.length} tablas tuyas que ningún procedimiento del MIS usa</summary>
+          <ul className="mt-2 columns-1 gap-6 font-mono sm:columns-2">{p.faltan_en_diccionario.map((n) => <li key={n}>{n}</li>)}</ul>
+        </details>
+      )}
+    </div>
+  );
+}
+
+/** Resumen del diccionario hecho de gráficos: avance por base, calidad y lo que aporta a tus reportes. */
+export function PanelResumen() {
+  const { datos: r, error, recargar } = useConsulta("dic/resumen", api.dic.resumen);
+  const potencial = useConsulta("dic/potencial", api.dic.potencial);
+  const hallazgos = useConsulta("dic/hallazgos", () => api.dic.hallazgos());
+  return (
+    <Pagina>
+      <Marco icono={<BookOpen />} titulo="Diccionario"
+        descripcion={r ? `${r.reportes} reportes · ${r.procedimientos} procedimientos · ${r.tablas} tablas · ${r.columnas.toLocaleString("es-PE")} columnas del MIS` : "Qué procedimiento ejecuta cada reporte del MIS, qué tablas usa y qué columnas."}>
+        {error ? <ErrorEnLinea titulo="No se pudo cargar el diccionario" detalle={error} onReintentar={recargar} /> : !r ? <EsqueletoFilas filas={2} alto="h-40" /> : (
+          <div className="grid gap-4 lg:grid-cols-2">
+            <Tarjeta titulo="Avance de la documentación" descripcion={`${r.validados} de ${r.procedimientos} procedimientos validados`}>
+              <Avance bases={r.bases} />
+            </Tarjeta>
+            <Tarjeta titulo="Calidad" descripcion={<>{r.errores} errores y {r.avisos} avisos {r.errores_nuevos > 0 && <Chip tono="peligro">{r.errores_nuevos} nuevos</Chip>}</>}>
+              {hallazgos.error ? <ErrorEnLinea titulo="No se pudo cargar la calidad" detalle={hallazgos.error} onReintentar={hallazgos.recargar} />
+                : hallazgos.datos ? <Calidad hallazgos={hallazgos.datos} /> : <EsqueletoFilas filas={3} />}
+            </Tarjeta>
+          </div>
+        )}
+      </Marco>
+      {r && (
+        <Tarjeta titulo="Lo que aporta a tus reportes" descripcion="El diccionario cruzado con las tablas que usan tus reportes.">
+          {potencial.error ? <ErrorEnLinea titulo="No se pudo cruzar con tus reportes" detalle={potencial.error} onReintentar={potencial.recargar} /> : !potencial.datos ? <EsqueletoFilas filas={3} /> : (
+            <>
+              <Cobertura p={potencial.datos} />
+              {potencial.datos.fechas.length > 0 && (
+                <Table>
+                  <TableHeader><TableRow><TableHead>Fecha por confirmar en</TableHead><TableHead>Hoy</TableHead><TableHead>Candidatas del diccionario</TableHead></TableRow></TableHeader>
+                  <TableBody>
+                    {potencial.datos.fechas.map((s) => (
+                      <TableRow key={s.tabla}>
+                        <TableCell><EnlaceTabla nombre={s.tabla} /></TableCell>
+                        <TableCell className="font-mono text-[12px]">{s.actual ?? "—"}</TableCell>
+                        <TableCell className="font-mono text-[12px]">{s.candidatas.join(", ")}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+              <div className="flex flex-col gap-2">
+                <h3 className="text-sm font-semibold">Tablas que el MIS más usa y tus reportes no</h3>
+                <p className="text-xs text-muted-foreground">Buenas candidatas para tus próximos reportes. Pulsa una barra para ver sus columnas y fechas.</p>
+                <Candidatas p={potencial.datos} />
+              </div>
+            </>
+          )}
+        </Tarjeta>
+      )}
+    </Pagina>
+  );
+}

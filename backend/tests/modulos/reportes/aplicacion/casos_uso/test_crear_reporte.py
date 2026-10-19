@@ -14,7 +14,7 @@ from modulos.reportes.dominio import reglas_fecha, reportes as dominio, tablas a
 from modulos.reportes.dominio.fechas import Cortes
 
 SQL = "use storage;\ngo\nselect * from storage.com_act.hcda001 a join storage.zz.tabla_nueva b on 1=1 where a.hfecpro='@@F@@'"
-PEDIDO = dict(nombre="mi-reporte", grupo="piero", orden="99", base="storage", descripcion="Mi reporte", sql=SQL)
+PEDIDO = dict(nombre="mi-reporte", grupo="piero", orden="99", descripcion="Mi reporte", sql=SQL)
 
 
 @pytest.fixture
@@ -77,7 +77,7 @@ def test_grupo_repetido_o_invalido(raiz, nombre):
     ({"grupo": "no-existe"}, "No existe el grupo"),
     ({"nombre": "saca-tu-garra"}, "Ya existe"),
     ({"orden": "01"}, "Ya hay un reporte"),
-    ({"base": "inventada"}, "inventada"),
+    ({"sql": "use inventada;" + chr(10) + "select '@@F@@'"}, "inventada"),
     ({"descripcion": "  "}, "descripción"),
 ])
 def test_rechaza_sin_escribir_nada(raiz, cambio, frag):
@@ -113,20 +113,11 @@ def test_no_elimina_los_del_legado_ni_inexistentes(raiz, id_, error):
         crear_reporte.eliminar_grupo(id_, raiz=raiz, en_vivo=False)
 
 
-def test_la_frecuencia_se_elige_por_reporte_en_los_grupos_propios(raiz, dominio_aislado):
-    crear_reporte.crear_grupo(PedidoGrupo(nombre="Mixto"), raiz=raiz)
-    r = crear_reporte.crear(PedidoReporteNuevo(**{**PEDIDO, "grupo": "mixto", "orden": "01", "frecuencia": "diaria"}), raiz=raiz, en_vivo=False)
-    texto = (raiz / "src/modulos/reportes/dominio/reportes.py").read_text(encoding="utf-8")
-    assert "'diarias/mixto/01_mi_reporte'" in texto and r.ruta.endswith("grupos/mixto/r01_mi_reporte.py")
-    assert "frecuencia='diaria'" in (raiz / "src/modulos/reportes/catalogo/grupos/mixto/r01_mi_reporte.py").read_text(encoding="utf-8")
-
-
 def test_la_base_sale_del_use_del_sql(raiz):
-    sin_base = {k: v for k, v in PEDIDO.items() if k != "base"}
-    crear_reporte.crear(PedidoReporteNuevo(**sin_base), raiz=raiz, en_vivo=False)
+    crear_reporte.crear(PedidoReporteNuevo(**PEDIDO), raiz=raiz, en_vivo=False)
     assert "base='storage'" in (raiz / "src/modulos/reportes/catalogo/mensuales/piero/r99_mi_reporte.py").read_text(encoding="utf-8")
     with pytest.raises(PeticionInvalida, match="use <base>"):
-        crear_reporte.crear(PedidoReporteNuevo(**{**sin_base, "nombre": "otro", "sql": "select '@@F@@'"}), raiz=raiz, en_vivo=False)
+        crear_reporte.crear(PedidoReporteNuevo(**{**PEDIDO, "nombre": "otro", "sql": "select '@@F@@'"}), raiz=raiz, en_vivo=False)
 
 
 @pytest.fixture
@@ -152,13 +143,8 @@ def test_no_se_eliminan_reportes_del_legado(raiz):
 
 
 def test_sin_sql_se_crea_con_plantilla(raiz):
-    crear_reporte.crear(PedidoReporteNuevo(**{k: v for k, v in PEDIDO.items() if k not in ("base", "sql")}), raiz=raiz, en_vivo=False)
+    crear_reporte.crear(PedidoReporteNuevo(**{k: v for k, v in PEDIDO.items() if k != "sql"}), raiz=raiz, en_vivo=False)
     assert "pendiente" in (raiz / "src/modulos/reportes/catalogo/mensuales/piero/r99_mi_reporte.py").read_text(encoding="utf-8")
-
-
-def test_los_grupos_del_legado_no_admiten_otra_frecuencia(raiz):
-    with pytest.raises(PeticionInvalida, match="solo admite"):
-        crear_reporte.crear(PedidoReporteNuevo(**{**PEDIDO, "frecuencia": "diaria"}), raiz=raiz, en_vivo=False)
 
 
 def test_grupo_con_etiquetas_y_borrado_las_suelta(raiz, dominio_aislado):

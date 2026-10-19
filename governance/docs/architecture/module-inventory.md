@@ -96,6 +96,7 @@ Monolito modular: cada módulo de negocio tiene sus capas (`dominio` ← `aplica
 | `modulos/reportes/aplicacion/cortes.py` | Fecha de corte de un reporte: argumento > .env > día anterior (la regla es del dominio; el .env se lee por el puerto) |
 | `modulos/reportes/aplicacion/dto.py` | Contratos del módulo de reportes (entrada y salida). Solo forma de los datos: sin lógica |
 | `modulos/reportes/aplicacion/ejecucion.py` | Ejecutor común de reportes (caso de uso): conexión -> validación de tablas y fechas -> consulta -> validación de datos -> Excel |
+| `modulos/reportes/aplicacion/exclusivo.py` | Candado del registro editable (reportes, grupos y etiquetas): cada operación lee y reescribe archivos, así que van de a una |
 | `modulos/reportes/aplicacion/nuevo_reporte.py` | Alta de un reporte desde la web: validación y texto de lo que se escribe (módulo, test y líneas de registro). Sin disco ni estado |
 | `modulos/reportes/aplicacion/puertos.py` | Puertos del módulo de reportes: lo que necesita del mundo exterior (Excel, cola de ejecuciones, historial de validación, lectura de archivos) |
 | `modulos/reportes/aplicacion/rutas.py` | Dónde deja cada reporte sus archivos |
@@ -191,6 +192,38 @@ Monolito modular: cada módulo de negocio tiene sus capas (`dominio` ← `aplica
 | `modulos/integraciones/interfaces/web/vistas/google.py` | MCP de Google Workspace: cliente OAuth, autorización, servidores MCP oficiales y envío directo |
 | `modulos/integraciones/interfaces/web/vistas/ia.py` | Conexiones con proveedores de IA por API key |
 
+### `modulos/diccionario/` — Diccionario de datos de los reportes MIS (repo DICCIONARIO): reportes, tablas, columnas, calidad y procesos.
+
+**`dominio/`**
+
+| Módulo | Qué hace |
+|---|---|
+| `modulos/diccionario/dominio/columnas.py` | Reglas puras del diccionario: qué columnas parecen de fecha y qué procesos del repo DICCIONARIO se pueden lanzar desde la web |
+
+**`aplicacion/`**
+
+| Módulo | Qué hace |
+|---|---|
+| `modulos/diccionario/aplicacion/casos_uso/diccionario.py` | Consultas al diccionario de datos de los reportes MIS: resumen, reportes, tablas, calidad y lo que aporta a los reportes propios |
+| `modulos/diccionario/aplicacion/casos_uso/procesos.py` | Procesos del repo DICCIONARIO que se lanzan desde la web (regenerar, verificar, probar): lista cerrada, uno a la vez, con su historial y log |
+| `modulos/diccionario/aplicacion/dto.py` | Contratos del módulo diccionario: lo que la web ve del diccionario de datos de los reportes MIS. Solo forma de los datos |
+| `modulos/diccionario/aplicacion/puertos.py` | Puertos del módulo diccionario: la lectura del diccionario.json y el lanzador de procesos del repo DICCIONARIO |
+
+**`infraestructura/`**
+
+| Módulo | Qué hace |
+|---|---|
+| `modulos/diccionario/infraestructura/lanzador.py` | Lanza los procesos del repo DICCIONARIO como subproceso (sin shell), uno a la vez, y deja su estado y log en data/outputs/diccionario/ |
+| `modulos/diccionario/infraestructura/lector.py` | Lee el diccionario.json del repo DICCIONARIO (carpeta hermana de REPORTES-AUTOMATIZADOS, o `DICCIONARIO_DIR` del .env) |
+
+**`interfaces/`**
+
+| Módulo | Qué hace |
+|---|---|
+| `modulos/diccionario/interfaces/web/apps.py` | — |
+| `modulos/diccionario/interfaces/web/urls.py` | Rutas del módulo diccionario |
+| `modulos/diccionario/interfaces/web/vistas/diccionario.py` | Diccionario de datos de los reportes MIS: resumen, reportes, tablas, calidad, lo que aporta a los reportes propios y sus procesos |
+
 ### `modulos/sistema/` — Sesión, cuenta, perfil, ajustes y servidores SQL editables desde la web.
 
 **`aplicacion/`**
@@ -211,7 +244,7 @@ Monolito modular: cada módulo de negocio tiene sus capas (`dominio` ← `aplica
 | `modulos/sistema/interfaces/web/vistas/sesion.py` | Inicio y cierre de sesión, y cambio de usuario o contraseña (credenciales en el .env) |
 
 
-## Pruebas (57 archivos)
+## Pruebas (63 archivos)
 
 Reflejan los módulos: `tests/core`, `tests/config` y `tests/modulos/<módulo>/<capa>`.
 
@@ -225,6 +258,11 @@ Reflejan los módulos: `tests/core`, `tests/config` y `tests/modulos/<módulo>/<
 - `tests/core/test_http.py`
 - `tests/core/test_puertos.py`
 - `tests/core/test_servidores.py`
+- `tests/modulos/diccionario/aplicacion/casos_uso/test_diccionario.py`
+- `tests/modulos/diccionario/aplicacion/casos_uso/test_procesos.py`
+- `tests/modulos/diccionario/dominio/test_columnas.py`
+- `tests/modulos/diccionario/infraestructura/test_lanzador.py`
+- `tests/modulos/diccionario/infraestructura/test_lector.py`
 - `tests/modulos/integraciones/aplicacion/casos_uso/test_google.py`
 - `tests/modulos/integraciones/aplicacion/casos_uso/test_herramientas_envio.py`
 - `tests/modulos/integraciones/aplicacion/casos_uso/test_ia.py`
@@ -249,6 +287,7 @@ Reflejan los módulos: `tests/core`, `tests/config` y `tests/modulos/<módulo>/<
 - `tests/modulos/reportes/aplicacion/test_cortes.py`
 - `tests/modulos/reportes/aplicacion/test_dto.py`
 - `tests/modulos/reportes/aplicacion/test_ejecucion.py`
+- `tests/modulos/reportes/aplicacion/test_exclusivo.py`
 - `tests/modulos/reportes/aplicacion/test_nuevo_reporte.py`
 - `tests/modulos/reportes/aplicacion/test_rutas.py`
 - `tests/modulos/reportes/aplicacion/test_verificacion.py`

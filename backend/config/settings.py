@@ -18,6 +18,7 @@ INSTALLED_APPS = [
     "modulos.reportes.interfaces.web",
     "modulos.notificaciones.interfaces.web",
     "modulos.integraciones.interfaces.web",
+    "modulos.diccionario.interfaces.web",
 ]
 
 MIDDLEWARE = [

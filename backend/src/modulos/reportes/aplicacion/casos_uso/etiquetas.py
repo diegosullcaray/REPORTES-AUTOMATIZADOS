@@ -10,6 +10,7 @@ import uuid
 
 from core.excepciones import NoEncontrado, PeticionInvalida
 from modulos.reportes.aplicacion import dto as dto_reportes
+from modulos.reportes.aplicacion.exclusivo import exclusivo
 from modulos.reportes.aplicacion.puertos import puertos
 
 _COLOR = re.compile(r"#[0-9a-f]{6}")
@@ -39,6 +40,7 @@ def _repetida(nombre: str, catalogo: dto_reportes.CatalogoEtiquetas, salvo: str 
         raise PeticionInvalida(f"Ya existe la etiqueta «{nombre}».")
 
 
+@exclusivo
 def crear(p: dto_reportes.PedidoEtiqueta) -> dto_reportes.Etiqueta:
     catalogo, nombre, color = puertos().etiquetas.leer(), _nombre(p.nombre), _color(p.color)
     _repetida(nombre, catalogo)
@@ -48,6 +50,7 @@ def crear(p: dto_reportes.PedidoEtiqueta) -> dto_reportes.Etiqueta:
     return nueva
 
 
+@exclusivo
 def actualizar(id_: str, p: dto_reportes.PedidoEtiqueta) -> dto_reportes.Etiqueta:
     catalogo, nombre, color = puertos().etiquetas.leer(), _nombre(p.nombre), _color(p.color)
     actual = next((e for e in catalogo.etiquetas if e.id == id_), None)
@@ -59,6 +62,7 @@ def actualizar(id_: str, p: dto_reportes.PedidoEtiqueta) -> dto_reportes.Etiquet
     return actual
 
 
+@exclusivo
 def eliminar(id_: str) -> None:
     """Quita la etiqueta y la desprende de todos los grupos."""
     catalogo = puertos().etiquetas.leer()
@@ -75,6 +79,7 @@ def de_grupo(grupo: str, catalogo: dto_reportes.CatalogoEtiquetas | None = None)
     return [e for e in catalogo.etiquetas if e.id in ids]
 
 
+@exclusivo
 def asignar(grupo: str, ids: list[str]) -> list[dto_reportes.Etiqueta]:
     """Deja en el grupo exactamente estas etiquetas (el grupo ya fue validado por quien llama)."""
     catalogo = puertos().etiquetas.leer()
@@ -86,6 +91,7 @@ def asignar(grupo: str, ids: list[str]) -> list[dto_reportes.Etiqueta]:
     return de_grupo(grupo, catalogo)
 
 
+@exclusivo
 def quitar_grupo(grupo: str) -> None:
     catalogo = puertos().etiquetas.leer()
     if catalogo.grupos.pop(grupo, None) is not None:

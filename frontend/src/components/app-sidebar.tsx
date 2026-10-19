@@ -1,7 +1,7 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
-import { Bell, Bot, Tag, ChevronRight, ChevronsUpDown, Database, FileSpreadsheet, History, House, LogOut, Plug, ShieldCheck, SlidersHorizontal, UserRound } from "lucide-react";
+import { BookOpen, FileText, Play, Bell, Bot, Tag, ChevronRight, ChevronsUpDown, Database, FileSpreadsheet, History, House, LogOut, Plug, ShieldCheck, SlidersHorizontal, UserRound } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -59,6 +59,13 @@ function MenuValidacion({ ruta }: { ruta: string }) {
     </Collapsible>
   );
 }
+
+/** Módulo Diccionario: el diccionario de datos de los reportes MIS (repo DICCIONARIO). */
+const DICCIONARIO = [
+  { ruta: "/diccionario", texto: "Resumen", icono: BookOpen },
+  { ruta: "/diccionario/reportes", texto: "Reportes del MIS", icono: FileText },
+  { ruta: "/diccionario/procesos", texto: "Procesos", icono: Play },
+] as const;
 
 /** Páginas de ajustes, cada una con su ruta (como los ítems de Settings en Dokploy). */
 const AJUSTES = [
@@ -140,6 +147,14 @@ export function AppSidebar() {
             <Item destino="/reportes" texto="Reportes" icono={FileSpreadsheet} activo={ruta.startsWith("/reportes")} />
             <MenuValidacion ruta={ruta} />
             <Item destino="/ejecuciones" texto="Ejecuciones" icono={History} activo={ruta.startsWith("/ejecuciones")} insignia={enMarcha} />
+          </SidebarMenu>
+        </SidebarGroup>
+        <SidebarGroup>
+          <SidebarGroupLabel>Diccionario</SidebarGroupLabel>
+          <SidebarMenu className="gap-1">
+            {DICCIONARIO.map(({ ruta: destino, texto, icono }) => (
+              <Item key={destino} destino={destino} texto={texto} icono={icono} activo={destino === "/diccionario" ? ruta === destino : ruta.startsWith(destino) || (destino === "/diccionario/reportes" && ruta.startsWith("/diccionario/tablas"))} />
+            ))}
           </SidebarMenu>
         </SidebarGroup>
         <SidebarGroup>

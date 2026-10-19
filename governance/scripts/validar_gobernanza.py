@@ -224,6 +224,7 @@ DEPENDE = {
     "reportes": {"notificaciones", "integraciones"},
     "notificaciones": set(),
     "integraciones": set(),
+    "diccionario": {"reportes"},   # cruza el diccionario con el registro de tablas de reportes
     "sistema": {"reportes", "notificaciones", "integraciones"},
 }
 # capa -> capas del MISMO módulo que puede importar. `catalogo` son los reportes del legado: el anillo exterior del módulo de reportes.

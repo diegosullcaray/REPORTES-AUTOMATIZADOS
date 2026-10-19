@@ -25,6 +25,7 @@ MODULOS = [
     ("reportes", "Catálogo, ejecución, verificación de tablas, archivos, validación masiva y ejecuciones; incluye los reportes del legado (`catalogo/`)."),
     ("notificaciones", "Correo corporativo (SMTP) y aviso al webhook de Google Chat."),
     ("integraciones", "Google Workspace: autorización OAuth, Gmail, Chat y servidor MCP."),
+    ("diccionario", "Diccionario de datos de los reportes MIS (repo DICCIONARIO): reportes, tablas, columnas, calidad y procesos."),
     ("sistema", "Sesión, cuenta, perfil, ajustes y servidores SQL editables desde la web."),
 ]
 CAPAS = ["dominio", "aplicacion", "infraestructura", "interfaces", "catalogo"]

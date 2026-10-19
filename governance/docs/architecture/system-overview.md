@@ -32,6 +32,7 @@ backend/
         catalogo/                un módulo por reporte del legado: diarios/ · mensuales/piero/ · mensuales/erick/
       notificaciones/            correo corporativo (SMTP) y aviso al webhook de Chat: dominio · aplicacion (correo.py = API pública) · infraestructura · interfaces/web
       integraciones/             Google Workspace: aplicacion (mensajeria.py = API pública) · infraestructura/google · interfaces/{web,mcp}
+      diccionario/            diccionario de datos de los reportes MIS (repo DICCIONARIO, solo lectura): consultas · cruce con el registro de tablas · procesos npm. dominio · aplicacion · infraestructura · interfaces/web
       sistema/                   sesión, cuenta, perfil, ajustes y servidores: aplicacion · interfaces/web
   config/                        (en backend/) proyecto Django (settings, urls, middleware, wsgi) y composicion.py (raíz de composición)
   tests/                           pytest, espejo de src/: core · config · modulos/<módulo>/<capa>
@@ -54,7 +55,7 @@ docs/LEGADO/                       archivo histórico, solo lectura
 | `core` | solo sí mismo | `modulos` |
 | `config` | todo | — |
 
-Grafo permitido: `reportes → notificaciones, integraciones`; `sistema → reportes, notificaciones, integraciones`; `notificaciones` e `integraciones` no dependen de nadie.
+Grafo permitido: `reportes → notificaciones, integraciones`; `diccionario → reportes` (cruza el diccionario con el registro de tablas); `sistema → reportes, notificaciones, integraciones`; `notificaciones` e `integraciones` no dependen de nadie.
 
 Reglas que se conservan de ADR anteriores:
 1. Solo `core/bd.py` conoce pyodbc/SQLAlchemy (regla `conexion-solo-en-db`).

@@ -20,6 +20,7 @@ src/
       catalogo/                un módulo por reporte del legado: diarios/ · mensuales/piero/ · mensuales/erick/
     notificaciones/            correo corporativo (SMTP) y aviso al webhook de Chat: dominio · aplicacion (correo.py = API pública) · infraestructura · interfaces/web
     integraciones/             Google Workspace: aplicacion (mensajeria.py = API pública) · infraestructura/google · interfaces/{web,mcp}
+    diccionario/            diccionario de datos de los reportes MIS (repo DICCIONARIO, solo lectura): consultas · cruce con el registro de tablas · procesos npm. dominio · aplicacion · infraestructura · interfaces/web
     sistema/                   sesión, cuenta, perfil, ajustes y servidores: aplicacion · interfaces/web
 config/                        (en backend/) proyecto Django (settings, urls, middleware, wsgi) y composicion.py (raíz de composición)
 data/inputs/<reporte>/         archivos que entran (Excel/CSV, formatos base); no versionado

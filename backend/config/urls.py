@@ -10,6 +10,7 @@ urlpatterns = [
     path("", include("modulos.reportes.interfaces.web.urls")),
     path("", include("modulos.notificaciones.interfaces.web.urls")),
     path("", include("modulos.integraciones.interfaces.web.urls")),
+    path("", include("modulos.diccionario.interfaces.web.urls")),
 ]
 
 
