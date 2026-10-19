@@ -1,4 +1,8 @@
-"""Lee el repo DICCIONARIO (carpeta hermana de REPORTES-AUTOMATIZADOS, o `DICCIONARIO_DIR` del .env): su diccionario.json, el código de sus scripts y los archivos que genera. Solo lectura."""
+"""Lee el diccionario (el generado desde la base o el diccionario.json del repo DICCIONARIO), el código de los scripts de ese repo y los archivos que genera. Solo lectura del repo.
+
+El repo es la carpeta `DICCIONARIO` junto a este proyecto, o `DICCIONARIO_DIR` del .env; no hace falta: el diccionario también se puede generar desde la base
+(`data/outputs/diccionario/generado/diccionario.json`). Si hay los dos, se usa el que se escribió último.
+"""
 
 from __future__ import annotations
 
@@ -8,7 +12,7 @@ import re
 from datetime import datetime
 from pathlib import Path
 
-from core.configuracion import RAIZ_REPO
+from core.configuracion import DIR_OUTPUTS, RAIZ_REPO
 from core.excepciones import NoEncontrado, PeticionInvalida
 from modulos.diccionario.aplicacion import dto
 
@@ -16,26 +20,52 @@ MAX_TEXTO = 200_000
 _TEXTO = {".md", ".json", ".txt", ".mjs", ".js", ".py"}
 _SCRIPT = re.compile(r"(?:node|python)\s+([\w./-]+\.(?:mjs|js|py))")   # los archivos que un script de package.json ejecuta
 
-_cache: tuple[int, dict] | None = None   # (mtime del archivo, contenido): son ~2 MB y las pantallas lo piden a cada rato
+_cache: tuple[tuple[Path, int], dict] | None = None   # ((archivo, su mtime), contenido): son ~2 MB y las pantallas lo piden a cada rato
 
 
 def carpeta() -> Path:
     return Path(os.getenv("DICCIONARIO_DIR") or RAIZ_REPO.parent / "DICCIONARIO")
 
 
-def _archivo() -> Path:
-    return carpeta() / "diccionario" / "diccionario.json"
+def repo_disponible() -> bool:
+    return (carpeta() / "package.json").is_file()
+
+
+def _generado() -> Path:
+    return DIR_OUTPUTS / "diccionario" / "generado" / "diccionario.json"
+
+
+def _elegido() -> tuple[str, Path] | None:
+    """El diccionario más reciente entre el generado desde la base y el del repo."""
+    candidatos = [(o, p) for o, p in (("bd", _generado()), ("repo", carpeta() / "diccionario" / "diccionario.json")) if p.is_file()]
+    return max(candidatos, key=lambda c: c[1].stat().st_mtime_ns, default=None)
 
 
 def leer() -> dict:
     global _cache
-    ruta = _archivo()
-    if not ruta.is_file():
-        raise NoEncontrado(f"No encontré el diccionario en {ruta}. Clona el repo DICCIONARIO junto a este o define DICCIONARIO_DIR en el .env.")
-    t = ruta.stat().st_mtime_ns
-    if _cache is None or _cache[0] != t:
-        _cache = (t, json.loads(ruta.read_text(encoding="utf-8")))
+    elegido = _elegido()
+    if elegido is None:
+        raise NoEncontrado("Todavía no hay diccionario: genéralo desde la base en Diccionario › Procesos › «Generar el diccionario desde la base» "
+                           "(o deja el repo DICCIONARIO junto a este, o define DICCIONARIO_DIR en el .env).")
+    ruta = elegido[1]
+    clave = (ruta, ruta.stat().st_mtime_ns)
+    if _cache is None or _cache[0] != clave:
+        _cache = (clave, json.loads(ruta.read_text(encoding="utf-8")))
     return _cache[1]
+
+
+def origen() -> tuple[str, str] | None:
+    elegido = _elegido()
+    return None if elegido is None else (elegido[0], datetime.fromtimestamp(elegido[1].stat().st_mtime).isoformat(timespec="seconds"))
+
+
+def guardar(datos: dict) -> None:
+    """Escribe el diccionario generado; el reemplazo es atómico: nunca queda un archivo a medias."""
+    destino = _generado()
+    destino.parent.mkdir(parents=True, exist_ok=True)
+    temporal = destino.with_suffix(".json.tmp")
+    temporal.write_text(json.dumps(datos, ensure_ascii=False), encoding="utf-8")
+    temporal.replace(destino)
 
 
 def _dentro(ruta: Path) -> bool:

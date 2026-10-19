@@ -15,13 +15,23 @@ from modulos.reportes.dominio.verificacion import causa_de
 _EXTRAIDO = {"extraido", "validado"}
 
 
+def _guardado() -> dict | None:
+    """El diccionario ya generado (de la base o del repo), o None si todavía no hay."""
+    try:
+        return puertos().lector.leer()
+    except NoEncontrado:
+        return None
+
+
 def _catalogo() -> tuple[list[dict], dto.OrigenCatalogo]:
-    """Los reportes del MIS: los de `mod_rep.rep.RREGREP01` (en vivo, con las pantallas del front que trae el diccionario) o, sin conexión, los del diccionario.json."""
-    en_json = puertos().lector.leer()["reportes"]
+    """Los reportes del MIS: los de `mod_rep.rep.RREGREP01` (en vivo, con las pantallas del front si el diccionario las trae) o, sin conexión, los del diccionario guardado."""
+    en_json = (_guardado() or {}).get("reportes", [])
     try:
         filas = puertos().catalogo.leer()
-    except Exception as exc:  # noqa: BLE001 - sin VPN, sin permisos o tabla cambiada: se sigue con el diccionario.json y se dice por qué
-        return en_json, dto.OrigenCatalogo(fuente="diccionario.json", motivo=causa_de(exc, servidor_de_base("mod_rep"))[0], nuevos=[], retirados=[])
+    except Exception as exc:  # noqa: BLE001 - sin VPN, sin permisos o tabla cambiada: se sigue con el diccionario guardado y se dice por qué
+        if not en_json:
+            raise NoEncontrado(f"No hay diccionario guardado y no pude leer el catálogo: {causa_de(exc, servidor_de_base('mod_rep'))[0]}") from exc
+        return en_json, dto.OrigenCatalogo(fuente="diccionario guardado", motivo=causa_de(exc, servidor_de_base("mod_rep"))[0], nuevos=[], retirados=[])
     front = {r["codigo"]: r.get("front") or [] for r in en_json}
     codigos = {f["codigo"] for f in filas}
     return ([{**f, "front": front.get(f["codigo"], [])} for f in filas],
@@ -29,7 +39,8 @@ def _catalogo() -> tuple[list[dict], dto.OrigenCatalogo]:
 
 
 def _datos() -> dict:
-    return {**puertos().lector.leer(), "reportes": _catalogo()[0]}
+    """Catálogo en vivo + lo guardado; sin diccionario guardado quedan solo los reportes (sin tablas, columnas ni hallazgos)."""
+    return {"procedimientos": [], "tablas": [], "hallazgos": [], **(_guardado() or {}), "reportes": _catalogo()[0]}
 
 
 def _hallazgo(h: dict) -> dto.Hallazgo:
@@ -45,12 +56,13 @@ def resumen() -> dto.Resumen:
         b["ext"] += p["estado"] in _EXTRAIDO
         b["val"] += p["estado"] == "validado"
         b["tablas"].update(t["nombre"].lower() for t in p.get("tablas") or [])
-    hallazgos_ = d["hallazgos"]
+    hallazgos_, origen = d["hallazgos"], puertos().lector.origen()
     return dto.Resumen(
         reportes=len(d["reportes"]), procedimientos=len(sps), extraidos=sum(b["ext"] for b in bases.values()), validados=sum(b["val"] for b in bases.values()),
         tablas=len(d["tablas"]), columnas=sum(len(t["columnas"]) for t in d["tablas"]),
         errores=sum(h["nivel"] == "error" for h in hallazgos_), avisos=sum(h["nivel"] == "aviso" for h in hallazgos_),
-        errores_nuevos=sum(h["nivel"] == "error" and not h.get("enLineaBase") for h in hallazgos_), catalogo=_catalogo()[1],
+        errores_nuevos=sum(h["nivel"] == "error" and not h.get("enLineaBase") for h in hallazgos_) if (origen and origen[0] == "repo") else 0,   # «nuevo» solo existe con la línea base del repo
+        catalogo=_catalogo()[1], datos=dto.DatosDiccionario(origen=origen[0] if origen else "ninguno", generado=origen[1] if origen else None),
         bases=[dto.BaseResumen(base=n, procedimientos=b["sp"], extraidos=b["ext"], validados=b["val"], tablas=len(b["tablas"])) for n, b in sorted(bases.items())],
     )
 
@@ -65,11 +77,11 @@ def hallazgos() -> list[dto.Hallazgo]:
 def _fila(r: dict, sp: dict | None) -> dto.ReporteFila:
     return dto.ReporteFila(
         codigo=r["codigo"], descripcion=r.get("descripcion") or "", procedimiento=r.get("procedimiento") or "", base=sp["base"] if sp else "",
-        estado=sp["estado"] if sp else "sin procedimiento", parametros=len(r.get("parametros") or []), tablas=len(sp.get("tablas") or []) if sp else 0, front=r.get("front") or [])
+        estado=sp["estado"] if sp else ("sin extraer" if r.get("procedimiento") else "sin procedimiento"), parametros=len(r.get("parametros") or []), tablas=len(sp.get("tablas") or []) if sp else 0, front=r.get("front") or [])
 
 
 def _procedimientos_por_base(d: dict) -> dict[str, list[dto.ProcedimientoFila]]:
-    """Cada procedimiento en la base donde vive; los que el catálogo nombra y no existen van en la base de su nombre, como «sin procedimiento»."""
+    """Cada procedimiento en la base donde vive; los que el catálogo nombra y el diccionario aún no tiene van en la base de su nombre, como «sin extraer»."""
     sps = {p["nombre"]: p for p in d["procedimientos"]}
     por_reporte: dict[str, set[str]] = {}
     for r in d["reportes"]:
@@ -79,7 +91,7 @@ def _procedimientos_por_base(d: dict) -> dict[str, list[dto.ProcedimientoFila]]:
     for n in sorted(sps.keys() | por_reporte.keys()):
         sp = sps.get(n)
         fila = dto.ProcedimientoFila(
-            nombre=n, estado=sp["estado"] if sp else "sin procedimiento", reportes=sorted(por_reporte.get(n, set()) | set((sp or {}).get("reportes") or [])),
+            nombre=n, estado=sp["estado"] if sp else "sin extraer", reportes=sorted(por_reporte.get(n, set()) | set((sp or {}).get("reportes") or [])),
             parametros=len((sp or {}).get("parametros") or []), tablas=len((sp or {}).get("tablas") or []))
         por_base.setdefault(sp["base"] if sp else n.split(".")[0], []).append(fila)
     return por_base

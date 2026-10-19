@@ -45,8 +45,8 @@ def _sin_base():
 
 @pytest.fixture(autouse=True)
 def dic(monkeypatch):
-    lector = SimpleNamespace(leer=lambda: DICCIONARIO, carpeta=lambda: "carpeta")
-    puertos.registrar(Puertos(lector=lector, lanzador=SimpleNamespace(), catalogo=SimpleNamespace(leer=_sin_base, FUENTE="mod_rep.rep.RREGREP01")))
+    lector = SimpleNamespace(leer=lambda: DICCIONARIO, carpeta=lambda: "carpeta", origen=lambda: ("repo", "2026-10-18T10:00:00"))
+    puertos.registrar(Puertos(lector=lector, lanzador=SimpleNamespace(), catalogo=SimpleNamespace(leer=_sin_base, FUENTE="mod_rep.rep.RREGREP01"), generador=SimpleNamespace()))
     monkeypatch.setattr(diccionario, "TABLAS", REGISTRO)
     monkeypatch.setattr(diccionario, "USO", {"mi-reporte": ("storage.com_act.hdgp001",)})
     yield
@@ -69,7 +69,7 @@ def test_reporte_al_detalle():
     assert (d.estado, d.base, d.tablas) == ("validado", "mod_rep", 1)
     assert d.procedimiento_detalle.tablas[0].columnas[0].es_fecha and [h.regla for h in d.hallazgos] == ["tabla-inexistente"]
     sin = diccionario.reporte("R2")
-    assert (sin.estado, sin.procedimiento_detalle) == ("sin procedimiento", None)
+    assert (sin.estado, sin.procedimiento_detalle) == ("sin extraer", None)
     with pytest.raises(NoEncontrado):
         diccionario.reporte("NO")
 
@@ -89,7 +89,7 @@ def test_una_base_tiene_dos_secciones_procedimientos_y_tablas_que_ocupa():
     zz = diccionario.base("zz")
     assert [(t.nombre, t.propia) for t in zz.tablas] == [("zz.dbo.Fantasma", True), ("zz.dbo.Nueva", True)]
     sin = diccionario.base("x")
-    assert [(p.nombre, p.estado) for p in sin.procedimientos] == [("x.y.NOEXISTE", "sin procedimiento")]
+    assert [(p.nombre, p.estado) for p in sin.procedimientos] == [("x.y.NOEXISTE", "sin extraer")]
     with pytest.raises(NoEncontrado):
         diccionario.base("inventada")
 
@@ -127,7 +127,7 @@ def test_api_responde_y_protege_con_sesion():
 
 def test_sin_conexion_el_catalogo_sale_del_json_y_dice_por_que():
     r = diccionario.resumen()
-    assert (r.reportes, r.catalogo.fuente) == (2, "diccionario.json")
+    assert (r.reportes, r.catalogo.fuente) == (2, "diccionario guardado")
     assert r.catalogo.motivo and not r.catalogo.nuevos and not r.catalogo.retirados
 
 
@@ -141,7 +141,41 @@ def test_el_catalogo_sale_de_la_base_y_se_cruza_con_el_json():
     assert (r.reportes, r.catalogo.fuente, r.catalogo.nuevos, r.catalogo.retirados) == (2, "mod_rep.rep.RREGREP01", ["R3"], ["R2"])
     d = diccionario.reporte("R1")
     assert (d.descripcion, d.front) == ("Uno en la base", ["reportes / mensual"])   # la descripción manda la base; las pantallas, el diccionario
-    assert diccionario.reporte("R3").front == [] and diccionario.reporte("R3").estado == "sin procedimiento"   # aún sin extraer
+    assert diccionario.reporte("R3").front == [] and diccionario.reporte("R3").estado == "sin extraer"   # aún sin extraer
     with pytest.raises(NoEncontrado):
         diccionario.reporte("R2")
     assert {p.nombre for p in diccionario.base("mod_rep").procedimientos} == {SP, "mod_rep.com.SP3"}
+
+
+def test_sin_diccionario_guardado_igual_funciona_con_solo_el_catalogo():
+    from core.excepciones import NoEncontrado as _Sin
+
+    def sin_archivo():
+        raise _Sin("Todavía no hay diccionario")
+
+    puertos().lector = SimpleNamespace(leer=sin_archivo, carpeta=lambda: "c", origen=lambda: None)
+    puertos().catalogo = SimpleNamespace(leer=lambda: [{"codigo": "R9", "descripcion": "Nuevo", "procedimiento": "mod_rep.com.SP9", "parametros": []}], FUENTE="mod_rep.rep.RREGREP01")
+    r = diccionario.resumen()
+    assert (r.datos.origen, r.datos.generado, r.reportes, r.catalogo.fuente) == ("ninguno", None, 1, "mod_rep.rep.RREGREP01")
+    assert (r.tablas, r.errores, r.errores_nuevos) == (0, 0, 0)
+    assert [(b.base, b.procedimientos, b.reportes) for b in diccionario.bases()] == [("mod_rep", 1, 1)]
+    assert diccionario.base("mod_rep").procedimientos[0].estado == "sin extraer"        # existe en el catálogo; falta generar el detalle
+
+
+def test_sin_diccionario_y_sin_catalogo_dice_que_hacer():
+    def sin_archivo():
+        from core.excepciones import NoEncontrado as _Sin
+
+        raise _Sin("x")
+
+    puertos().lector = SimpleNamespace(leer=sin_archivo, carpeta=lambda: "c", origen=lambda: None)
+    with pytest.raises(NoEncontrado, match="No hay diccionario guardado y no pude leer el catálogo"):
+        diccionario.resumen()
+
+
+def test_el_origen_del_diccionario_se_informa():
+    r = diccionario.resumen()
+    assert (r.datos.origen, r.datos.generado) == ("repo", "2026-10-18T10:00:00") and r.errores_nuevos == 1      # «nuevos» solo con la línea base del repo
+    puertos().lector = SimpleNamespace(leer=lambda: DICCIONARIO, carpeta=lambda: "c", origen=lambda: ("bd", "2026-10-18T11:00:00"))
+    r = diccionario.resumen()
+    assert r.datos.origen == "bd" and r.errores_nuevos == 0

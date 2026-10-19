@@ -22,14 +22,17 @@ def repo(monkeypatch, tmp_path):
     (base / "package.json").write_text(json.dumps({"scripts": scripts}), encoding="utf-8")
     (tmp_path / "fuera.mjs").write_text("secreto", encoding="utf-8")   # fuera del repo: nunca se muestra
     monkeypatch.setenv("DICCIONARIO_DIR", str(base))
+    monkeypatch.setattr(lector, "DIR_OUTPUTS", tmp_path / "salidas")
     monkeypatch.setattr(lector, "_cache", None)
     return base
 
 
-def test_sin_diccionario_dice_donde_buscarlo(monkeypatch, tmp_path):
-    monkeypatch.setenv("DICCIONARIO_DIR", str(tmp_path))
-    with pytest.raises(NoEncontrado, match="DICCIONARIO_DIR"):
+def test_sin_diccionario_dice_como_generarlo(monkeypatch, tmp_path):
+    monkeypatch.setenv("DICCIONARIO_DIR", str(tmp_path / "no-hay-repo"))
+    monkeypatch.setattr(lector, "DIR_OUTPUTS", tmp_path / "salidas")
+    with pytest.raises(NoEncontrado, match="Generar el diccionario desde la base"):
         lector.leer()
+    assert lector.origen() is None and not lector.repo_disponible()
 
 
 def test_el_lector_relee_solo_si_el_archivo_cambio(repo):
@@ -61,3 +64,22 @@ def test_el_script_trae_el_comando_y_el_codigo_de_sus_archivos_pero_no_los_de_fu
     assert [x.ruta for x in lector.script_npm("test")] == ["package.json › scripts.test"]
     with pytest.raises(NoEncontrado):
         lector.script_npm("inventado")
+
+
+def test_el_diccionario_generado_desde_la_base_funciona_sin_el_repo(monkeypatch, tmp_path):
+    monkeypatch.setenv("DICCIONARIO_DIR", str(tmp_path / "no-hay-repo"))
+    monkeypatch.setattr(lector, "DIR_OUTPUTS", tmp_path / "salidas")
+    monkeypatch.setattr(lector, "_cache", None)
+    lector.guardar({"reportes": [], "marca": "bd"})
+    assert lector.leer()["marca"] == "bd" and lector.origen()[0] == "bd" and not lector.repo_disponible()
+    assert not list((tmp_path / "salidas").rglob("*.tmp"))                    # el reemplazo es atómico: no queda el temporal
+
+
+def test_si_hay_los_dos_se_usa_el_escrito_ultimo(repo):
+    archivo = repo / "diccionario" / "diccionario.json"
+    lector.guardar({"marca": "bd"})
+    generado = repo.parent / "salidas" / "diccionario" / "generado" / "diccionario.json"
+    os.utime(archivo, ns=(archivo.stat().st_atime_ns, generado.stat().st_mtime_ns - 10**9))      # el del repo, más viejo
+    assert lector.leer() == {"marca": "bd"} and lector.origen()[0] == "bd"
+    os.utime(archivo, ns=(archivo.stat().st_atime_ns, generado.stat().st_mtime_ns + 10**9))      # ahora el del repo es el más nuevo
+    assert lector.leer() == {"v": 1} and lector.origen()[0] == "repo" and lector.repo_disponible()

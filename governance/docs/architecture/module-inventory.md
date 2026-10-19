@@ -198,12 +198,14 @@ Monolito modular: cada módulo de negocio tiene sus capas (`dominio` ← `aplica
 
 | Módulo | Qué hace |
 |---|---|
+| `modulos/diccionario/dominio/armado.py` | Arma el diccionario (la misma forma del `diccionario.json` del repo DICCIONARIO) con lo que SQL Server sabe de sí mismo |
 | `modulos/diccionario/dominio/columnas.py` | Reglas puras del diccionario: qué columnas parecen de fecha y qué procesos del repo DICCIONARIO se pueden lanzar desde la web |
 
 **`aplicacion/`**
 
 | Módulo | Qué hace |
 |---|---|
+| `modulos/diccionario/aplicacion/casos_uso/construir.py` | Genera el diccionario desde la base: el catálogo de reportes (mod_rep.rep.RREGREP01) y lo que SQL Server sabe de cada procedimiento. Sin el repo DICCIONARIO |
 | `modulos/diccionario/aplicacion/casos_uso/diccionario.py` | Consultas al diccionario de datos de los reportes MIS: resumen, reportes, tablas, calidad y lo que aporta a los reportes propios |
 | `modulos/diccionario/aplicacion/casos_uso/procesos.py` | Procesos del repo DICCIONARIO (regenerar, verificar, probar) y la validación de las bases: lista cerrada, uno a la vez, con su detalle, historial y log |
 | `modulos/diccionario/aplicacion/dto.py` | Contratos del módulo diccionario: lo que la web ve del diccionario de datos de los reportes MIS. Solo forma de los datos |
@@ -214,8 +216,9 @@ Monolito modular: cada módulo de negocio tiene sus capas (`dominio` ← `aplica
 | Módulo | Qué hace |
 |---|---|
 | `modulos/diccionario/infraestructura/catalogo_bd.py` | Lee el catálogo de reportes del MIS directo de `mod_rep.rep.RREGREP01`. Solo SELECT, con NOLOCK: esa tabla la usa Ant y un bloqueo la dejaría esperando |
+| `modulos/diccionario/infraestructura/generador_bd.py` | Lo que SQL Server sabe de los procedimientos del MIS: dependencias, parámetros y estructura de tablas. Solo lectura de metadatos (nada de EXEC de un SP de reporte) |
 | `modulos/diccionario/infraestructura/lanzador.py` | Lanza los procesos del repo DICCIONARIO como subproceso (sin shell), uno a la vez, y deja su estado y log en data/outputs/diccionario/ |
-| `modulos/diccionario/infraestructura/lector.py` | Lee el repo DICCIONARIO (carpeta hermana de REPORTES-AUTOMATIZADOS, o `DICCIONARIO_DIR` del .env): su diccionario.json, el código de sus scripts y los archivos que genera. Solo lectura |
+| `modulos/diccionario/infraestructura/lector.py` | Lee el diccionario (el generado desde la base o el diccionario.json del repo DICCIONARIO), el código de los scripts de ese repo y los archivos que genera. Solo lectura del repo |
 
 **`interfaces/`**
 
@@ -245,7 +248,7 @@ Monolito modular: cada módulo de negocio tiene sus capas (`dominio` ← `aplica
 | `modulos/sistema/interfaces/web/vistas/sesion.py` | Inicio y cierre de sesión, y cambio de usuario o contraseña (credenciales en el .env) |
 
 
-## Pruebas (65 archivos)
+## Pruebas (68 archivos)
 
 Reflejan los módulos: `tests/core`, `tests/config` y `tests/modulos/<módulo>/<capa>`.
 
@@ -259,10 +262,13 @@ Reflejan los módulos: `tests/core`, `tests/config` y `tests/modulos/<módulo>/<
 - `tests/core/test_http.py`
 - `tests/core/test_puertos.py`
 - `tests/core/test_servidores.py`
+- `tests/modulos/diccionario/aplicacion/casos_uso/test_construir.py`
 - `tests/modulos/diccionario/aplicacion/casos_uso/test_diccionario.py`
 - `tests/modulos/diccionario/aplicacion/casos_uso/test_procesos.py`
+- `tests/modulos/diccionario/dominio/test_armado.py`
 - `tests/modulos/diccionario/dominio/test_columnas.py`
 - `tests/modulos/diccionario/infraestructura/test_catalogo_bd.py`
+- `tests/modulos/diccionario/infraestructura/test_generador_bd.py`
 - `tests/modulos/diccionario/infraestructura/test_lanzador.py`
 - `tests/modulos/diccionario/infraestructura/test_lector.py`
 - `tests/modulos/integraciones/aplicacion/casos_uso/test_google.py`

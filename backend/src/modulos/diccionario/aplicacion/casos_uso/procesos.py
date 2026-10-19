@@ -11,7 +11,9 @@ from core.excepciones import NoEncontrado
 from core.puertos import nucleo
 from core.servidores import BASES_DE
 from modulos.diccionario.aplicacion import dto
+from modulos.diccionario.aplicacion.casos_uso import construir
 from modulos.diccionario.aplicacion.puertos import puertos
+from modulos.diccionario.dominio import armado
 from modulos.diccionario.dominio.columnas import PROCESOS, Proceso
 from modulos.reportes.dominio.verificacion import causa_de
 
@@ -25,14 +27,20 @@ def _definicion(p: Proceso) -> dto.ProcesoDef:
     return dto.ProcesoDef(id=p.id, nombre=p.nombre, descripcion=p.descripcion, comando=" ".join(p.comando), escribe=p.escribe, genera=bool(p.generados))
 
 
+def _disponible(p: Proceso) -> bool:
+    return p.npm is None or puertos().lector.repo_disponible()   # los de npm necesitan el repo DICCIONARIO; los demás corren dentro de la API
+
+
 def _proceso(id_: str) -> Proceso:
     if id_ not in PROCESOS:  # el comando sale solo de PROCESOS, nunca de la petición
         raise NoEncontrado(f"No existe el proceso «{id_}».")
+    if not _disponible(PROCESOS[id_]):
+        raise NoEncontrado(f"«{PROCESOS[id_].nombre}» necesita el repo DICCIONARIO: déjalo junto a este proyecto o define DICCIONARIO_DIR en el .env.")
     return PROCESOS[id_]
 
 
 def catalogo() -> list[dto.ProcesoDef]:
-    return [_definicion(p) for p in PROCESOS.values()]
+    return [_definicion(p) for p in PROCESOS.values() if _disponible(p)]
 
 
 def _script_bases() -> list[dto.ScriptArchivo]:
@@ -46,10 +54,18 @@ def _script_bases() -> list[dto.ScriptArchivo]:
             dto.ScriptArchivo(ruta="core/bd.py · leer_sql", codigo=inspect.getsource(nucleo().bd.leer_sql))]
 
 
+def _script_construir() -> list[dto.ScriptArchivo]:
+    """Lo que de verdad corre «construir»: las consultas a cada base y el código que arma el diccionario con sus respuestas."""
+    return [dto.ScriptArchivo(ruta="SQL · catálogo de reportes (mod_rep.rep.RREGREP01)", codigo=puertos().catalogo.CONSULTA),
+            *puertos().generador.scripts(),
+            dto.ScriptArchivo(ruta="construir.py · construir", codigo=inspect.getsource(construir.construir)),
+            dto.ScriptArchivo(ruta="armado.py · armar", codigo=inspect.getsource(armado.armar))]
+
+
 def detalle(id_: str) -> dto.ProcesoDetalle:
     """Lo que hace el proceso (su código) y lo que deja (los archivos que se pueden ver)."""
     p = _proceso(id_)
-    scripts = puertos().lector.script_npm(p.npm) if p.npm else _script_bases()
+    scripts = puertos().lector.script_npm(p.npm) if p.npm else _script_construir() if id_ == "construir" else _script_bases()
     return dto.ProcesoDetalle(**_definicion(p).model_dump(), scripts=scripts, archivos=puertos().lector.archivos(p.generados) if p.generados else [])
 
 
@@ -109,6 +125,8 @@ def ejecutar(id_: str) -> dto.Ejecucion:
     lanzador = puertos().lanzador
     if id_ == "bases":
         return lanzador.ejecutar_tarea(id_, _validar_bases)
+    if id_ == "construir":
+        return lanzador.ejecutar_tarea(id_, construir.construir)
     # «uno a la vez» lo garantiza el lanzador (comprueba y anota bajo un mismo candado)
     return lanzador.ejecutar(id_, p.comando, puertos().lector.carpeta())
 

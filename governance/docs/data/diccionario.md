@@ -1,15 +1,16 @@
 # Diccionario de datos de los reportes MIS (contrato del archivo)
 
-El repo hermano `DICCIONARIO` documenta qué procedimiento almacenado (SP) ejecuta cada reporte del MIS (`RCODREP`), qué tablas usa y qué columnas. Esta app **solo lo lee**, desde el módulo `diccionario` ([ADR-0017](../architecture/adr/ADR-0017-modulo-diccionario.md)). La fuente de verdad es ese repo (su AGENTS.md: gana la fuente; lo derivado se regenera, no se edita).
+El diccionario documenta qué procedimiento almacenado (SP) ejecuta cada reporte del MIS (`RCODREP`), qué tablas usa y qué columnas. Esta app **solo lo lee** ([ADR-0017](../architecture/adr/ADR-0017-modulo-diccionario.md)). Puede venir de dos orígenes con la misma forma (`diccionario.json`): **generado desde la base** por esta app, o el del repo hermano `DICCIONARIO` (su AGENTS.md: gana la fuente; lo derivado se regenera, no se edita). Si hay los dos, se usa el escrito último.
 
-**Archivo:** `<DICCIONARIO_DIR>/diccionario/diccionario.json` (por defecto, la carpeta `DICCIONARIO` junto a este repo). Se genera con `npm run generar` en ese repo.
+**Archivos:** `data/outputs/diccionario/generado/diccionario.json` (generado desde la base; no versionado) y `<DICCIONARIO_DIR>/diccionario/diccionario.json` (del repo, por defecto la carpeta `DICCIONARIO` junto a este repo; se genera con `npm run generar` allá).
 
 ## De dónde sale cada cosa
 
 | Dato | Fuente |
 |---|---|
 | **Catálogo de reportes** (código, descripción, procedimiento, parámetros) | `mod_rep.rep.RREGREP01` en vivo: `RCODREP`, `RDESREP` y `RTPREP` (JSON `{"name": "<base>.<esquema>.<SP>", "params": [{"order": n, "name": "…"}]}`). Un `RTPREP` ilegible deja el reporte sin procedimiento. Sin conexión: `reportes[]` del `diccionario.json` |
-| Procedimientos, tablas, columnas, hallazgos y pantallas del front (`front[]`) | `diccionario.json` |
+| Procedimientos, tablas, columnas y hallazgos | el diccionario guardado: generado desde la base (metadatos de SQL Server: dependencias, parámetros y `INFORMATION_SCHEMA`) o el del repo |
+| Pantallas del front (`front[]`) y línea base de hallazgos | solo el `diccionario.json` del repo |
 
 ## Qué se consume del `diccionario.json`
 

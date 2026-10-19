@@ -25,7 +25,9 @@ class Proceso:
 
 
 PROCESOS: dict[str, Proceso] = {p.id: p for p in (
-    Proceso("generar", "Regenerar el diccionario", "Regenera SQL, diccionario, errores y copias de agentes desde la fuente. No se conecta a la base.",
+    Proceso("construir", "Generar el diccionario desde la base", "Lee el catálogo de reportes (mod_rep.rep.RREGREP01) y, de cada base, las dependencias de sus procedimientos y la estructura de las tablas. No necesita el repo DICCIONARIO. Solo lee metadatos.",
+            ("mod_rep.rep.RREGREP01 + sys.dm_sql_referenced_entities + INFORMATION_SCHEMA",), "data/outputs/diccionario/generado/diccionario.json (de esta app)"),
+    Proceso("generar", "Regenerar el diccionario", "Con el repo DICCIONARIO: regenera SQL, diccionario, errores y copias de agentes desde su fuente. No se conecta a la base.",
             ("npm", "run", "generar"), "diccionario/, errores/, extraccion/sql/ y .claude/ del repo DICCIONARIO", npm="generar",
             generados=("diccionario/*.md", "diccionario/diccionario.json", "errores/*.md")),
     Proceso("verificar", "Verificar la calidad", "Falla ante errores nuevos o algo viejo, roto o inconsistente. Solo lee.",

@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronRight, Database, FlaskConical, Play, RefreshCw, ShieldCheck, type LucideIcon } from "lucide-react";
+import { ChevronRight, Database, FlaskConical, Hammer, Play, RefreshCw, ShieldCheck, type LucideIcon } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { Chip, ErrorEnLinea, EsqueletoFilas, Punto } from "@/components/estados";
@@ -14,7 +14,7 @@ import { api } from "@/lib/api";
 import { ESTADO, LogEjecucion, TablaEjecuciones } from "./ejecuciones";
 
 type Pestana = "procesos" | "historial";
-export const ICONO_PROCESO: Record<string, LucideIcon> = { generar: RefreshCw, verificar: ShieldCheck, test: FlaskConical, bases: Database };
+export const ICONO_PROCESO: Record<string, LucideIcon> = { construir: Hammer, generar: RefreshCw, verificar: ShieldCheck, test: FlaskConical, bases: Database };
 
 /** Procesos del diccionario: una tarjeta por proceso (entra a su detalle) y el historial de todos en otra pestaña. */
 export function PanelProcesos() {

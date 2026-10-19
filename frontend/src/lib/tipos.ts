@@ -380,9 +380,10 @@ export interface Sesion {
 export interface DicHallazgo { nivel: string; regla: string; origen: string; objeto: string; detalle: string; en_linea_base: boolean }
 export interface DicBase { base: string; procedimientos: number; extraidos: number; validados: number; tablas: number }
 export interface DicOrigenCatalogo { fuente: string; motivo: string | null; nuevos: string[]; retirados: string[] }
+export interface DicDatos { origen: "bd" | "repo" | "ninguno"; generado: string | null }
 export interface DicResumen {
   reportes: number; procedimientos: number; extraidos: number; validados: number; tablas: number; columnas: number;
-  errores: number; avisos: number; errores_nuevos: number; catalogo: DicOrigenCatalogo; bases: DicBase[];
+  errores: number; avisos: number; errores_nuevos: number; catalogo: DicOrigenCatalogo; datos: DicDatos; bases: DicBase[];
 }
 export interface DicBaseFila { base: string; procedimientos: number; validados: number; reportes: number; tablas_propias: number; tablas_usadas: number }
 export interface DicProcedimientoFila { nombre: string; estado: string; reportes: string[]; parametros: number; tablas: number }

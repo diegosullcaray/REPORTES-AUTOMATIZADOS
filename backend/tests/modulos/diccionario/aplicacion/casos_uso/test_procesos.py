@@ -37,8 +37,14 @@ class Lanzador:
 
 
 class Lector:
+    def __init__(self, repo=True):
+        self.repo = repo
+
     def carpeta(self):
         return "carpeta"
+
+    def repo_disponible(self):
+        return self.repo
 
     def script_npm(self, nombre):
         return [dto.ScriptArchivo(ruta=f"package.json › scripts.{nombre}", codigo="node a.mjs")]
@@ -55,7 +61,8 @@ class Lector:
 @pytest.fixture
 def lanzador():
     x = Lanzador()
-    puertos.registrar(Puertos(lector=Lector(), lanzador=x, catalogo=SimpleNamespace()))
+    generador = SimpleNamespace(scripts=lambda: [dto.ScriptArchivo(ruta="SQL · dependencias", codigo="SELECT dep")])
+    puertos.registrar(Puertos(lector=Lector(), lanzador=x, catalogo=SimpleNamespace(CONSULTA="SELECT RCODREP FROM rep.RREGREP01"), generador=generador))
     yield x
     puertos.registrar(None)
 
@@ -67,8 +74,8 @@ def test_solo_lanza_procesos_de_la_lista(lanzador):
     assert lanzador.lanzados == [("verificar", PROCESOS["verificar"].comando, "carpeta")]
 
 
-def test_el_catalogo_trae_los_cuatro_procesos_y_cuales_dejan_archivos():
-    assert {p.id: p.genera for p in procesos.catalogo()} == {"generar": True, "verificar": False, "test": False, "bases": False}
+def test_el_catalogo_trae_los_procesos_y_cuales_dejan_archivos():
+    assert {p.id: p.genera for p in procesos.catalogo()} == {"construir": False, "generar": True, "verificar": False, "test": False, "bases": False}
 
 
 def test_detalle_con_su_script_y_sus_archivos(lanzador):
@@ -159,3 +166,19 @@ def test_un_error_raro_en_un_servidor_se_ve_como_error_no_como_sin_respuesta(lan
     log = "".join(emitido)
     assert codigo == 1 and "✗ mish (srv-mish): error inesperado (KeyError)" in log and "sin respuesta" not in log
     assert time.monotonic() - t < procesos.LIMITE   # no espera el tope completo
+
+
+def test_sin_el_repo_solo_quedan_los_procesos_que_corren_dentro_de_la_api(lanzador):
+    puertos().lector.repo = False
+    assert [p.id for p in procesos.catalogo()] == ["construir", "bases"]
+    for id_ in ("generar", "verificar", "test"):
+        with pytest.raises(NoEncontrado, match="necesita el repo"):
+            procesos.detalle(id_)
+        with pytest.raises(NoEncontrado, match="necesita el repo"):
+            procesos.ejecutar(id_)
+
+
+def test_construir_corre_dentro_de_la_api_y_su_script_muestra_las_consultas(lanzador):
+    assert procesos.ejecutar("construir").id == "tarea" and lanzador.tareas[0][0] == "construir"
+    rutas = [s.ruta for s in procesos.detalle("construir").scripts]
+    assert rutas[0].startswith("SQL · catálogo") and "SQL · dependencias" in rutas and "construir.py · construir" in rutas and "armado.py · armar" in rutas

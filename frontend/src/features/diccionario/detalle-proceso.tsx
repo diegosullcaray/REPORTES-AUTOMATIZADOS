@@ -25,6 +25,13 @@ import type { DicArchivoProceso, DicEjecucion, DicProcesoDetalle } from "@/lib/t
 import { ESTADO, LogEjecucion, TablaEjecuciones } from "./ejecuciones";
 import { ICONO_PROCESO } from "./procesos";
 
+/** Verbo del botón y texto de la confirmación de los procesos que corren dentro de la API (los de npm usan «Ejecutar» y el comando). */
+const VERBO: Record<string, string> = { bases: "Validar", construir: "Generar" };
+const AVISO_CONFIRMAR: Record<string, string> = {
+  bases: "Prueba la conexión a cada servidor SQL y que cada base que usan los reportes esté en línea. No escribe nada.",
+  construir: "Lee el catálogo de reportes (mod_rep.rep.RREGREP01) y los metadatos de cada base, solo lectura, y guarda el diccionario en esta app. Puede tardar un minuto.",
+};
+
 const PESTANAS = ["general", "ejecuciones", "script", "archivos"] as const;
 type Pestana = (typeof PESTANAS)[number];
 
@@ -48,9 +55,9 @@ function General({ p, ejecuciones, onLog }: { p: DicProcesoDetalle; ejecuciones:
   return (
     <div className="flex flex-col gap-4">
       <Tarjeta titulo="Qué hace" descripcion={p.descripcion}
-        acciones={<Button size="sm" disabled={ultima?.estado === "ejecutando"} onClick={() => setPedido(true)}><Play /> {p.id === "bases" ? "Validar" : "Ejecutar"}</Button>}>
+        acciones={<Button size="sm" disabled={ultima?.estado === "ejecutando"} onClick={() => setPedido(true)}><Play /> {VERBO[p.id] ?? "Ejecutar"}</Button>}>
         <dl className="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-[auto_1fr]">
-          <dt className="text-muted-foreground">{p.id === "bases" ? "Consulta" : "Comando"}</dt><dd className="font-mono text-[13px]">{p.comando}</dd>
+          <dt className="text-muted-foreground">{p.id === "bases" || p.id === "construir" ? "Consulta" : "Comando"}</dt><dd className="font-mono text-[13px]">{p.comando}</dd>
           <dt className="text-muted-foreground">Escribe en</dt><dd>{p.escribe}</dd>
           <dt className="text-muted-foreground">Deja archivos</dt><dd>{p.genera ? `Sí: ${p.archivos.length} para ver en la pestaña Archivos` : "No: su resultado está en el log de cada ejecución"}</dd>
         </dl>
@@ -59,8 +66,8 @@ function General({ p, ejecuciones, onLog }: { p: DicProcesoDetalle; ejecuciones:
         acciones={ultima && <Button variant="outline" size="sm" onClick={() => onLog(ultima.id)}>Abrir el log</Button>}>
         {ultima && <Terminal titulo={p.id} texto={detalle?.log ?? ""} estado={<Chip tono={ESTADO[ultima.estado].tono}>{ESTADO[ultima.estado].texto}</Chip>} />}
       </Tarjeta>
-      <Confirmar abierto={pedido} onAbierto={setPedido} titulo={`¿Ejecutar «${p.nombre}»?`} accion={p.id === "bases" ? "Validar" : "Ejecutar"}
-        descripcion={p.id === "bases" ? "Prueba la conexión a cada servidor SQL y que cada base que usan los reportes esté en línea. No escribe nada." : <>Corre <span className="font-mono">{p.comando}</span> en el repo DICCIONARIO. Escribe en: {p.escribe}.</>}
+      <Confirmar abierto={pedido} onAbierto={setPedido} titulo={`¿Ejecutar «${p.nombre}»?`} accion={VERBO[p.id] ?? "Ejecutar"}
+        descripcion={AVISO_CONFIRMAR[p.id] ?? <>Corre <span className="font-mono">{p.comando}</span> en el repo DICCIONARIO. Escribe en: {p.escribe}.</>}
         onConfirmar={() => { setPedido(false); void lanzar(); }} />
     </div>
   );

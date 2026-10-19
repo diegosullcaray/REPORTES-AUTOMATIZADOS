@@ -4,7 +4,7 @@ import { Chip } from "@/components/estados";
 import type { Tono } from "@/lib/formato";
 
 /** Estado de un procedimiento del diccionario → color. */
-export const TONO_SP: Record<string, Tono> = { validado: "exito", extraido: "info", pendiente: "aviso", "sin procedimiento": "peligro" };
+export const TONO_SP: Record<string, Tono> = { validado: "exito", extraido: "info", pendiente: "aviso", "sin extraer": "aviso", "sin procedimiento": "peligro" };
 
 export const EstadoSP = ({ estado }: { estado: string }) => <Chip tono={TONO_SP[estado] ?? "neutro"}>{estado}</Chip>;
 

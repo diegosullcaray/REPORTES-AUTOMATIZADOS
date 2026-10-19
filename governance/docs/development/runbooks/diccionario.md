@@ -4,10 +4,10 @@ Decisión y alcance: [ADR-0017](../../architecture/adr/ADR-0017-modulo-diccionar
 
 ## Antes de empezar
 
-El **catálogo de reportes** se lee en vivo de `mod_rep.rep.RREGREP01` (hace falta red/VPN al servidor `mish`; si no hay, el Resumen avisa «No pude leer…» y usa el `diccionario.json`). Lo demás (procedimientos, tablas, columnas) viene del `diccionario.json`.
+El **catálogo de reportes** se lee en vivo de `mod_rep.rep.RREGREP01` (hace falta red/VPN al servidor `mish`; si no hay, el Resumen avisa «No pude leer…» y usa el diccionario ya guardado). Procedimientos, tablas y columnas salen del diccionario guardado: el **generado desde la base** o, si lo hay, el del repo `DICCIONARIO`.
 
-1. El repo `DICCIONARIO` clonado **junto a este** (`…/DD/DICCIONARIO` y `…/DD/REPORTES-AUTOMATIZADOS`), o `DICCIONARIO_DIR` en `backend/.env` con su ruta. Sin él la web responde «No encontré el diccionario en …».
-2. Para los procesos: `node` y `npm` en el `PATH` de quien arranca la API (Node 20+). Si falta, el log del proceso dice «No encuentro npm».
+1. **No hace falta ningún repo**: abre Procesos › «Generar el diccionario desde la base» (con VPN a `mish` y los demás servidores) y se genera solo. Si además dejas el repo `DICCIONARIO` **junto a este** (o `DICCIONARIO_DIR` en `backend/.env`), aparecen sus procesos de `npm` y se usa su `diccionario.json` cuando es el más reciente.
+2. Para los procesos de `npm` (solo con el repo): `node` y `npm` en el `PATH` de quien arranca la API (Node 20+). Si falta, el log del proceso dice «No encuentro npm».
 
 ## Las pantallas (menú lateral › Diccionario)
 
@@ -24,7 +24,8 @@ El **catálogo de reportes** se lee en vivo de `mod_rep.rep.RREGREP01` (hace fal
 
 | Proceso | Comando (en el repo `DICCIONARIO`) | Qué toca | Cuándo |
 |---|---|---|---|
-| Regenerar el diccionario | `npm run generar` | reescribe `diccionario/`, `errores/`, `extraccion/sql/` y `.claude/` | después de cambiar la fuente (`extraccion/fuente/`, procedimientos extraídos) |
+| Generar el diccionario desde la base | consultas de solo lectura a `mod_rep.rep.RREGREP01` y a las bases (dentro de la API; hasta un par de minutos) | `data/outputs/diccionario/generado/diccionario.json` | la primera vez, o cuando cambien procedimientos o tablas; no necesita el repo |
+| Regenerar el diccionario (repo) | `npm run generar` | reescribe `diccionario/`, `errores/`, `extraccion/sql/` y `.claude/` | después de cambiar la fuente (`extraccion/fuente/`, procedimientos extraídos) |
 | Verificar la calidad | `npm run verificar` | nada | antes de commitear allá; falla ante errores nuevos o algo roto |
 | Probar el analizador T-SQL | `npm test` | nada | tras tocar el analizador |
 | Validar las bases de datos | dentro de la API: a cada servidor del `.env` (mish, slc, rcc), a la vez, `@@SERVERNAME`/usuario/versión y el estado de cada base de `sys.databases` | nada | antes de regenerar o cuando algo no conecta; reemplaza a la antigua página Configuración › Bases de datos (retirada el 2026-10-18) |
@@ -51,4 +52,4 @@ El log se va escribiendo mientras corre (cada servidor aparece al terminar, hast
 | «N reportes están en la base y aún no en el diccionario» | alguien dio de alta un RCODREP nuevo | extraer su SP y regenerar en el repo `DICCIONARIO` (su guía) |
 | El proceso termina con código 134 y `Assertion failed: ncrypto::CSPRNG` | `node` no arranca en Windows sin `SYSTEMROOT` | ya cubierto: el lanzador la conserva (en mayúsculas). Si reaparece, revisa `_ENTORNO_MINIMO` de `infraestructura/lanzador.py` |
 | `Verificar` termina «Con error» | el repo `DICCIONARIO` tiene enlaces rotos (p. ej. `modificaciones/nueva tarea/variables.md`) | corregir esos enlaces en ese repo; no es un fallo de esta app |
-| Gráficos vacíos o 404 | no está la carpeta `DICCIONARIO` | ver «Antes de empezar» |
+| El Resumen dice «Todavía no hay detalle de tablas ni columnas» | aún no se generó el diccionario | Procesos › Generar el diccionario desde la base |

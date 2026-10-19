@@ -31,6 +31,13 @@ class OrigenCatalogo(BaseModel):
     retirados: list[str]          # en el diccionario y ya no en la base
 
 
+class DatosDiccionario(BaseModel):
+    """De dónde salen las tablas y columnas: generadas desde la base, del repo DICCIONARIO o todavía de ninguna."""
+
+    origen: str                   # bd | repo | ninguno
+    generado: str | None          # fecha de modificación del archivo
+
+
 class Resumen(BaseModel):
     reportes: int
     procedimientos: int
@@ -42,6 +49,7 @@ class Resumen(BaseModel):
     avisos: int
     errores_nuevos: int
     catalogo: OrigenCatalogo
+    datos: DatosDiccionario
     bases: list[BaseResumen]
 
 
