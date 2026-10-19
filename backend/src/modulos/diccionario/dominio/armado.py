@@ -57,6 +57,54 @@ def _partes(nombre: str) -> tuple[str, str, str] | None:
     return (p[0], p[1], p[2]) if len(p) == 3 and all(p) else None
 
 
+def _canonico(reportes: list[dict], dependencias: list[dict], estructura: list[dict], analisis: dict[tuple, dict]):
+    """Devuelve `nombre(base, esquema, objeto)` con la grafía canónica de cada parte.
+
+    El código de un SP puede escribir `STORAGE.com_act.hdgp001` y el catálogo `storage`: SQL Server no distingue mayúsculas, pero el diccionario sí
+    mostraría tres tablas. Manda la grafía real que devuelve la base (`DB_NAME()`, `INFORMATION_SCHEMA`); si no hay, la más repetida.
+    """
+    cuentas: dict[tuple, dict[str, int]] = defaultdict(lambda: defaultdict(int))
+
+    def contar(clave: tuple, grafia: str | None, peso: int = 1) -> None:
+        if grafia:
+            cuentas[clave][grafia] += peso
+
+    for e in estructura:   # lo que dice la propia base pesa más que cualquier texto
+        contar((e["base"].lower(),), e["base"], 1000)
+        contar((e["base"].lower(), e["esquema"].lower()), e["esquema"], 1000)
+        contar((e["base"].lower(), e["esquema"].lower(), e["tabla"].lower()), e["tabla"], 1000)
+    for d in dependencias:
+        contar((d["sp_base"].lower(),), d["sp_base"], 1000)   # DB_NAME() de la base donde vive el SP
+        r = _referencia(d, d["sp_base"])
+        if r:
+            contar((r[1].lower(),), r[1])
+            contar((r[1].lower(), r[2].lower()), r[2])
+            contar((r[1].lower(), r[2].lower(), r[3].lower()), r[3])
+    for r in reportes:
+        partes = _partes(r.get("procedimiento") or "")
+        if partes:
+            contar((partes[0].lower(),), partes[0])
+            contar((partes[0].lower(), partes[1].lower()), partes[1])
+    for a in analisis.values():
+        for t in a["tablas"]:
+            if t["base"] and not t["servidor"]:
+                contar((t["base"].lower(),), t["base"])
+                if not t["esquemaImplicito"]:
+                    contar((t["base"].lower(), t["esquema"].lower()), t["esquema"])
+                    contar((t["base"].lower(), t["esquema"].lower(), t["nombre"].lower()), t["nombre"])
+
+    def mejor(clave: tuple, por_defecto: str) -> str:
+        c = cuentas.get(clave)
+        return max(c, key=lambda g: (c[g], g)) if c else por_defecto
+
+    def nombre(base: str, esquema: str, objeto: str) -> tuple[str, str, str]:
+        b = mejor((base.lower(),), base)
+        e = mejor((base.lower(), esquema.lower()), esquema)
+        return b, e, mejor((base.lower(), esquema.lower(), objeto.lower()), objeto)
+
+    return nombre
+
+
 def analizar(cuerpos: dict[tuple[str, str, str], str]) -> dict[tuple, dict]:
     """Análisis estático de cada procedimiento: `{(base, esquema, sp): texto}` -> `{clave en minúsculas: análisis}`."""
     return {_clave(*k): tsql.analizar_procedimiento(texto, base=k[0], esquema=k[1]) for k, texto in cuerpos.items()}
@@ -150,6 +198,7 @@ def armar(reportes: list[dict], dependencias: list[dict], parametros: list[dict]
           analisis: dict[tuple, dict] | None = None) -> dict:
     """`bases_con_sp` y `bases_con_estructura` (en minúsculas) son las que se alcanzaron a consultar: sin ellas, la ausencia de un dato no prueba nada."""
     analisis = analisis or {}
+    canon = _canonico(reportes, dependencias, estructura, analisis)
     deps: dict[tuple, list[dict]] = defaultdict(list)
     for d in dependencias:
         deps[_clave(d["sp_base"], d["sp_esquema"], d["sp_nombre"])].append(d)
@@ -222,7 +271,7 @@ def armar(reportes: list[dict], dependencias: list[dict], parametros: list[dict]
                 gemela = next((x for x in estaticas if not x["esquemaImplicito"] and (x["base"] or "").lower() == t["base"].lower() and x["nombre"].lower() == t["nombre"].lower()), None)
                 real = next((e for e in (t["esquema"], "dbo") if _clave(t["base"], e, t["nombre"]) in cols_reales), None)
                 esq = gemela["esquema"] if gemela else (real or esq)
-            d = tomar(_clave(t["base"], esq, t["nombre"]), f"{t['base']}.{esq}.{t['nombre']}", None, t["esquemaImplicito"])
+            d = tomar(_clave(t["base"], esq, t["nombre"]), ".".join(canon(t["base"], esq, t["nombre"])), None, t["esquemaImplicito"])
             d["fuentes"].add("estatico")
             d["usos"].update(t["usos"])
             for c in t["columnas"]:
@@ -233,7 +282,8 @@ def armar(reportes: list[dict], dependencias: list[dict], parametros: list[dict]
             ref = _referencia(f, base)
             if ref is None:                                # fila de error o servidor vinculado: fuera de alcance
                 continue
-            completo, rbase, resq, ent, tipo = ref
+            _, rbase, resq, ent, tipo = ref
+            completo = ".".join(canon(rbase, resq, ent))
             k = _clave(rbase, resq, ent)
             if tipo == "SQL_STORED_PROCEDURE" or (ent.lower() in invocados and k not in tablas):
                 invoca.add(completo)
@@ -292,7 +342,7 @@ def armar(reportes: list[dict], dependencias: list[dict], parametros: list[dict]
         else:
             lista_params = [{"nombre": p["nombre"], "tipo": p["tipo"], "porDefecto": p["porDefecto"], "salida": p["salida"]} for p in declarados]
         procedimientos.append({
-            "nombre": nombre, "base": base, "esquema": esquema, "estado": estado, "reportes": sorted(codigos),
+            "nombre": nombre, "base": canon(base, esquema, sp)[0], "esquema": canon(base, esquema, sp)[1], "estado": estado, "reportes": sorted(codigos),
             "parametros": lista_params or None, "resultados": (a or {}).get("resultados") or None,
             "invoca": sorted(invoca), "otrosObjetos": sorted(otros), "tablas": uso_sp})
 

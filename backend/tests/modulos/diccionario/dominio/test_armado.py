@@ -141,3 +141,19 @@ def test_un_nombre_sin_esquema_se_busca_tambien_en_dbo():
     analisis = analizar({("mod_rep", "com", "SP1"): "CREATE PROCEDURE com.SP1 AS SELECT a FROM storage..SOLO_DBO"})
     assert tablas_referidas([], analisis) == {"storage": {("dbo", "SOLO_DBO")}}
 
+
+
+def test_la_grafia_de_mayusculas_es_la_de_la_base_no_la_del_codigo():
+    cuerpo = "CREATE PROCEDURE com.SP1 AS SELECT h.HFECPRO FROM STORAGE.COM_ACT.hdgp001 h"
+    d = armar([REPORTES[0]], DEPENDENCIAS[:1], [], ESTRUCTURA, {"mod_rep"}, {"storage"}, analizar({("mod_rep", "com", "SP1"): cuerpo}))
+    t, = [x for x in d["tablas"] if x["base"].lower() == "storage"]
+    assert (t["nombre"], t["base"], t["esquema"], t["tabla"]) == ("storage.com_act.HDGP001", "storage", "com_act", "HDGP001")
+    assert [x["nombre"] for x in d["procedimientos"][0]["tablas"]] == ["storage.com_act.HDGP001"] and len(d["tablas"]) == 1
+
+
+def test_sin_estructura_gana_la_grafia_mas_repetida():
+    dep = [_dep("SP1", ref_base="STORAGE", ref_esquema="x", ref_entidad="T1", ref_objeto_tipo="USER_TABLE"),
+           _dep("SP1", ref_base="storage", ref_esquema="x", ref_entidad="T2", ref_objeto_tipo="USER_TABLE"),
+           _dep("SP1", ref_base="storage", ref_esquema="x", ref_entidad="T3", ref_objeto_tipo="USER_TABLE")]
+    d = armar([REPORTES[0]], dep, [], [], {"mod_rep"}, set())
+    assert {t["base"] for t in d["tablas"]} == {"storage"}
