@@ -4,7 +4,7 @@ Gestiona los reportes desde el navegador con el mismo procedimiento que la conso
 
 ## Arrancar
 
-Lo más rápido: **`python iniciar.py`** desde la raíz del repo (API + web, Ctrl+C detiene las dos; opciones `--prod`, `--sin-navegador`, `--puerto-api`, `--puerto-web`). A mano, en dos terminales:
+Lo más rápido: **`python iniciar.py`** desde la raíz del repo (API + web, Ctrl+C detiene las dos; opciones `--prod`, `--sin-navegador`, `--puerto-api`, `--puerto-web`). Antes de arrancar compara lo instalado con `backend/requirements.txt` (cada `paquete==versión`) y `frontend/package.json` (cada paquete en `node_modules`, y que `package-lock.json` no sea más nuevo que lo instalado) y, si falta algo, instala solo (`pip install` / `npm install`) y dice qué faltaba. A mano, en dos terminales:
 
 ```bat
 :: 1) API (desde backend\, entorno activado, .env completo)

@@ -245,7 +245,7 @@ Monolito modular: cada módulo de negocio tiene sus capas (`dominio` ← `aplica
 | `modulos/sistema/interfaces/web/vistas/sesion.py` | Inicio y cierre de sesión, y cambio de usuario o contraseña (credenciales en el .env) |
 
 
-## Pruebas (64 archivos)
+## Pruebas (65 archivos)
 
 Reflejan los módulos: `tests/core`, `tests/config` y `tests/modulos/<módulo>/<capa>`.
 
@@ -312,4 +312,5 @@ Reflejan los módulos: `tests/core`, `tests/config` y `tests/modulos/<módulo>/<
 - `tests/modulos/reportes/interfaces/cli/test_tablas.py`
 - `tests/modulos/sistema/aplicacion/casos_uso/test_configuracion.py`
 - `tests/modulos/sistema/aplicacion/casos_uso/test_sesion.py`
+- `tests/test_iniciar.py`
 - `tests/test_validar_gobernanza.py`

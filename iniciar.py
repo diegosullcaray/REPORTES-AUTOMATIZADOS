@@ -5,13 +5,15 @@
     python iniciar.py --sin-navegador no abre el navegador
     python iniciar.py --puerto-api 8100 --puerto-web 3100
 
-Antes de arrancar instala lo que falte del backend (`pip install -r requirements.txt`) y de la web (`npm install`).
+Antes de arrancar compara lo instalado con `backend/requirements.txt` y `frontend/package.json` y, si falta algo o cambió una versión,
+instala (`pip install -r requirements.txt`, `npm install`).
 Ctrl+C detiene los dos procesos. Solo usa la biblioteca estándar: se puede lanzar con cualquier Python 3.11+.
 """
 
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import shutil
 import socket
@@ -109,21 +111,55 @@ def esperar(url: str, proceso: subprocess.Popen, segundos: int = 90) -> bool:
     return False
 
 
+# Corre con el Python del backend: lista las líneas «paquete==versión» de requirements.txt que no están instaladas con esa versión.
+_COMPROBAR_BACKEND = r"""
+import re, sys
+from importlib import metadata
+falta = []
+for linea in open(sys.argv[1], encoding="utf-8"):
+    m = re.match(r"\s*([A-Za-z0-9_.-]+)\s*==\s*([^\s;#]+)", linea)
+    if not m:
+        continue
+    try:
+        if metadata.version(m.group(1)) != m.group(2):
+            falta.append(m.group(1) + "==" + m.group(2))
+    except metadata.PackageNotFoundError:
+        falta.append(m.group(1) + "==" + m.group(2))
+print(", ".join(falta))
+sys.exit(1 if falta else 0)
+"""
+
+
 def asegurar_dependencias_backend() -> None:
-    """Instala `backend/requirements.txt` si al entorno le falta algo (p. ej. Django tras actualizar), y comprueba que la API arranque (`manage.py check`)."""
+    """Compara `backend/requirements.txt` con lo instalado y, si falta algo o cambió una versión, instala; luego comprueba que la API arranque (`manage.py check`)."""
     py = python_del_backend()
-    if subprocess.run([py, "-c", "import django, pydantic, pandas, pyodbc, openpyxl"], capture_output=True).returncode != 0:
-        decir("iniciar", "Instalando dependencias del backend (pip install -r requirements.txt)…")
+    r = subprocess.run([py, "-c", _COMPROBAR_BACKEND, str(BACKEND / "requirements.txt")], capture_output=True, text=True)
+    if r.returncode != 0:
+        decir("iniciar", f"Dependencias del backend por instalar o actualizar ({r.stdout.strip() or 'no pude comprobarlas'}): pip install -r requirements.txt…")
         if subprocess.run([py, "-m", "pip", "install", "-q", "-r", "requirements.txt"], cwd=BACKEND).returncode != 0:
             sys.exit("pip install falló: revisa la salida de arriba.")
     if subprocess.run([py, "manage.py", "check"], cwd=BACKEND).returncode != 0:
         sys.exit("La API no pasa `manage.py check`: revisa la salida de arriba.")
 
 
+def motivo_para_instalar_web() -> str | None:
+    """Por qué hay que correr `npm install`, o None si `node_modules` ya tiene todo lo de package.json (un paquete nuevo, como echarts, antes no se detectaba)."""
+    modulos = FRONTEND / "node_modules"
+    if not modulos.exists():
+        return "no existe node_modules"
+    paquete = json.loads((FRONTEND / "package.json").read_text(encoding="utf-8"))
+    if faltan := [n for n in {**paquete.get("dependencies", {}), **paquete.get("devDependencies", {})} if not (modulos / n / "package.json").is_file()]:
+        return f"falta {', '.join(sorted(faltan))}"
+    instalado, lock = modulos / ".package-lock.json", FRONTEND / "package-lock.json"   # npm lo reescribe en cada install: si el lock es más nuevo, alguien cambió versiones
+    if instalado.exists() and lock.exists() and lock.stat().st_mtime > instalado.stat().st_mtime + 1:
+        return "package-lock.json cambió"
+    return None
+
+
 def asegurar_dependencias_web(npm: str) -> None:
-    if (FRONTEND / "node_modules").exists():
+    if (motivo := motivo_para_instalar_web()) is None:
         return
-    decir("iniciar", "Instalando dependencias del frontend (npm install), solo la primera vez…")
+    decir("iniciar", f"Instalando dependencias del frontend (npm install): {motivo}…")
     if subprocess.run([npm, "install"], cwd=FRONTEND).returncode != 0:
         sys.exit("npm install falló: revisa la salida de arriba.")
 
