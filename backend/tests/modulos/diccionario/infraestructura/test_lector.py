@@ -83,3 +83,9 @@ def test_si_hay_los_dos_se_usa_el_escrito_ultimo(repo):
     assert lector.leer() == {"marca": "bd"} and lector.origen()[0] == "bd"
     os.utime(archivo, ns=(archivo.stat().st_atime_ns, generado.stat().st_mtime_ns + 10**9))      # ahora el del repo es el más nuevo
     assert lector.leer() == {"v": 1} and lector.origen()[0] == "repo" and lector.repo_disponible()
+
+
+def test_un_json_a_medias_dice_que_reintente_en_vez_de_romper(repo):
+    (repo / "diccionario" / "diccionario.json").write_text('{"reportes": [', encoding="utf-8")
+    with pytest.raises(NoEncontrado, match="Reintenta"):
+        lector.leer()

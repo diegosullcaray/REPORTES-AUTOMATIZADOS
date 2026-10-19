@@ -11,7 +11,7 @@ from modulos.diccionario.aplicacion import dto
 from core.servidores import servidor_de_base
 
 ESPERA = 180      # segundos por consulta: las dependencias de ~260 SP tardan
-TRAMO = 400       # pares (esquema, nombre) por INSERT: SQL Server admite 1000 filas por VALUES y 2100 parámetros por consulta
+TRAMO = 400       # pares por INSERT (≤1000 filas por VALUES). shortcut: el tope de 2100 parámetros es de TODA la consulta (~1050 SP por base); partir la llamada si una base los supera
 
 _DEPENDENCIAS = """
 SET NOCOUNT ON;

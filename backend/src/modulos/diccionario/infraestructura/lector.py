@@ -50,7 +50,10 @@ def leer() -> dict:
     ruta = elegido[1]
     clave = (ruta, ruta.stat().st_mtime_ns)
     if _cache is None or _cache[0] != clave:
-        _cache = (clave, json.loads(ruta.read_text(encoding="utf-8")))
+        try:
+            _cache = (clave, json.loads(ruta.read_text(encoding="utf-8")))
+        except ValueError:   # el repo escribe su diccionario.json sin reemplazo atómico: puede estar a medias
+            raise NoEncontrado(f"«{ruta.name}» no se pudo leer (¿se está escribiendo?). Reintenta en unos segundos.") from None
     return _cache[1]
 
 

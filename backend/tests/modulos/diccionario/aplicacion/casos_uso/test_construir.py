@@ -36,7 +36,7 @@ class Generador:
 def _registrar(generador, catalogo=None):
     guardado = []
     lector = SimpleNamespace(guardar=guardado.append)
-    puertos.registrar(Puertos(lector=lector, lanzador=SimpleNamespace(), catalogo=catalogo or SimpleNamespace(leer=lambda: REPORTES), generador=generador))
+    puertos.registrar(Puertos(lector=lector, lanzador=SimpleNamespace(), catalogo=catalogo or SimpleNamespace(leer=lambda forzar=False: REPORTES), generador=generador))
     return guardado
 
 
@@ -74,7 +74,7 @@ def test_si_ninguna_base_contesta_no_se_guarda_nada():
 
 
 def test_sin_catalogo_no_se_guarda_nada_y_dice_por_que():
-    def sin_vpn():
+    def sin_vpn(forzar=False):
         raise OSError("08001")
 
     guardado = _registrar(Generador(), SimpleNamespace(leer=sin_vpn))

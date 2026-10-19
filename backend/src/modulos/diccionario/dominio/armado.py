@@ -88,7 +88,7 @@ def armar(reportes: list[dict], dependencias: list[dict], parametros: list[dict]
         if existe is False:
             estado = "pendiente"
             hallazgos.append({"nivel": "error", "regla": "sp-inexistente", "origen": "produccion", "objeto": nombre,
-                              "detalle": f"lo ejecutan {', '.join(sorted(codigos))}", "enLineaBase": False})
+                              "detalle": f"lo ejecutan {', '.join(sorted(codigos))} (o la cuenta de lectura no lo ve)", "enLineaBase": False})
         elif existe is None:
             estado = "pendiente"          # su base no se alcanzó a consultar
         elif motor and not error_motor:
@@ -145,9 +145,14 @@ def armar(reportes: list[dict], dependencias: list[dict], parametros: list[dict]
         reales = cols_reales.get(k, {})
         consultada = base in bases_con_estructura
         existe = True if reales else (False if consultada else None)
-        if existe is False:
+        if existe is False and g["tipo"] is None:
+            # Sin tipo: el motor no resolvió el objeto (otra base, sinónimo, procedimiento remoto o tabla que no existe). No se afirma que falte.
+            existe = None
+            hallazgos.append({"nivel": "aviso", "regla": "objeto-no-resuelto", "origen": "analisis", "objeto": g["nombre"],
+                              "detalle": f"lo usa {', '.join(sorted(g['procs']))}; no es una tabla visible: puede no existir, ser un procedimiento o sinónimo de otra base, o la cuenta no lo ve", "enLineaBase": False})
+        elif existe is False:
             hallazgos.append({"nivel": "error", "regla": "tabla-inexistente", "origen": "produccion", "objeto": g["nombre"],
-                              "detalle": f"la usa {', '.join(sorted(g['procs']))}", "enLineaBase": False})
+                              "detalle": f"la usa {', '.join(sorted(g['procs']))} (o la cuenta de lectura no la ve)", "enLineaBase": False})
         columnas = []
         for c, procs in sorted(g["columnas"].items(), key=lambda x: x[0].lower()):
             real = reales.get(c.lower())

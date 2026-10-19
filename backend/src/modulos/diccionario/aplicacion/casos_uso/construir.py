@@ -27,7 +27,7 @@ def construir(emitir: Callable[[str], None]) -> int:
     g = puertos().generador
     emitir("▶ Leyendo el catálogo de reportes (mod_rep.rep.RREGREP01)…\n")
     try:
-        reportes = puertos().catalogo.leer()
+        reportes = puertos().catalogo.leer(forzar=True)
     except Exception as exc:  # noqa: BLE001 - sin VPN o sin permiso: se dice por qué y no se toca nada
         emitir(f"✗ No pude leer el catálogo: {_causa(exc, 'mod_rep')}\n")
         return 1

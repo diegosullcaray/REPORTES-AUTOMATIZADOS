@@ -29,13 +29,16 @@ def reporte_de_fila(codigo: object, descripcion: object, rtprep: object) -> dict
     return {"codigo": str(codigo).strip(), "descripcion": str(descripcion or "").strip(), "procedimiento": procedimiento, "parametros": parametros}
 
 
-def leer() -> list[dict]:
-    """Los reportes del catálogo en la forma del diccionario. Si no hay conexión, lanza (quien llama usa el diccionario.json)."""
+def leer(forzar: bool = False) -> list[dict]:
+    """Los reportes del catálogo en la forma del diccionario. Si no hay conexión, lanza (quien llama usa el diccionario guardado). `forzar` salta la caché (también la de una falla)."""
     global _cache
-    if _cache is None or time.monotonic() - _cache[0] > VIGENCIA:
+    if forzar or _cache is None or time.monotonic() - _cache[0] > VIGENCIA:
         try:
             df = bd.leer_sql(servidor_de_base("mod_rep"), CONSULTA, base="mod_rep", timeout=TIMEOUT)
-            _cache = (time.monotonic(), [reporte_de_fila(*f) for f in df[["RCODREP", "RDESREP", "RTPREP"]].itertuples(index=False)])
+            filas = [reporte_de_fila(*f) for f in df[["RCODREP", "RDESREP", "RTPREP"]].itertuples(index=False)]
+            if filas and sum(not f["procedimiento"] for f in filas) * 2 > len(filas):
+                raise ValueError("más de la mitad de los reportes de RREGREP01 no trae procedimiento en RTPREP: ¿cambió el formato?")
+            _cache = (time.monotonic(), filas)
         except Exception as exc:  # noqa: BLE001 - cualquier falla de conexión o de esquema se informa, no se propaga como 500
             _cache = (time.monotonic(), exc)
     if isinstance(_cache[1], Exception):

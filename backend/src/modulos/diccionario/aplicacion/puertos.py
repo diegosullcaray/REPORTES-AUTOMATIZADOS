@@ -36,7 +36,7 @@ class Catalogo(Protocol):
     FUENTE: str   # de dónde se lee (tabla), para mostrarlo
     CONSULTA: str  # la consulta que se ejecuta, para mostrarla en la pestaña Script
 
-    def leer(self) -> list[dict]:
+    def leer(self, forzar: bool = False) -> list[dict]:
         """Los reportes de `mod_rep.rep.RREGREP01` como `{codigo, descripcion, procedimiento, parametros}`. Lanza si no hay conexión."""
         ...
 

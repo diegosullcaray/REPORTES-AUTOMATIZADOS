@@ -90,3 +90,11 @@ def test_el_resumen_y_los_reportes_salen_del_catalogo():
 
 def test_tablas_referidas_por_base_para_pedir_su_estructura():
     assert tablas_referidas(DEPENDENCIAS) == {"storage": {("com_act", "HDGP001")}, "mod_rep": {("dbo", "Falta")}}
+
+
+def test_un_objeto_sin_tipo_no_se_acusa_de_faltar():
+    dep = [_dep("SP1", ref_base="strategos", ref_esquema="dbo", ref_entidad="SP_OTRA_BASE")]          # sin ref_objeto_tipo: el motor no lo resolvió
+    d = armar([REPORTES[0]], dep, [], [], {"mod_rep"}, {"strategos"})
+    assert d["tablas"][0]["existe"] is None
+    assert [(h["regla"], h["nivel"]) for h in d["hallazgos"]] == [("objeto-no-resuelto", "aviso")]
+

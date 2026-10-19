@@ -54,3 +54,27 @@ def test_lee_el_procedimiento_y_ordena_los_parametros():
 @pytest.mark.parametrize("rtprep", [None, "", "no es json", "[1, 2]", '{"name": "x", "params": [{"sin_nombre": 1}]}'])
 def test_un_rtprep_ilegible_deja_el_reporte_sin_procedimiento(rtprep):
     assert reporte_de_fila("X", None, rtprep) == {"codigo": "X", "descripcion": "", "procedimiento": "", "parametros": []}
+
+
+def test_forzar_salta_la_cache_incluida_la_falla(monkeypatch):
+    estado = {"vpn": False}
+
+    def leer_sql(*a, **k):
+        if not estado["vpn"]:
+            raise OSError("08001")
+        return pd.DataFrame({"RCODREP": ["A"], "RDESREP": ["a"], "RTPREP": ['{"name":"mod_rep.com.SPA"}']})
+
+    monkeypatch.setattr(catalogo_bd.bd, "leer_sql", leer_sql)
+    with pytest.raises(OSError):
+        catalogo_bd.leer()
+    estado["vpn"] = True
+    with pytest.raises(OSError):
+        catalogo_bd.leer()                                      # sigue la falla recordada
+    assert len(catalogo_bd.leer(forzar=True)) == 1
+
+
+def test_si_la_mayoria_no_trae_procedimiento_es_un_error_no_un_catalogo_vacio(monkeypatch):
+    df = pd.DataFrame({"RCODREP": ["A", "B", "C"], "RDESREP": ["a", "b", "c"], "RTPREP": ["no es json", None, '{"name":"mod_rep.com.SPC"}']})
+    monkeypatch.setattr(catalogo_bd.bd, "leer_sql", lambda *a, **k: df)
+    with pytest.raises(ValueError, match="¿cambió el formato"):
+        catalogo_bd.leer()
