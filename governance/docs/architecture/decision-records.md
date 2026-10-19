@@ -2,6 +2,8 @@
 
 | ADR | Decisión | Estado |
 |---|---|---|
+| [0018](./adr/ADR-0018-reportes-desde-la-web.md) | Alta, edición y baja de reportes desde la web: base por `use`, frecuencia del grupo, T-SQL de solo lectura, marca «Creado desde la web», candado único y restauración si falla la escritura | Vigente |
+| [0017](./adr/ADR-0017-modulo-diccionario.md) | Módulo Diccionario: lee el `diccionario.json` del repo `DICCIONARIO`, lo cruza con el registro de tablas y lanza sus procesos (lista cerrada, de a uno, entorno mínimo) | Vigente |
 | [0016](./adr/ADR-0016-monolito-modular.md) | Monolito modular: módulos de negocio (`reportes`, `notificaciones`, `integraciones`, `sistema`) con sus capas, `core/` compartido y `config/`; dependencias entre módulos solo por su API pública | Vigente |
 | [0015](./adr/ADR-0015-django-como-interfaz-http.md) | Django reemplaza a FastAPI como interfaz HTTP: un proyecto (`config/`) con una app por módulo y vistas JSON con los DTO | Vigente |
 | [0014](./adr/ADR-0014-clean-architecture-backend.md) | Backend con Clean Architecture por capas (`dominio ← aplicacion ← infraestructura / interfaces`), puertos y raíz de composición; compuerta `arquitectura-capas` | Vigente |

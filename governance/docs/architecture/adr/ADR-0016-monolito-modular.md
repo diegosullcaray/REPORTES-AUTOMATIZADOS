@@ -17,11 +17,11 @@ backend/
   src/modulos/<módulo>/    dominio · aplicacion · infraestructura · interfaces (y catalogo/ en reportes)
 ```
 
-Módulos: `reportes` (catálogo, ejecución, verificación, validación, ejecuciones), `notificaciones` (correo SMTP y webhook de Chat), `integraciones` (Google Workspace y MCP) y `sistema` (sesión, cuenta, perfil, ajustes y servidores).
+Módulos: `reportes` (catálogo, ejecución, verificación, validación, ejecuciones), `notificaciones` (correo SMTP y webhook de Chat), `integraciones` (Google Workspace y MCP) y `sistema` (sesión, cuenta, perfil, ajustes y servidores). Desde 2026-10-18 también `diccionario` ([ADR-0017](./ADR-0017-modulo-diccionario.md)), que depende de `reportes`.
 
 Reglas (las exige `arquitectura-capas`):
 1. Dentro de un módulo la dependencia apunta solo hacia adentro (`dominio ← aplicacion ← infraestructura / interfaces`).
-2. Entre módulos solo se usa el `dominio` y la `aplicacion` del destino, nunca sus `puertos`: cada módulo expone una fachada (`notificaciones/aplicacion/correo.py`, `integraciones/aplicacion/mensajeria.py`). Grafo sin ciclos: `reportes → notificaciones, integraciones`; `sistema → reportes, notificaciones, integraciones`.
+2. Entre módulos solo se usa el `dominio` y la `aplicacion` del destino, nunca sus `puertos`: cada módulo expone una fachada (`notificaciones/aplicacion/correo.py`, `integraciones/aplicacion/mensajeria.py`). Grafo sin ciclos: `reportes → notificaciones, integraciones`; `diccionario → reportes`; `sistema → reportes, notificaciones, integraciones`.
 3. `core` no depende de ningún módulo; sus adaptadores (`bd`, `entorno`, `configuracion`) solo los usan la infraestructura, el catálogo y `config`.
 4. Cada módulo tiene su propio registro de puertos (`core.puertos.Registro`); `config/composicion.py` los conecta.
 5. `config` solo se importa desde las entradas (`interfaces`).

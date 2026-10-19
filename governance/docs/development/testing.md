@@ -8,3 +8,16 @@
 ```bash
 python -m pytest -q
 ```
+
+## Frontend
+
+Desde `frontend/`, antes de entregar (regla 7 de `frontend/AGENTS.md`):
+
+```bash
+npm test                 # node --test sobre src/**/*.test.ts (formato, colores…)
+npx tsc --noEmit
+npx eslint src
+npx next build
+```
+
+`src/lib/colores.test.ts` exige que los componentes usen solo tokens `--mis-*` (sin hex ni `rgb()`); los gráficos de `components/grafico.tsx` resuelven esos tokens en el navegador, por eso no llevan colores fijos.

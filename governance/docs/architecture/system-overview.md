@@ -7,7 +7,7 @@ Backend como **monolito modular** ([ADR-0016](./adr/ADR-0016-monolito-modular.md
                           │
    ┌──────────────┬───────┴────────┬────────────────┐
    ▼              ▼                ▼                ▼
- sistema ──► reportes ──► notificaciones      integraciones
+ sistema ──► reportes ──► notificaciones      integraciones      diccionario ──► reportes
    │            └──────────────────────────────► ▲
    └─────────────────────────────────────────────┘   (cada flecha: solo por dominio/aplicación del destino)
 

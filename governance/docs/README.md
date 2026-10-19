@@ -26,5 +26,7 @@ El archivo histórico del que parte todo está en `docs/LEGADO/` (raíz del repo
 | **Ejecutar un reporte / cierre de mes** | [Runbooks](./development/runbooks/README.md) |
 | **Usar la interfaz web** (login, validación masiva, configuración) | [Runbook de la web](./development/runbooks/interfaz-web.md) |
 | **Saber qué tabla usa cada reporte** | [Inventario de tablas](./data/tables-inventory.md) |
+| **Crear o borrar un reporte desde la web** | [Runbook](./development/runbooks/reporte-desde-la-web.md) |
+| **Ver qué sabe el MIS de una tabla o un reporte** (columnas, fechas, procedimientos) | [Diccionario](./development/runbooks/diccionario.md) · [contrato del archivo](./data/diccionario.md) |
 | Rastrear una cifra | [Linaje](./data/lineage.md) |
 | Ver el estado generado del código | [Inventario](./architecture/module-inventory.md) |

@@ -10,6 +10,7 @@ Los reportes alimentan decisiones de Riesgos, Finanzas y la Gerencia. Un script 
 | [Catálogo](./catalog.md) | ¿Qué datos se consumen y de qué base salen? |
 | [Formato Excel](./formato-excel.md) | ¿Cómo se ve cada salida y cómo se llama el archivo? |
 | [Servidores y bases](./servidores-y-bases.md) | ¿Qué base vive en qué servidor? |
+| [Diccionario de datos MIS](./diccionario.md) | ¿Qué procedimiento, tablas y columnas usa cada reporte del MIS? (contrato del archivo que lee la app) |
 | [Inventario de tablas](./tables-inventory.md) | **¿Qué tabla usa cada reporte y a quién pedir que la actualice?** (generado) |
 | [Contratos](./contracts/README.md) | ¿Cuál es la forma exacta del dato en el borde? |
 | [Linaje](./lineage.md) | ¿Por dónde pasó esta cifra? |

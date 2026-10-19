@@ -1,5 +1,7 @@
 # Guía: crear un reporte nuevo
 
+> Para un reporte **de solo lectura sin lógica propia** hay un camino corto desde la web (*Nuevo reporte* dentro de un grupo): [crear, completar y borrar desde la web](./runbooks/reporte-desde-la-web.md). Esta guía es para el resto: módulo a mano, escritura en la base o formato especial.
+
 1. Llena la [ficha de reporte](../templates/report-spec-template.md) (solicitante, base, fecha de corte, reglas, salida).
 2. Toma el T-SQL del legado y reemplaza cada fecha fija por un token (`@@F@@`, `@@F_ISO@@`, `@@F_ANT@@`…).
 3. Crea `src/modulos/reportes/catalogo/<diarios|mensuales/piero|mensuales/erick>/r<NN>_<nombre>.py` (número de su carpeta del legado) con un `ReporteLote` y `main(argv)` → `correr(REPORTE, argv)` ([skill](../../skills/reportes-ejecutor/SKILL.md)). El ejecutor ya conecta, valida tablas al corte, valida datos y exporta a Excel.

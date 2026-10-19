@@ -7,6 +7,8 @@ Guías operativas paso a paso. Úsalas **dentro del entorno** (`.venv` activado,
 | [Proceso de cierre de mes](./proceso-cierre-de-mes.md) | inicio de mes: qué reporte primero, qué tablas deben estar cargadas |
 | [Ejecutar un reporte (proceso estándar)](./ejecutar-un-reporte.md) | **cualquier** reporte: pre-vuelo → tablas → ejecución → validación → entrega |
 | [Interfaz web](./interfaz-web.md) | el mismo procedimiento desde el navegador, con vista previa de las salidas |
+| [Reporte desde la web](./reporte-desde-la-web.md) | crear, completar el T-SQL y borrar un reporte sin escribir el módulo a mano |
+| [Diccionario](./diccionario.md) | consultar qué procedimiento, tablas y columnas usa cada reporte del MIS y mantener ese diccionario al día |
 | [Pedir actualización de tablas a Producción](./solicitud-actualizacion-tablas.md) | una tabla no llegó al corte |
 | [**Catálogo de comandos**](./comandos.md) | los 22 comandos: tablas críticas, salida, avisos (generado) |
 | [`cartera-sin-asignar`](./cartera-sin-asignar.md) | diario: Excel + imagen + **correo (prueba → conforme → todos)** |

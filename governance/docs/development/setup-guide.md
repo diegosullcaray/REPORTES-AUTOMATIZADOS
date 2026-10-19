@@ -16,6 +16,10 @@ cd .. && python governance/scripts/verificar.py   # desde la raíz
 
 Para entrar a la web define también `WEB_USUARIO` y `WEB_CLAVE` en `backend/.env` ([ADR-0012](../architecture/adr/ADR-0012-acceso-a-la-web-y-ajustes-editables.md)).
 
+### Opcional: el Diccionario
+
+Para el módulo [Diccionario](./runbooks/diccionario.md): clona el repo `DICCIONARIO` **junto a este** (o define `DICCIONARIO_DIR` en `backend/.env`) y ten `node`/`npm` en el `PATH` si vas a lanzar sus procesos desde la web.
+
 ## Frontend (web)
 
 ```bash
