@@ -39,7 +39,16 @@ def _catalogo() -> tuple[list[dict], dto.OrigenCatalogo]:
 
 def _datos() -> dict:
     """Catálogo en vivo + lo guardado; sin diccionario guardado quedan solo los reportes (sin tablas, columnas ni hallazgos)."""
-    return {"procedimientos": [], "tablas": [], "hallazgos": [], **(_guardado() or {}), "reportes": _catalogo()[0]}
+    d = {"procedimientos": [], "tablas": [], "hallazgos": [], **(_guardado() or {}), "reportes": _catalogo()[0]}
+    # Una base escrita de dos formas (STORAGE y storage) es una sola: gana la más repetida, así un diccionario guardado con otra grafía no abre dos tarjetas.
+    cuentas: dict[str, dict[str, int]] = {}
+    for x in (*d["procedimientos"], *d["tablas"]):
+        c = cuentas.setdefault(x["base"].lower(), {})
+        c[x["base"]] = c.get(x["base"], 0) + 1
+    d["canon"] = {k: max(c, key=lambda g: (c[g], g)) for k, c in cuentas.items()}
+    d["procedimientos"] = [{**p, "base": d["canon"][p["base"].lower()]} for p in d["procedimientos"]]
+    d["tablas"] = [{**t, "base": d["canon"][t["base"].lower()]} for t in d["tablas"]]
+    return d
 
 
 def _hallazgo(h: dict) -> dto.Hallazgo:
@@ -91,7 +100,8 @@ def _procedimientos_por_base(d: dict) -> dict[str, list[dto.ProcedimientoFila]]:
         fila = dto.ProcedimientoFila(
             nombre=n, estado=sp["estado"] if sp else "sin extraer", reportes=sorted(por_reporte.get(n, set()) | set((sp or {}).get("reportes") or [])),
             parametros=len((sp or {}).get("parametros") or []), tablas=len((sp or {}).get("tablas") or []))
-        por_base.setdefault(sp["base"] if sp else n.split(".")[0], []).append(fila)
+        crudo = n.split(".")[0]
+        por_base.setdefault(sp["base"] if sp else d["canon"].get(crudo.lower(), crudo), []).append(fila)
     return por_base
 
 

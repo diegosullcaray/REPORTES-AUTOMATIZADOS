@@ -171,3 +171,14 @@ def test_sin_diccionario_y_sin_catalogo_dice_que_hacer():
     puertos().lector = SimpleNamespace(leer=sin_archivo, origen=lambda: None)
     with pytest.raises(NoEncontrado, match="No hay diccionario guardado y no pude leer el catálogo"):
         diccionario.resumen()
+
+
+def test_una_base_escrita_de_dos_formas_abre_una_sola_tarjeta(monkeypatch):
+    sp = lambda n, b: {"nombre": n, "base": b, "estado": "validado", "reportes": [], "invoca": [], "parametros": None, "resultados": None, "tablas": []}   # noqa: E731
+    d = {**DICCIONARIO, "procedimientos": [sp("storage.a.P1", "storage"), sp("storage.a.P2", "storage"), sp("STORAGE.a.P3", "STORAGE")],
+         "tablas": [{"nombre": "STORAGE.a.T", "base": "STORAGE", "tipo": "tabla", "existe": True, "columnas": []}],
+         "reportes": [*DICCIONARIO["reportes"], {"codigo": "R9", "descripcion": "", "procedimiento": "STORAGE.a.NUEVO", "parametros": []}]}
+    puertos().lector = SimpleNamespace(leer=lambda: d, origen=lambda: "2026-10-18T10:00:00")
+    assert [b.base for b in diccionario.bases() if b.base.lower() == "storage"] == ["storage"]          # una tarjeta, con la grafía más repetida
+    assert next(b for b in diccionario.bases() if b.base == "storage").procedimientos == 4              # incluye el «sin extraer» del catálogo
+    assert diccionario.base("STORAGE").base == "storage"
