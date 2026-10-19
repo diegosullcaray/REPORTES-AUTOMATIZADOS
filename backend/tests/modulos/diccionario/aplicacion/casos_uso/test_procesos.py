@@ -28,7 +28,7 @@ class Lanzador:
 
 def test_solo_lanza_procesos_de_la_lista():
     lanzador = Lanzador()
-    puertos.registrar(Puertos(lector=SimpleNamespace(carpeta=lambda: "carpeta"), lanzador=lanzador))
+    puertos.registrar(Puertos(lector=SimpleNamespace(carpeta=lambda: "carpeta"), lanzador=lanzador, catalogo=SimpleNamespace()))
     with pytest.raises(NoEncontrado):
         procesos.ejecutar("rm -rf")
     assert procesos.ejecutar("verificar").id == "abc"

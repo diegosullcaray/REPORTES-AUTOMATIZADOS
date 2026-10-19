@@ -14,18 +14,19 @@ Un módulo nuevo del monolito ([ADR-0016](./ADR-0016-monolito-modular.md)), `mod
 | Capa | Contenido |
 |---|---|
 | `dominio/columnas.py` | `es_columna_fecha` (heurística por el nombre) y `PROCESOS`: la lista cerrada de procesos que se pueden lanzar |
-| `aplicacion/` | `dto.py`, `puertos.py` (`Lector`, `Lanzador`) y los casos de uso `diccionario.py` (consultas y cruce con el registro de tablas) y `procesos.py` |
-| `infraestructura/` | `lector.py` (lee el `diccionario.json`, lo relee solo si cambió su fecha de modificación) y `lanzador.py` (subproceso) |
+| `aplicacion/` | `dto.py`, `puertos.py` (`Lector`, `Catalogo`, `Lanzador`) y los casos de uso `diccionario.py` (consultas y cruce con el registro de tablas) y `procesos.py` |
+| `infraestructura/` | `lector.py` (lee el `diccionario.json`, lo relee solo si cambió su fecha de modificación), `catalogo_bd.py` (el catálogo de reportes desde `mod_rep.rep.RREGREP01`) y `lanzador.py` (subproceso) |
 | `interfaces/web/` | vistas Django bajo `/api/diccionario/…` |
 
 Reglas:
 
-1. **Solo lectura del diccionario.** El módulo nunca escribe `diccionario.json` ni nada del repo `DICCIONARIO`; lo único que cambia ese repo es un proceso lanzado a propósito (regla 3).
+1. **Solo lectura.** El módulo nunca escribe `diccionario.json` ni nada del repo `DICCIONARIO` (lo único que lo cambia es un proceso lanzado a propósito, regla 3) ni nada en SQL Server.
 2. **Dependencia permitida: `diccionario → reportes`** (usa `reportes.dominio.tablas`: `TABLAS` y `USO`, para el cruce). `reportes` no conoce a `diccionario`. Está en `DEPENDE` de `validar_gobernanza.py`.
 3. **Procesos: lista cerrada y de a uno.** Solo `generar` (`npm run generar`), `verificar` (`npm run verificar`) y `test` (`npm test`), siempre en la carpeta del repo `DICCIONARIO`. El comando sale de `PROCESOS`, nunca de la petición, y se lanza sin shell. Ninguno se conecta a SQL Server. La extracción desde la base (`bd.py`) **no** se ofrece: escribe en el otro repo con credenciales y su propia guía pide revisar el diff después.
 4. **Entorno mínimo para el subproceso.** `lanzador.py` pasa solo `PATH`, `PATHEXT`, `SYSTEMROOT`, `COMSPEC`, `TEMP`, `TMP`, `USERPROFILE`, `APPDATA`, `LOCALAPPDATA` y `HOME`. El repo `DICCIONARIO` es otro código y no debe ver las claves de esta API (SMTP, bases, Google, `WEB_CLAVE`). Los nombres van en mayúsculas porque en Windows Python los entrega así, y `node` no arranca sin `SYSTEMROOT` ([incidente de la auditoría](../../evidence/quality/auditorias-2026-10.md)).
 5. **Uno a la vez.** La comprobación «¿hay uno en curso?» y el alta ocurren bajo el mismo candado dentro del lanzador; dos peticiones casi juntas no lanzan dos procesos. El estado y el log quedan en `data/outputs/diccionario/` (últimas 50 fichas); un proceso que quedó «ejecutando» tras reiniciar la API se muestra como error.
-6. **Dónde está el diccionario.** La carpeta `DICCIONARIO` junto a este repo, o `DICCIONARIO_DIR` en el `.env`. Si falta, la API responde 404 con esa pista.
+6. **El catálogo de reportes sale de la base.** La lista de reportes (RCODREP, descripción, procedimiento y parámetros) se lee en vivo de `mod_rep.rep.RREGREP01` (`RCODREP`, `RDESREP`, `RTPREP`, un JSON con el SP y sus parámetros), no del `diccionario.json`: esa tabla es la que usa el backend del MIS (Ant) y la que manda. Es un único `SELECT … WITH (NOLOCK)` por `core.bd` (servidor de `mod_rep` = `mish`), con 10 s de espera, caché de 60 s por proceso (también de la falla, para no esperar en cada pantalla) y sin ninguna escritura. Del `diccionario.json` se siguen tomando lo que la tabla no tiene: procedimientos, tablas, columnas, pantallas del front y hallazgos. Sin conexión (sin VPN, sin permisos, esquema distinto) se usa el catálogo del `diccionario.json` y el Resumen lo dice con el motivo; los reportes que están en la base y aún no en el diccionario (o al revés) se listan como `nuevos` / `retirados`.
+7. **Dónde está el diccionario.** La carpeta `DICCIONARIO` junto a este repo, o `DICCIONARIO_DIR` en el `.env`. Si falta, la API responde 404 con esa pista.
 
 Web: grupo «Diccionario» en el menú lateral con **Resumen** (gráficos con ECharts: avance por base, calidad y lo que aporta a tus reportes), **Reportes del MIS** (una tarjeta por base de datos y, dentro, las pestañas *Procedimientos* y *Tablas que ocupa*) y **Procesos**. Los detalles de un reporte y de una tabla cuelgan de ahí. Se usa la librería `echarts` (módulos `BarChart`, ejes, tooltip, leyenda y render SVG), con los colores de los tokens `--mis-*` resueltos en el navegador (`components/grafico.tsx`).
 

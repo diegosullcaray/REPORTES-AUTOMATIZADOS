@@ -18,6 +18,14 @@ class Lector(Protocol):
     def generado(self) -> str: ...
 
 
+class Catalogo(Protocol):
+    FUENTE: str   # de dónde se lee (tabla), para mostrarlo
+
+    def leer(self) -> list[dict]:
+        """Los reportes de `mod_rep.rep.RREGREP01` como `{codigo, descripcion, procedimiento, parametros}`. Lanza si no hay conexión."""
+        ...
+
+
 class Lanzador(Protocol):
     def ejecutar(self, proceso: str, comando: tuple[str, ...], carpeta: Path) -> dto.Ejecucion:
         """PeticionInvalida si ya hay un proceso en curso."""
@@ -32,6 +40,7 @@ class Lanzador(Protocol):
 class Puertos:
     lector: Lector
     lanzador: Lanzador
+    catalogo: Catalogo
 
 
 puertos: Registro[Puertos] = Registro("diccionario")

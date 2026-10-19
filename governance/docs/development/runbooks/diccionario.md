@@ -4,6 +4,8 @@ Decisión y alcance: [ADR-0017](../../architecture/adr/ADR-0017-modulo-diccionar
 
 ## Antes de empezar
 
+El **catálogo de reportes** se lee en vivo de `mod_rep.rep.RREGREP01` (hace falta red/VPN al servidor `mish`; si no hay, el Resumen avisa «No pude leer…» y usa el `diccionario.json`). Lo demás (procedimientos, tablas, columnas) viene del `diccionario.json`.
+
 1. El repo `DICCIONARIO` clonado **junto a este** (`…/DD/DICCIONARIO` y `…/DD/REPORTES-AUTOMATIZADOS`), o `DICCIONARIO_DIR` en `backend/.env` con su ruta. Sin él la web responde «No encontré el diccionario en …».
 2. Para los procesos: `node` y `npm` en el `PATH` de quien arranca la API (Node 20+). Si falta, el log del proceso dice «No encuentro npm».
 
@@ -15,7 +17,7 @@ Decisión y alcance: [ADR-0017](../../architecture/adr/ADR-0017-modulo-diccionar
 | **Reportes del MIS** (`/diccionario/reportes`) | Una tarjeta por base de datos. Al entrar (`?base=`): pestaña **Procedimientos** (con los reportes que los ejecutan) y pestaña **Tablas** que ocupa (las que guarda y las que sus procedimientos leen de otras bases; filtro «viven en esta base» / «de otras») |
 | Detalle de un reporte | Procedimiento, parámetros, tablas con las columnas que usa (las de fecha resaltadas), pantallas del front y hallazgos |
 | Detalle de una tabla | Columnas, qué reportes del MIS la leen y **cómo la registran tus reportes** (`tablas.py`: tipo, columna de fecha, confianza) |
-| **Procesos** (`/diccionario/procesos`) | Lanza los comandos del otro repo, con historial y log en vivo |
+| **Procesos** (`/diccionario/procesos`) | Dos pestañas (`?tab=`): **Procesos** (los comandos del otro repo y, debajo, **Validar las bases de datos**: prueba la conexión a `mish`, `slc` y `rcc`, lo mismo que Configuración › Bases de datos) e **Historial** (las ejecuciones con su log en vivo; al lanzar uno te lleva ahí) |
 
 ## Los procesos
 
@@ -39,6 +41,8 @@ La **extracción desde SQL Server** (`python extraccion/herramientas/bd.py …`)
 
 | Síntoma | Causa | Qué hacer |
 |---|---|---|
+| Aviso «No pude leer `mod_rep.rep.RREGREP01`» | sin VPN o sin permiso de lectura sobre `rep.RREGREP01` | conectar la VPN y recargar (la falla se recuerda 60 s); mientras tanto se usa el `diccionario.json` |
+| «N reportes están en la base y aún no en el diccionario» | alguien dio de alta un RCODREP nuevo | extraer su SP y regenerar en el repo `DICCIONARIO` (su guía) |
 | El proceso termina con código 134 y `Assertion failed: ncrypto::CSPRNG` | `node` no arranca en Windows sin `SYSTEMROOT` | ya cubierto: el lanzador la conserva (en mayúsculas). Si reaparece, revisa `_ENTORNO_MINIMO` de `infraestructura/lanzador.py` |
 | `Verificar` termina «Con error» | el repo `DICCIONARIO` tiene enlaces rotos (p. ej. `modificaciones/nueva tarea/variables.md`) | corregir esos enlaces en ese repo; no es un fallo de esta app |
 | Gráficos vacíos o 404 | no está la carpeta `DICCIONARIO` | ver «Antes de empezar» |

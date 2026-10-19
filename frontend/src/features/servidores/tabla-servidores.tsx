@@ -2,36 +2,21 @@
 
 import type { ColumnDef } from "@tanstack/react-table";
 import { Database, KeyRound, PlugZap } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
-import { toast } from "sonner";
+import { useMemo } from "react";
 import { Chip } from "@/components/estados";
 import { Marco } from "@/components/marco";
 import { Pagina } from "@/components/pagina";
 import { Ordenable, TablaDatos } from "@/components/tabla-datos";
 import { Button } from "@/components/ui/button";
 import { useConsulta } from "@/hooks/use-consulta";
+import { useProbarServidores } from "@/hooks/use-probar-servidores";
 import { api } from "@/lib/api";
-import type { PruebaConexion, Servidor } from "@/lib/tipos";
+import type { Servidor } from "@/lib/tipos";
 
 /** Los 3 servidores de SQL Server con su test de conexión. Las credenciales viven solo en el .env de la API. */
 export function TablaServidores() {
   const consulta = useConsulta("servidores", api.servidores);
-  const [probando, setProbando] = useState<ReadonlySet<string>>(new Set());
-  const [resultados, setResultados] = useState<Record<string, PruebaConexion>>({});
-
-  const probar = useCallback(async (s: Servidor) => {
-    setProbando((p) => new Set(p).add(s.nombre));
-    try {
-      const r = await api.probarServidor(s.nombre);
-      setResultados((x) => ({ ...x, [s.nombre]: r }));
-      if (r.ok) toast.success(`${s.nombre}: conexión correcta`, { description: `${s.servidor} · ${r.milisegundos} ms` });
-      else toast.error(`${s.nombre}: sin conexión`, { description: r.detalle });
-    } catch (e) {
-      toast.error("No se pudo probar la conexión", { description: (e as Error).message });
-    } finally {
-      setProbando((p) => { const n = new Set(p); n.delete(s.nombre); return n; });
-    }
-  }, []);
+  const { probando, resultados, probar } = useProbarServidores();
 
   const columnas = useMemo<ColumnDef<Servidor, unknown>[]>(() => [
     {

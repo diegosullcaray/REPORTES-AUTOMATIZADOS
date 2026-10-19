@@ -4,7 +4,14 @@ El repo hermano `DICCIONARIO` documenta qué procedimiento almacenado (SP) ejecu
 
 **Archivo:** `<DICCIONARIO_DIR>/diccionario/diccionario.json` (por defecto, la carpeta `DICCIONARIO` junto a este repo). Se genera con `npm run generar` en ese repo.
 
-## Qué se consume
+## De dónde sale cada cosa
+
+| Dato | Fuente |
+|---|---|
+| **Catálogo de reportes** (código, descripción, procedimiento, parámetros) | `mod_rep.rep.RREGREP01` en vivo: `RCODREP`, `RDESREP` y `RTPREP` (JSON `{"name": "<base>.<esquema>.<SP>", "params": [{"order": n, "name": "…"}]}`). Un `RTPREP` ilegible deja el reporte sin procedimiento. Sin conexión: `reportes[]` del `diccionario.json` |
+| Procedimientos, tablas, columnas, hallazgos y pantallas del front (`front[]`) | `diccionario.json` |
+
+## Qué se consume del `diccionario.json`
 
 | Clave | Campos que usa la app |
 |---|---|
@@ -32,4 +39,4 @@ El nombre de una tabla se compara **sin distinguir mayúsculas** con el registro
 
 - No inventa significado: `descripcion` de una tabla o columna es `null` hasta que alguien la documente allá, y la web lo dice.
 - No escribe el archivo ni corrige hallazgos: los errores de producción se reportan al dueño del SP.
-- No ejecuta ningún SP ni se conecta a SQL Server por este camino.
+- No ejecuta ningún SP ni escribe en SQL Server: su única consulta es el `SELECT … WITH (NOLOCK)` de `rep.RREGREP01`.

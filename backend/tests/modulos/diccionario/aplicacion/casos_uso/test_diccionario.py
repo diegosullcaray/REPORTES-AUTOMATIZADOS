@@ -39,10 +39,14 @@ REGISTRO = {
 }
 
 
+def _sin_base():
+    raise OSError("08001 sin conexión")
+
+
 @pytest.fixture(autouse=True)
 def dic(monkeypatch):
     lector = SimpleNamespace(leer=lambda: DICCIONARIO, carpeta=lambda: "carpeta", generado=lambda: "2026-10-18T10:00:00")
-    puertos.registrar(Puertos(lector=lector, lanzador=SimpleNamespace()))
+    puertos.registrar(Puertos(lector=lector, lanzador=SimpleNamespace(), catalogo=SimpleNamespace(leer=_sin_base, FUENTE="mod_rep.rep.RREGREP01")))
     monkeypatch.setattr(diccionario, "TABLAS", REGISTRO)
     monkeypatch.setattr(diccionario, "USO", {"mi-reporte": ("storage.com_act.hdgp001",)})
     yield
@@ -120,3 +124,25 @@ def test_api_responde_y_protege_con_sesion():
     assert "mod_rep" in [b["base"] for b in cliente.get("/api/diccionario/bases").json()]
     assert cliente.get("/api/diccionario/bases/inventada").status_code == 404
     assert cliente.post("/api/diccionario/procesos/inventado/ejecutar").status_code == 404
+
+
+def test_sin_conexion_el_catalogo_sale_del_json_y_dice_por_que():
+    r = diccionario.resumen()
+    assert (r.reportes, r.catalogo.fuente) == (2, "diccionario.json")
+    assert r.catalogo.motivo and not r.catalogo.nuevos and not r.catalogo.retirados
+
+
+def test_el_catalogo_sale_de_la_base_y_se_cruza_con_el_json():
+    base = [  # RREGREP01: R1 cambió de descripción, R2 ya no está, R3 es nueva
+        {"codigo": "R1", "descripcion": "Uno en la base", "procedimiento": SP, "parametros": ["fec"]},
+        {"codigo": "R3", "descripcion": "Nuevo", "procedimiento": "mod_rep.com.SP3", "parametros": []},
+    ]
+    puertos().catalogo = SimpleNamespace(leer=lambda: base, FUENTE="mod_rep.rep.RREGREP01")
+    r = diccionario.resumen()
+    assert (r.reportes, r.catalogo.fuente, r.catalogo.nuevos, r.catalogo.retirados) == (2, "mod_rep.rep.RREGREP01", ["R3"], ["R2"])
+    d = diccionario.reporte("R1")
+    assert (d.descripcion, d.front) == ("Uno en la base", ["reportes / mensual"])   # la descripción manda la base; las pantallas, el diccionario
+    assert diccionario.reporte("R3").front == [] and diccionario.reporte("R3").estado == "sin procedimiento"   # aún sin extraer
+    with pytest.raises(NoEncontrado):
+        diccionario.reporte("R2")
+    assert {p.nombre for p in diccionario.base("mod_rep").procedimientos} == {SP, "mod_rep.com.SP3"}

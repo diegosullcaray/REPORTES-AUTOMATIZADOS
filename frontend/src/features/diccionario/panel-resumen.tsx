@@ -3,7 +3,7 @@
 import { BookOpen } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
-import { Chip, ErrorEnLinea, EsqueletoFilas } from "@/components/estados";
+import { Aviso, Chip, ErrorEnLinea, EsqueletoFilas } from "@/components/estados";
 import { Grafico, type Colores } from "@/components/grafico";
 import { Marco } from "@/components/marco";
 import { Pagina } from "@/components/pagina";
@@ -11,7 +11,7 @@ import { Tarjeta } from "@/components/tarjeta";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useConsulta } from "@/hooks/use-consulta";
 import { api } from "@/lib/api";
-import type { DicBase, DicHallazgo, DicPotencial } from "@/lib/tipos";
+import type { DicBase, DicHallazgo, DicOrigenCatalogo, DicPotencial } from "@/lib/tipos";
 import { EnlaceTabla, enlaceTabla } from "./comun";
 
 const EJES = (c: Colores) => ({ axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: c.tenue }, splitLine: { lineStyle: { color: c.linea } } });
@@ -117,6 +117,20 @@ function Cobertura({ p }: { p: DicPotencial }) {
   );
 }
 
+/** De dónde sale el catálogo de reportes y en qué se aparta del diccionario.json (lo nuevo en la base y lo que ya no está). */
+function Catalogo({ c }: { c: DicOrigenCatalogo }) {
+  const lista = (codigos: string[]) => `${codigos.slice(0, 8).join(", ")}${codigos.length > 8 ? ` y ${codigos.length - 8} más` : ""}`;
+  return (
+    <div className="flex flex-col gap-2">
+      {c.motivo
+        ? <Aviso>No pude leer <span className="font-mono">mod_rep.rep.RREGREP01</span>: {c.motivo}. Se muestra el catálogo del diccionario.json.</Aviso>
+        : <p className="text-xs text-muted-foreground">Catálogo leído en vivo de <span className="font-mono">{c.fuente}</span>.</p>}
+      {c.nuevos.length > 0 && <Aviso tono="info">{c.nuevos.length} reportes están en la base y aún no en el diccionario ({lista(c.nuevos)}): extrae sus procedimientos y regenera.</Aviso>}
+      {c.retirados.length > 0 && <Aviso>{c.retirados.length} reportes del diccionario ya no están en la base ({lista(c.retirados)}).</Aviso>}
+    </div>
+  );
+}
+
 /** Resumen del diccionario hecho de gráficos: avance por base, calidad y lo que aporta a tus reportes. */
 export function PanelResumen() {
   const { datos: r, error, recargar } = useConsulta("dic/resumen", api.dic.resumen);
@@ -127,7 +141,9 @@ export function PanelResumen() {
       <Marco icono={<BookOpen />} titulo="Diccionario"
         descripcion={r ? `${r.reportes} reportes · ${r.procedimientos} procedimientos · ${r.tablas} tablas · ${r.columnas.toLocaleString("es-PE")} columnas del MIS` : "Qué procedimiento ejecuta cada reporte del MIS, qué tablas usa y qué columnas."}>
         {error ? <ErrorEnLinea titulo="No se pudo cargar el diccionario" detalle={error} onReintentar={recargar} /> : !r ? <EsqueletoFilas filas={2} alto="h-40" /> : (
-          <div className="grid gap-4 lg:grid-cols-2">
+          <>
+            <Catalogo c={r.catalogo} />
+            <div className="grid gap-4 lg:grid-cols-2">
             <Tarjeta titulo="Avance de la documentación" descripcion={`${r.validados} de ${r.procedimientos} procedimientos validados`}>
               <Avance bases={r.bases} />
             </Tarjeta>
@@ -135,7 +151,8 @@ export function PanelResumen() {
               {hallazgos.error ? <ErrorEnLinea titulo="No se pudo cargar la calidad" detalle={hallazgos.error} onReintentar={hallazgos.recargar} />
                 : hallazgos.datos ? <Calidad hallazgos={hallazgos.datos} /> : <EsqueletoFilas filas={3} />}
             </Tarjeta>
-          </div>
+            </div>
+          </>
         )}
       </Marco>
       {r && (

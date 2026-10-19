@@ -10,7 +10,7 @@ from core import bd, entorno
 from core.puertos import Nucleo, nucleo
 from modulos.diccionario.aplicacion.puertos import Puertos as PuertosDiccionario
 from modulos.diccionario.aplicacion.puertos import puertos as puertos_diccionario
-from modulos.diccionario.infraestructura import lanzador, lector
+from modulos.diccionario.infraestructura import catalogo_bd, lanzador, lector
 from modulos.integraciones.aplicacion.puertos import Puertos as PuertosIntegraciones
 from modulos.integraciones.aplicacion.puertos import puertos as puertos_integraciones
 from modulos.integraciones.infraestructura.google import cliente as google
@@ -27,4 +27,4 @@ nucleo.fabrica = lambda: Nucleo(bd=bd, entorno=entorno)
 puertos_reportes.fabrica = lambda: PuertosReportes(excel=excel, cola=cola_ejecuciones, historial_validacion=historial_validacion, lector_archivos=lector_archivos, etiquetas=etiquetas)
 puertos_notificaciones.fabrica = lambda: PuertosNotificaciones(correo=correo_smtp)
 puertos_integraciones.fabrica = lambda: PuertosIntegraciones(google=google, ia=ia)
-puertos_diccionario.fabrica = lambda: PuertosDiccionario(lector=lector, lanzador=lanzador)
+puertos_diccionario.fabrica = lambda: PuertosDiccionario(lector=lector, lanzador=lanzador, catalogo=catalogo_bd)

@@ -22,6 +22,15 @@ class BaseResumen(BaseModel):
     tablas: int
 
 
+class OrigenCatalogo(BaseModel):
+    """De dónde sale el catálogo de reportes: la base (en vivo) o, sin conexión, el diccionario.json."""
+
+    fuente: str                   # mod_rep.rep.RREGREP01 | diccionario.json
+    motivo: str | None            # por qué no se pudo leer la base
+    nuevos: list[str]             # en la base y aún no en el diccionario
+    retirados: list[str]          # en el diccionario y ya no en la base
+
+
 class Resumen(BaseModel):
     carpeta: str
     generado: str                 # fecha de modificación del diccionario.json
@@ -34,6 +43,7 @@ class Resumen(BaseModel):
     errores: int
     avisos: int
     errores_nuevos: int
+    catalogo: OrigenCatalogo
     bases: list[BaseResumen]
 
 

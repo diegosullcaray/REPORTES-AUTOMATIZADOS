@@ -2,6 +2,7 @@
 
 import type { ColumnDef } from "@tanstack/react-table";
 import { Play } from "lucide-react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Chip, Punto } from "@/components/estados";
@@ -13,12 +14,15 @@ import { Ordenable, TablaDatos } from "@/components/tabla-datos";
 import { Tarjeta } from "@/components/tarjeta";
 import { Terminal } from "@/components/terminal";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useConsulta } from "@/hooks/use-consulta";
 import { api } from "@/lib/api";
 import { duracion, type Tono } from "@/lib/formato";
 import type { DicEjecucion, DicProceso } from "@/lib/tipos";
+import { ValidarBases } from "./validar-bases";
 
+type Pestana = "procesos" | "historial";
 const ESTADO: Record<DicEjecucion["estado"], { texto: string; tono: Tono }> = { ejecutando: { texto: "Ejecutando", tono: "info" }, ok: { texto: "Correcto", tono: "exito" }, error: { texto: "Con error", tono: "peligro" } };
 
 function LogEjecucion({ id, onCerrar }: { id: string | null; onCerrar: () => void }) {
@@ -42,12 +46,17 @@ export function PanelProcesos() {
   const historial = useConsulta("dic/ejecuciones", api.dic.ejecuciones, (d) => d.some((x) => x.estado === "ejecutando"), 2000);
   const [pedido, setPedido] = useState<DicProceso | null>(null);
   const [log, setLog] = useState<string | null>(null);
+  const router = useRouter();
+  const ruta = usePathname();
+  const tab: Pestana = useSearchParams().get("tab") === "historial" ? "historial" : "procesos";
+  const irA = (t: Pestana) => router.replace(t === "procesos" ? ruta : `${ruta}?tab=${t}`, { scroll: false });
   const ocupado = historial.datos?.some((x) => x.estado === "ejecutando") ?? false;
 
   async function lanzar(p: DicProceso) {
     try {
       const x = await api.dic.ejecutar(p.id);
       historial.recargar();
+      irA("historial");  // el proceso recién lanzado se ve ahí, corriendo
       setLog(x.id);
     } catch (e) {
       toast.error("No se pudo lanzar", { description: (e as Error).message });
@@ -66,20 +75,32 @@ export function PanelProcesos() {
   return (
     <Pagina>
       <Marco icono={<Play />} titulo="Procesos" descripcion="Mantén el diccionario al día sin abrir una consola. Corren en el repo DICCIONARIO, de a uno, y dejan su log.">
-        <div className="grid gap-3 md:grid-cols-3">
-          {procesos.datos?.map((p) => (
-            <Tarjeta key={p.id} titulo={p.nombre} descripcion={p.descripcion}
-              acciones={<Button size="sm" disabled={ocupado} onClick={() => setPedido(p)}><Play /> Ejecutar</Button>}>
-              <span className="font-mono text-[12px] text-muted-foreground">{p.comando}</span>
-              <span className="text-xs text-muted-foreground">Escribe en: {p.escribe}</span>
-            </Tarjeta>
-          ))}
-        </div>
-      </Marco>
-      <Marco titulo="Historial" descripcion="Se actualiza sola mientras hay un proceso en curso.">
-        <TablaDatos columnas={columnas} datos={historial.datos} cargando={historial.cargando} error={historial.error} onRecargar={historial.recargar}
-          vacio={{ titulo: "Sin ejecuciones", descripcion: "Lanza un proceso y aparecerá aquí." }} ordenInicial={[{ id: "inicio", desc: true }]} porPagina={10}
-          nombres={{ estado: "Estado", proceso: "Proceso", inicio: "Inicio", duracion: "Duración" }} />
+        <Tabs value={tab} onValueChange={(v) => irA(v as Pestana)}>
+          <TabsList>
+            <TabsTrigger value="procesos">Procesos</TabsTrigger>
+            <TabsTrigger value="historial" className="gap-2">
+              Historial{historial.datos ? ` (${historial.datos.length})` : ""}
+              {ocupado && <Punto tono="info" etiqueta="Hay un proceso en curso" latido />}
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="procesos" className="pt-3">
+            <div className="grid gap-3 md:grid-cols-3">
+              {procesos.datos?.map((p) => (
+                <Tarjeta key={p.id} titulo={p.nombre} descripcion={p.descripcion}
+                  acciones={<Button size="sm" disabled={ocupado} onClick={() => setPedido(p)}><Play /> Ejecutar</Button>}>
+                  <span className="font-mono text-[12px] text-muted-foreground">{p.comando}</span>
+                  <span className="text-xs text-muted-foreground">Escribe en: {p.escribe}</span>
+                </Tarjeta>
+              ))}
+            </div>
+            <div className="pt-3"><ValidarBases /></div>
+          </TabsContent>
+          <TabsContent value="historial" className="pt-3">
+            <TablaDatos columnas={columnas} datos={historial.datos} cargando={historial.cargando} error={historial.error} onRecargar={historial.recargar}
+              vacio={{ titulo: "Sin ejecuciones", descripcion: "Lanza un proceso y aparecerá aquí. Se actualiza sola mientras hay uno en curso." }} ordenInicial={[{ id: "inicio", desc: true }]} porPagina={10}
+              nombres={{ estado: "Estado", proceso: "Proceso", inicio: "Inicio", duracion: "Duración" }} />
+          </TabsContent>
+        </Tabs>
       </Marco>
       <Confirmar abierto={!!pedido} onAbierto={(a) => !a && setPedido(null)} titulo={`¿Ejecutar «${pedido?.nombre}»?`} accion="Ejecutar"
         descripcion={pedido && <>Corre <span className="font-mono">{pedido.comando}</span> en el repo DICCIONARIO. Escribe en: {pedido.escribe}.</>}

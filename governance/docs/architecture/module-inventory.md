@@ -213,6 +213,7 @@ Monolito modular: cada módulo de negocio tiene sus capas (`dominio` ← `aplica
 
 | Módulo | Qué hace |
 |---|---|
+| `modulos/diccionario/infraestructura/catalogo_bd.py` | Lee el catálogo de reportes del MIS directo de `mod_rep.rep.RREGREP01`. Solo SELECT, con NOLOCK: esa tabla la usa Ant y un bloqueo la dejaría esperando |
 | `modulos/diccionario/infraestructura/lanzador.py` | Lanza los procesos del repo DICCIONARIO como subproceso (sin shell), uno a la vez, y deja su estado y log en data/outputs/diccionario/ |
 | `modulos/diccionario/infraestructura/lector.py` | Lee el diccionario.json del repo DICCIONARIO (carpeta hermana de REPORTES-AUTOMATIZADOS, o `DICCIONARIO_DIR` del .env) |
 
@@ -244,7 +245,7 @@ Monolito modular: cada módulo de negocio tiene sus capas (`dominio` ← `aplica
 | `modulos/sistema/interfaces/web/vistas/sesion.py` | Inicio y cierre de sesión, y cambio de usuario o contraseña (credenciales en el .env) |
 
 
-## Pruebas (63 archivos)
+## Pruebas (64 archivos)
 
 Reflejan los módulos: `tests/core`, `tests/config` y `tests/modulos/<módulo>/<capa>`.
 
@@ -261,6 +262,7 @@ Reflejan los módulos: `tests/core`, `tests/config` y `tests/modulos/<módulo>/<
 - `tests/modulos/diccionario/aplicacion/casos_uso/test_diccionario.py`
 - `tests/modulos/diccionario/aplicacion/casos_uso/test_procesos.py`
 - `tests/modulos/diccionario/dominio/test_columnas.py`
+- `tests/modulos/diccionario/infraestructura/test_catalogo_bd.py`
 - `tests/modulos/diccionario/infraestructura/test_lanzador.py`
 - `tests/modulos/diccionario/infraestructura/test_lector.py`
 - `tests/modulos/integraciones/aplicacion/casos_uso/test_google.py`
