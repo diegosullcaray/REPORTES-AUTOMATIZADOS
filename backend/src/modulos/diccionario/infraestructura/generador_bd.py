@@ -1,6 +1,6 @@
 """Lo que SQL Server sabe de los procedimientos del MIS: dependencias, parámetros y estructura de tablas. Solo lectura de metadatos (nada de EXEC de un SP de reporte).
 
-Las consultas son las del repo DICCIONARIO (`extraccion/sql/02-dependencias` y `herramientas/diccionario_bd/estructura.py`), que ya se usan contra estos servidores.
+Consultas estándar de catálogo de SQL Server (dependencias, parámetros e INFORMATION_SCHEMA); todas de solo lectura.
 Los nombres de SP y tablas viajan como parámetros (`?`), nunca pegados al texto de la consulta.
 """
 
@@ -88,10 +88,18 @@ JOIN INFORMATION_SCHEMA.COLUMNS c ON c.TABLE_SCHEMA = t.TABLE_SCHEMA AND c.TABLE
 WHERE {filtro}
 """
 
+CUERPOS = """
+SELECT SCHEMA_NAME(o.schema_id) AS esquema, o.name AS nombre, m.definition AS definicion
+FROM sys.sql_modules m
+JOIN sys.objects o ON o.object_id = m.object_id
+WHERE o.type = 'P' AND ({filtro})
+"""
+
 
 def scripts() -> list[dto.ScriptArchivo]:
     return [dto.ScriptArchivo(ruta="SQL · dependencias de los procedimientos (por base)", codigo=_DEPENDENCIAS.replace("{inserts}", "INSERT INTO @catalogo (esquema, nombre) VALUES (?, ?), …;").strip()),
             dto.ScriptArchivo(ruta="SQL · parámetros de los procedimientos (por base)", codigo=PARAMETROS.strip()),
+            dto.ScriptArchivo(ruta="SQL · código de los procedimientos (por base)", codigo=CUERPOS.replace("{filtro}", "(SCHEMA_NAME(o.schema_id) = ? AND o.name = ?) OR …").strip()),
             dto.ScriptArchivo(ruta="SQL · estructura de las tablas que usan (por base)", codigo=ESTRUCTURA.replace("{filtro}", "(t.TABLE_SCHEMA = ? AND t.TABLE_NAME = ?) OR …").strip())]
 
 
@@ -126,6 +134,17 @@ def dependencias(base: str, sps: list[tuple[str, str]]) -> list[dict]:
 
 def parametros(base: str) -> list[dict]:
     return _ejecutar(base, PARAMETROS)
+
+
+def cuerpos(base: str, sps: list[tuple[str, str]]) -> list[dict]:
+    """El texto (`definicion`) de los procedimientos pedidos; una cuenta sin VIEW DEFINITION recibe NULL y esos no se analizan."""
+    filas: list[dict] = []
+    pares = sorted(set(sps))
+    for i in range(0, len(pares), 500):
+        parte = pares[i:i + 500]
+        filtro = " OR ".join("(SCHEMA_NAME(o.schema_id) = ? AND o.name = ?)" for _ in parte)
+        filas += [f for f in _ejecutar(base, CUERPOS.format(filtro=filtro), tuple(x for par in parte for x in par)) if f.get("definicion")]
+    return filas
 
 
 def estructura(base: str, tablas: list[tuple[str, str]]) -> list[dict]:

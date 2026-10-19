@@ -41,7 +41,7 @@ Estado de las compuertas al cierre de las correcciones: `python governance/scrip
 | Lectura del estado a medias mientras se reescribe; historial sin límite | Cerrado — lectura bajo candado; últimas 50 fichas |
 | Hallazgos de un reporte por texto parcial (`SEL_EFEC_01` ≈ `SEL_EFEC_011`) | Cerrado — palabra completa |
 | Los tres procesos fallaban en Windows (código 134) | Cerrado — ver [incidente](./incidents.md) |
-| `npm run verificar` del repo `DICCIONARIO` termina con error (enlaces rotos de `modificaciones/nueva tarea`) | **Abierto**, en el repo `DICCIONARIO` |
+| `npm run verificar` del repo `DICCIONARIO` termina con error (enlaces rotos de `modificaciones/nueva tarea`) | **Retirado** (2026-10-18): la app ya no usa el repo `DICCIONARIO` |
 | `generar` no se probó de punta a punta desde la web | **Abierto** — correrlo una vez y revisar el `git diff` de ese repo |
 
 ## 5 · Resumen con gráficos

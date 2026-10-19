@@ -79,5 +79,33 @@ def test_la_estructura_se_pide_por_tramos_de_tablas(servidor):
 
 def test_las_consultas_se_muestran_tal_cual_en_la_pestana_script():
     rutas = [s.ruta for s in generador_bd.scripts()]
-    assert rutas == ["SQL · dependencias de los procedimientos (por base)", "SQL · parámetros de los procedimientos (por base)", "SQL · estructura de las tablas que usan (por base)"]
+    assert rutas == ["SQL · dependencias de los procedimientos (por base)", "SQL · parámetros de los procedimientos (por base)", "SQL · código de los procedimientos (por base)", "SQL · estructura de las tablas que usan (por base)"]
     assert all("{" not in s.codigo for s in generador_bd.scripts())                          # sin marcadores sin resolver
+
+
+def test_el_codigo_de_los_sp_se_pide_con_parametros_y_se_descartan_los_que_no_se_pueden_ver(monkeypatch):
+    sql_vistos = []
+
+    class C:
+        def execute(self, sql, *params):
+            sql_vistos.append((sql, params))
+
+        description = [("esquema",), ("nombre",), ("definicion",)]
+
+        def fetchall(self):
+            return [("com", "A", "CREATE PROCEDURE ..."), ("com", "B", None)]       # B: sin VIEW DEFINITION
+
+        def nextset(self):
+            return False
+
+        def close(self):
+            pass
+
+    @contextmanager
+    def conexion(servidor, base=None, autocommit=True):
+        yield type("Conn", (), {"timeout": 0, "cursor": lambda self: C()})()
+
+    monkeypatch.setattr(generador_bd.bd, "conexion_pyodbc", conexion)
+    r = generador_bd.cuerpos("mod_rep", [("com", "A"), ("com", "B")])
+    assert [x["nombre"] for x in r] == ["A"] and "sys.sql_modules" in sql_vistos[0][0] and sql_vistos[0][1] == ("com", "A", "com", "B")
+

@@ -1,4 +1,4 @@
-"""Genera el diccionario desde la base: el catálogo de reportes (mod_rep.rep.RREGREP01) y lo que SQL Server sabe de cada procedimiento. Sin el repo DICCIONARIO."""
+"""Genera el diccionario desde la base: el catálogo de reportes (mod_rep.rep.RREGREP01) y lo que SQL Server sabe de cada procedimiento."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from collections.abc import Callable
 from core.excepciones import ConfiguracionError
 from core.servidores import servidor_de_base
 from modulos.diccionario.aplicacion.puertos import puertos
-from modulos.diccionario.dominio.armado import armar, tablas_referidas
+from modulos.diccionario.dominio.armado import analizar, armar, tablas_referidas
 from modulos.reportes.dominio.verificacion import causa_de
 
 
@@ -40,6 +40,7 @@ def construir(emitir: Callable[[str], None]) -> int:
 
     dependencias: list[dict] = []
     parametros: list[dict] = []
+    cuerpos: dict[tuple[str, str, str], str] = {}
     con_sp: set[str] = set()
     for base, lista in sorted(sps.items()):
         emitir(f"▶ {base}: dependencias y parámetros de {len(lista)} procedimientos…\n")
@@ -50,15 +51,22 @@ def construir(emitir: Callable[[str], None]) -> int:
             continue
         dependencias += filas
         parametros += pars
+        try:   # el análisis del código es un complemento: sin él el diccionario sale igual, con lo que dice el motor
+            for c in g.cuerpos(base, sorted(lista)):
+                cuerpos[(base, c["esquema"], c["nombre"])] = c["definicion"]
+        except Exception as exc:  # noqa: BLE001
+            emitir(f"AVISO {base}: no pude leer el código de los procedimientos ({_causa(exc, base)}); sin análisis de código\n")
         con_sp.add(base.lower())
         emitir(f"✓ {base}: {len(filas)} dependencias\n")
     if not con_sp:
         emitir("✗ Ninguna base contestó: no se guardó nada (queda el diccionario anterior, si había).\n")
         return 1
 
+    emitir(f"▶ Analizando el código de {len(cuerpos)} procedimientos…\n")
+    analisis = analizar(cuerpos)
     estructura: list[dict] = []
     con_estructura: set[str] = set()
-    for base, tablas in sorted(tablas_referidas(dependencias).items()):
+    for base, tablas in sorted(tablas_referidas(dependencias, analisis).items()):
         try:
             servidor_de_base(base)
         except ConfiguracionError:
@@ -72,7 +80,7 @@ def construir(emitir: Callable[[str], None]) -> int:
             continue
         con_estructura.add(base.lower())
 
-    datos = armar(reportes, dependencias, parametros, estructura, con_sp, con_estructura)
+    datos = armar(reportes, dependencias, parametros, estructura, con_sp, con_estructura, analisis)
     puertos().lector.guardar(datos)
     r = datos["resumen"]
     emitir(f"✓ Diccionario guardado: {r['reportes']} reportes · {r['procedimientos']} procedimientos ({r['validados']} validados por el motor) · {r['tablas']} tablas · "

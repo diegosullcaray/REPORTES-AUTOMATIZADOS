@@ -14,7 +14,6 @@ urlpatterns = [
     path("api/diccionario/tablas/<str:nombre>", diccionario.TablaDetalle.as_view()),
     path("api/diccionario/procesos", diccionario.Procesos.as_view()),
     path("api/diccionario/procesos/<str:id_>", diccionario.ProcesoDetalle.as_view()),
-    path("api/diccionario/procesos/<str:id_>/archivo", diccionario.ProcesoArchivo.as_view()),
     path("api/diccionario/procesos/<str:id_>/ejecutar", diccionario.ProcesoEjecutar.as_view()),
     path("api/diccionario/ejecuciones", diccionario.Ejecuciones.as_view()),
     path("api/diccionario/ejecuciones/<str:id_>", diccionario.EjecucionDetalle.as_view()),

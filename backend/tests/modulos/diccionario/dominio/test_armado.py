@@ -1,6 +1,6 @@
 """Arma el diccionario con lo que responde SQL Server: estados de los SP, tablas y columnas con su estructura real, y lo que está roto."""
 
-from modulos.diccionario.dominio.armado import armar, tablas_referidas
+from modulos.diccionario.dominio.armado import analizar, armar, tablas_referidas
 
 REPORTES = [
     {"codigo": "R1", "descripcion": "Uno", "procedimiento": "mod_rep.com.SP1", "parametros": ["fec"]},
@@ -61,7 +61,7 @@ def test_tablas_y_columnas_con_su_estructura_real():
     hdgp = t["storage.com_act.HDGP001"]
     assert (hdgp["existe"], hdgp["columnasReales"]) == (True, 2)
     c = {x["nombre"]: x for x in hdgp["columnas"]}
-    assert (c["HFECPRO"]["tipo"], c["HFECPRO"]["aceptaNulos"], c["HFECPRO"]["confianza"], c["HFECPRO"]["existe"]) == ("date", False, "exacta", True)
+    assert (c["HFECPRO"]["tipo"], c["HFECPRO"]["aceptaNulos"], c["HFECPRO"]["confianza"], c["HFECPRO"]["existe"]) == ("date", False, "motor", True)
     assert (c["HOLA"]["existe"], c["HOLA"]["confianza"]) == (False, "motor")
     assert hdgp["columnas"][0]["procedimientos"] == ["mod_rep.com.SP1"]
     assert t["mod_rep.dbo.Falta"]["existe"] is False
@@ -71,7 +71,7 @@ def test_hallazgos_de_lo_que_esta_roto():
     h = {(x["regla"], x["objeto"]): x for x in _armar()["hallazgos"]}
     assert ("sp-inexistente", "mod_rep.com.SP_MUERTO") in h and h[("sp-inexistente", "mod_rep.com.SP_MUERTO")]["nivel"] == "error"
     assert ("tabla-inexistente", "mod_rep.dbo.Falta") in h and ("columna-inexistente", "storage.com_act.HDGP001.HOLA") in h
-    assert h[("motor-sin-columnas", "mod_rep.com.SP_DINAMICO")]["nivel"] == "aviso"
+    assert h[("motor-con-error", "mod_rep.com.SP_DINAMICO")]["nivel"] == "aviso"
     assert not any(k[1] == "strategos.dbo.SP3" for k in h)                         # su base no se consultó: no se afirma que esté roto
 
 
@@ -85,21 +85,59 @@ def test_una_base_no_consultada_deja_su_tabla_sin_veredicto():
 def test_el_resumen_y_los_reportes_salen_del_catalogo():
     d = _armar()
     assert d["resumen"] == {"reportes": 6, "procedimientos": 4, "extraidos": 2, "validados": 1, "tablas": 2}
-    assert {r["codigo"] for r in d["reportes"]} == {"R1", "R1B", "R2", "R3", "R4", "R5"} and all(r["front"] == [] for r in d["reportes"])
+    assert {r["codigo"] for r in d["reportes"]} == {"R1", "R1B", "R2", "R3", "R4", "R5"}
 
 
 def test_tablas_referidas_por_base_para_pedir_su_estructura():
     assert tablas_referidas(DEPENDENCIAS) == {"storage": {("com_act", "HDGP001")}, "mod_rep": {("dbo", "Falta")}}
 
 
-def test_un_objeto_sin_tipo_no_se_acusa_de_faltar():
-    dep = [_dep("SP1", ref_base="strategos", ref_esquema="dbo", ref_entidad="SP_OTRA_BASE")]          # sin ref_objeto_tipo: el motor no lo resolvió
+def test_un_objeto_sin_tipo_que_la_estructura_no_tiene_no_se_acusa_de_faltar():
+    dep = [_dep("SP1", ref_base="strategos", ref_esquema="dbo", ref_entidad="SP_OTRA_BASE")]          # sin ref_objeto_tipo: el motor no lo resolvió (otra base)
     d = armar([REPORTES[0]], dep, [], [], {"mod_rep"}, {"strategos"})
-    assert d["tablas"][0]["existe"] is None
-    assert [(h["regla"], h["nivel"]) for h in d["hallazgos"]] == [("objeto-no-resuelto", "aviso")]
+    assert d["tablas"] == [] and d["procedimientos"][0]["otrosObjetos"] == ["strategos.dbo.SP_OTRA_BASE"] and d["hallazgos"] == []
 
 
 def test_una_base_con_distinta_mayuscula_es_la_misma():
     dep = [_dep("SP1", ref_base="STORAGE", ref_esquema="x", ref_entidad="T1", ref_objeto_tipo="USER_TABLE"), _dep("SP1", ref_base="storage", ref_esquema="x", ref_entidad="T2", ref_objeto_tipo="USER_TABLE")]
     assert tablas_referidas(dep) == {"storage": {("x", "T1"), ("x", "T2")}}
+
+
+CUERPO = "CREATE PROCEDURE com.SP1 @fec date, @tip int = 1 AS SELECT h.HFECPRO, h.EXTRA FROM storage.com_act.HDGP001 h; EXEC (@sql)"
+
+
+def test_el_analisis_del_codigo_complementa_al_motor():
+    analisis = analizar({("mod_rep", "com", "SP1"): CUERPO})
+    reportes = [{"codigo": "R1", "descripcion": "", "procedimiento": "mod_rep.com.SP1", "parametros": ["fec"]},
+                {"codigo": "R2", "descripcion": "", "procedimiento": "mod_rep.com.SP1", "parametros": ["fec", "tip", "otro"]},
+                {"codigo": "R3", "descripcion": "", "procedimiento": "mod_rep.com.SP1", "parametros": []}]
+    d = armar(reportes, DEPENDENCIAS[:1], PARAMETROS, ESTRUCTURA, {"mod_rep"}, {"storage"}, analisis)
+    c = {x["nombre"]: x["confianza"] for x in next(t for t in d["tablas"] if t["base"] == "storage")["columnas"]}
+    assert c == {"EXTRA": "exacta", "HFECPRO": "confirmada"}                          # vista por los dos = confirmada; solo por el código = exacta
+    h = {(x["regla"], x["objeto"]) for x in d["hallazgos"]}
+    assert ("columna-inexistente", "storage.com_act.HDGP001.EXTRA") in h               # el código usa una columna que la tabla real no tiene
+    assert ("parametros-de-mas", "R2") in h and ("parametros-faltantes", "R3") in h and ("sql-dinamico", "mod_rep.com.SP1") in h
+    assert not any(k[1] == "R1" for k in h)
+    sp = d["procedimientos"][0]
+    assert sp["resultados"] == [["HFECPRO", "EXTRA"]] and [(p["nombre"], p["porDefecto"]) for p in sp["parametros"]] == [("@fec", None), ("@pagina", "")]
+
+
+def test_si_el_motor_no_compila_el_codigo_igual_aporta_tablas_y_columnas():
+    analisis = analizar({("mod_rep", "com", "SP_DINAMICO"): "CREATE PROCEDURE com.SP_DINAMICO AS SELECT t.A FROM storage.com_act.HDGP001 t"})
+    dep = [_dep("SP_DINAMICO", origen="dm_sql_referenced_entities", error="no compila")]
+    d = armar([REPORTES[4]], dep, [], ESTRUCTURA, {"mod_rep"}, {"storage"}, analisis)
+    assert d["procedimientos"][0]["estado"] == "extraido" and [t["nombre"] for t in d["procedimientos"][0]["tablas"]] == ["storage.com_act.HDGP001"]
+    assert [(h["regla"], h["objeto"]) for h in d["hallazgos"]] == [("columna-inexistente", "storage.com_act.HDGP001.A"), ("motor-con-error", "mod_rep.com.SP_DINAMICO")]
+
+
+def test_una_tabla_que_solo_ve_el_codigo_y_no_existe_se_acusa_salvo_que_sea_de_trabajo():
+    cuerpo = "CREATE PROCEDURE com.SP1 AS SELECT * INTO storage.dbo.TRABAJO FROM storage.dbo.TRABAJO; SELECT * FROM storage.dbo.FALTA"
+    d = armar([REPORTES[0]], [_dep("SP1", origen="dm_sql_referenced_entities")], [], [], {"mod_rep"}, {"storage"}, analizar({("mod_rep", "com", "SP1"): cuerpo}))
+    h = {(x["regla"], x["objeto"]): x["nivel"] for x in d["hallazgos"]}
+    assert h[("tabla-de-trabajo", "storage.dbo.TRABAJO")] == "info" and h[("tabla-inexistente", "storage.dbo.FALTA")] == "error"
+
+
+def test_un_nombre_sin_esquema_se_busca_tambien_en_dbo():
+    analisis = analizar({("mod_rep", "com", "SP1"): "CREATE PROCEDURE com.SP1 AS SELECT a FROM storage..SOLO_DBO"})
+    assert tablas_referidas([], analisis) == {"storage": {("dbo", "SOLO_DBO")}}
 

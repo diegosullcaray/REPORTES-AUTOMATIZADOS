@@ -16,7 +16,7 @@ _EXTRAIDO = {"extraido", "validado"}
 
 
 def _guardado() -> dict | None:
-    """El diccionario ya generado (de la base o del repo), o None si todavía no hay."""
+    """El diccionario ya generado desde la base, o None si todavía no hay."""
     try:
         return puertos().lector.leer()
     except NoEncontrado:
@@ -24,7 +24,7 @@ def _guardado() -> dict | None:
 
 
 def _catalogo() -> tuple[list[dict], dto.OrigenCatalogo]:
-    """Los reportes del MIS: los de `mod_rep.rep.RREGREP01` (en vivo, con las pantallas del front si el diccionario las trae) o, sin conexión, los del diccionario guardado."""
+    """Los reportes del MIS: los de `mod_rep.rep.RREGREP01` (en vivo) o, sin conexión, los del diccionario guardado."""
     en_json = (_guardado() or {}).get("reportes", [])
     try:
         filas = puertos().catalogo.leer()
@@ -32,10 +32,9 @@ def _catalogo() -> tuple[list[dict], dto.OrigenCatalogo]:
         if not en_json:
             raise NoEncontrado(f"No hay diccionario guardado y no pude leer el catálogo: {causa_de(exc, servidor_de_base('mod_rep'))[0]}") from exc
         return en_json, dto.OrigenCatalogo(fuente="diccionario guardado", motivo=causa_de(exc, servidor_de_base("mod_rep"))[0], nuevos=[], retirados=[])
-    front = {r["codigo"]: r.get("front") or [] for r in en_json}
+    guardados = {r["codigo"] for r in en_json}
     codigos = {f["codigo"] for f in filas}
-    return ([{**f, "front": front.get(f["codigo"], [])} for f in filas],
-            dto.OrigenCatalogo(fuente=puertos().catalogo.FUENTE, motivo=None, nuevos=sorted(codigos - front.keys()), retirados=sorted(front.keys() - codigos)))
+    return filas, dto.OrigenCatalogo(fuente=puertos().catalogo.FUENTE, motivo=None, nuevos=sorted(codigos - guardados) if guardados else [], retirados=sorted(guardados - codigos))
 
 
 def _datos() -> dict:
@@ -44,7 +43,7 @@ def _datos() -> dict:
 
 
 def _hallazgo(h: dict) -> dto.Hallazgo:
-    return dto.Hallazgo(nivel=h["nivel"], regla=h["regla"], origen=h["origen"], objeto=h["objeto"], detalle=h.get("detalle") or "", en_linea_base=bool(h.get("enLineaBase")))
+    return dto.Hallazgo(nivel=h["nivel"], regla=h["regla"], origen=h["origen"], objeto=h["objeto"], detalle=h.get("detalle") or "")
 
 
 def resumen() -> dto.Resumen:
@@ -56,13 +55,12 @@ def resumen() -> dto.Resumen:
         b["ext"] += p["estado"] in _EXTRAIDO
         b["val"] += p["estado"] == "validado"
         b["tablas"].update(t["nombre"].lower() for t in p.get("tablas") or [])
-    hallazgos_, origen = d["hallazgos"], puertos().lector.origen()
+    hallazgos_ = d["hallazgos"]
     return dto.Resumen(
         reportes=len(d["reportes"]), procedimientos=len(sps), extraidos=sum(b["ext"] for b in bases.values()), validados=sum(b["val"] for b in bases.values()),
         tablas=len(d["tablas"]), columnas=sum(len(t["columnas"]) for t in d["tablas"]),
         errores=sum(h["nivel"] == "error" for h in hallazgos_), avisos=sum(h["nivel"] == "aviso" for h in hallazgos_),
-        errores_nuevos=sum(h["nivel"] == "error" and not h.get("enLineaBase") for h in hallazgos_) if (origen and origen[0] == "repo") else 0,   # «nuevo» solo existe con la línea base del repo
-        catalogo=_catalogo()[1], datos=dto.DatosDiccionario(origen=origen[0] if origen else "ninguno", generado=origen[1] if origen else None),
+        catalogo=_catalogo()[1], datos=dto.DatosDiccionario(generado=puertos().lector.origen()),
         bases=[dto.BaseResumen(base=n, procedimientos=b["sp"], extraidos=b["ext"], validados=b["val"], tablas=len(b["tablas"])) for n, b in sorted(bases.items())],
     )
 
@@ -77,7 +75,7 @@ def hallazgos() -> list[dto.Hallazgo]:
 def _fila(r: dict, sp: dict | None) -> dto.ReporteFila:
     return dto.ReporteFila(
         codigo=r["codigo"], descripcion=r.get("descripcion") or "", procedimiento=r.get("procedimiento") or "", base=sp["base"] if sp else "",
-        estado=sp["estado"] if sp else ("sin extraer" if r.get("procedimiento") else "sin procedimiento"), parametros=len(r.get("parametros") or []), tablas=len(sp.get("tablas") or []) if sp else 0, front=r.get("front") or [])
+        estado=sp["estado"] if sp else ("sin extraer" if r.get("procedimiento") else "sin procedimiento"), parametros=len(r.get("parametros") or []), tablas=len(sp.get("tablas") or []) if sp else 0)
 
 
 def _procedimientos_por_base(d: dict) -> dict[str, list[dto.ProcedimientoFila]]:

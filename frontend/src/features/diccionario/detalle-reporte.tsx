@@ -12,7 +12,7 @@ import { useConsulta } from "@/hooks/use-consulta";
 import { api } from "@/lib/api";
 import { EnlaceTabla, EstadoSP } from "./comun";
 
-/** Un reporte del MIS al detalle: su procedimiento, parámetros, tablas con las columnas que usa, pantallas del front y hallazgos. */
+/** Un reporte del MIS al detalle: su procedimiento, parámetros, tablas con las columnas que usa y hallazgos. */
 export function DetalleReporteDic({ codigo }: { codigo: string }) {
   const { datos: r, error, recargar } = useConsulta(`dic/reporte/${codigo}`, () => api.dic.reporte(codigo));
   const sp = r?.procedimiento_detalle;
@@ -50,14 +50,11 @@ export function DetalleReporteDic({ codigo }: { codigo: string }) {
                 </div>
               </Tarjeta>
             ))}
-            <Tarjeta titulo="Pantallas del front" descripcion="Dónde se ve este reporte en MIS-angular-front.">
-              {r.front.length ? <ul className="list-disc pl-5 text-sm">{r.front.map((f) => <li key={f}>{f}</li>)}</ul> : <p className="text-sm text-muted-foreground">Ninguna pantalla lo pide.</p>}
-            </Tarjeta>
             {r.hallazgos.length > 0 && (
               <Tarjeta titulo="Hallazgos" descripcion="Lo que la verificación encontró en este procedimiento o en este reporte.">
                 <ul className="flex flex-col gap-2 text-sm">
                   {r.hallazgos.map((h, i) => (
-                    <li key={i} className="flex flex-wrap items-center gap-2"><Chip tono={h.nivel === "error" ? "peligro" : "aviso"}>{h.nivel}</Chip><span>{h.regla}</span><span className="font-mono text-[12px] text-muted-foreground">{h.objeto}</span><span className="text-muted-foreground">{h.detalle}</span></li>
+                    <li key={i} className="flex flex-wrap items-center gap-2"><Chip tono={h.nivel === "error" ? "peligro" : h.nivel === "info" ? "info" : "aviso"}>{h.nivel}</Chip><span>{h.regla}</span><span className="font-mono text-[12px] text-muted-foreground">{h.objeto}</span><span className="text-muted-foreground">{h.detalle}</span></li>
                   ))}
                 </ul>
               </Tarjeta>

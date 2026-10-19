@@ -1,10 +1,7 @@
-"""Lanza los procesos del repo DICCIONARIO como subproceso (sin shell), uno a la vez, y deja su estado y log en data/outputs/diccionario/."""
+"""Lanza los procesos del diccionario dentro de la API, uno a la vez, y deja su estado y log en data/outputs/diccionario/."""
 
 from __future__ import annotations
 
-import os
-import shutil
-import subprocess
 import threading
 import uuid
 from collections.abc import Callable
@@ -18,8 +15,6 @@ from modulos.diccionario.aplicacion import dto
 DIR = DIR_OUTPUTS / "diccionario"
 MAX_LOG = 500_000
 MAX_FICHAS = 50
-# Lo único que npm y node necesitan: el repo DICCIONARIO es otro código y no debe ver las claves de esta API (SMTP, bases, Google).
-_ENTORNO_MINIMO = ("PATH", "PATHEXT", "SYSTEMROOT", "COMSPEC", "TEMP", "TMP", "USERPROFILE", "APPDATA", "LOCALAPPDATA", "HOME")  # en mayúsculas: Windows no distingue y Python las entrega así; node no arranca sin SYSTEMROOT
 _activos: set[str] = set()
 _candado = threading.Lock()
 _lanzar = threading.Lock()
@@ -78,15 +73,6 @@ def _terminar(x: dto.Ejecucion, correr: Callable[[], int]) -> None:
         _activos.discard(x.id)
 
 
-def _comando(x: dto.Ejecucion, comando: tuple[str, ...], carpeta: Path) -> int:
-    exe = shutil.which(comando[0])
-    with _ruta(x.id, "log").open("w", encoding="utf-8") as log:
-        if exe is None:
-            log.write(f"✗ No encuentro «{comando[0]}»: instálalo y vuelve a abrir la API.\n")
-            return 127
-        return subprocess.run([exe, *comando[1:]], cwd=carpeta, stdout=log, stderr=subprocess.STDOUT, env={k: v for k, v in os.environ.items() if k.upper() in _ENTORNO_MINIMO}).returncode
-
-
 def _tarea(x: dto.Ejecucion, tarea: Callable[[Callable[[str], None]], int]) -> int:
     """Corre una tarea propia de la API; lo que emite va al log al instante (la pantalla lo ve mientras corre)."""
     candado, abierto = threading.Lock(), [True]
@@ -116,10 +102,6 @@ def _arrancar(proceso: str, correr: Callable[[dto.Ejecucion], int]) -> dto.Ejecu
     y = x.model_copy()
     threading.Thread(target=_terminar, args=(y, lambda: correr(y)), daemon=True, name=f"diccionario-{x.id}").start()
     return x
-
-
-def ejecutar(proceso: str, comando: tuple[str, ...], carpeta: Path) -> dto.Ejecucion:
-    return _arrancar(proceso, lambda x: _comando(x, comando, carpeta))
 
 
 def ejecutar_tarea(proceso: str, tarea: Callable[[Callable[[str], None]], int]) -> dto.Ejecucion:

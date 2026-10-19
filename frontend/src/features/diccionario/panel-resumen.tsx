@@ -4,7 +4,7 @@ import { BookOpen } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
-import { Aviso, Chip, ErrorEnLinea, EsqueletoFilas } from "@/components/estados";
+import { Aviso, ErrorEnLinea, EsqueletoFilas } from "@/components/estados";
 import { Grafico, type Colores } from "@/components/grafico";
 import { Hace } from "@/components/hace";
 import { Marco } from "@/components/marco";
@@ -119,16 +119,16 @@ function Cobertura({ p }: { p: DicPotencial }) {
   );
 }
 
-/** De dónde salen las tablas y columnas; sin diccionario todavía, cómo generarlo (no hace falta el repo DICCIONARIO). */
+/** Cuándo se generó el diccionario; si todavía no hay, cómo generarlo. */
 function Datos({ d }: { d: DicDatos }) {
-  if (d.origen === "ninguno") {
+  if (!d.generado) {
     return (
       <Aviso tono="info">
-        <span>Todavía no hay detalle de tablas ni columnas: solo se ve el catálogo de reportes. <Link href="/diccionario/procesos/construir" className="font-medium underline">Genéralo desde la base</Link> (no necesita el repo DICCIONARIO).</span>
+        <span>Todavía no hay detalle de tablas ni columnas: solo se ve el catálogo de reportes. <Link href="/diccionario/procesos/construir" className="font-medium underline">Genéralo desde la base</Link>.</span>
       </Aviso>
     );
   }
-  return <p className="text-xs text-muted-foreground">Tablas y columnas: {d.origen === "bd" ? "generadas desde la base" : "del diccionario.json del repo DICCIONARIO"}{d.generado ? <>, <Hace iso={d.generado} /></> : ""}.</p>;
+  return <p className="text-xs text-muted-foreground">Tablas y columnas generadas desde la base, <Hace iso={d.generado} />.</p>;
 }
 
 /** De dónde sale el catálogo de reportes y en qué se aparta del diccionario guardado (lo nuevo en la base y lo que ya no está). */
@@ -162,7 +162,7 @@ export function PanelResumen() {
             <Tarjeta titulo="Avance de la documentación" descripcion={`${r.validados} de ${r.procedimientos} procedimientos validados`}>
               <Avance bases={r.bases} />
             </Tarjeta>
-            <Tarjeta titulo="Calidad" descripcion={<>{r.errores} errores y {r.avisos} avisos {r.errores_nuevos > 0 && <Chip tono="peligro">{r.errores_nuevos} nuevos</Chip>}</>}>
+            <Tarjeta titulo="Calidad" descripcion={<>{r.errores} errores y {r.avisos} avisos</>}>
               {hallazgos.error ? <ErrorEnLinea titulo="No se pudo cargar la calidad" detalle={hallazgos.error} onReintentar={hallazgos.recargar} />
                 : hallazgos.datos ? <Calidad hallazgos={hallazgos.datos} /> : <EsqueletoFilas filas={3} />}
             </Tarjeta>

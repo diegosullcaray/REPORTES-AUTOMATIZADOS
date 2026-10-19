@@ -1,4 +1,4 @@
-"""Diccionario de datos: consultas sobre un diccionario.json mínimo (no lee el repo DICCIONARIO real) y su cruce con el registro de tablas."""
+"""Diccionario de datos: consultas sobre un diccionario mínimo y su cruce con el registro de tablas."""
 
 from types import SimpleNamespace
 
@@ -12,8 +12,8 @@ from modulos.reportes.dominio.tablas import Tabla
 SP = "mod_rep.com.SP1"
 DICCIONARIO = {
     "reportes": [
-        {"codigo": "R1", "descripcion": "Uno", "procedimiento": SP, "parametros": ["fecha"], "front": ["reportes / mensual"]},
-        {"codigo": "R2", "descripcion": "Dos", "procedimiento": "x.y.NOEXISTE", "parametros": [], "front": []},
+        {"codigo": "R1", "descripcion": "Uno", "procedimiento": SP, "parametros": ["fecha"]},
+        {"codigo": "R2", "descripcion": "Dos", "procedimiento": "x.y.NOEXISTE", "parametros": []},
     ],
     "procedimientos": [{
         "nombre": SP, "base": "mod_rep", "estado": "validado", "reportes": ["R1"], "invoca": [], "resultados": [["*"]],
@@ -29,8 +29,8 @@ DICCIONARIO = {
         {"nombre": "zz.dbo.Fantasma", "base": "zz", "tipo": None, "existe": False, "descripcion": None, "ficha": None, "columnas": []},
     ],
     "hallazgos": [
-        {"nivel": "error", "regla": "tabla-inexistente", "origen": "produccion", "objeto": SP, "detalle": "la usa R1", "enLineaBase": False},
-        {"nivel": "aviso", "regla": "sql-dinamico", "origen": "analisis", "objeto": "otro.sp", "detalle": "", "enLineaBase": True},
+        {"nivel": "error", "regla": "tabla-inexistente", "origen": "produccion", "objeto": SP, "detalle": "la usa R1"},
+        {"nivel": "aviso", "regla": "sql-dinamico", "origen": "analisis", "objeto": "otro.sp", "detalle": ""},
     ],
 }
 REGISTRO = {
@@ -45,7 +45,7 @@ def _sin_base():
 
 @pytest.fixture(autouse=True)
 def dic(monkeypatch):
-    lector = SimpleNamespace(leer=lambda: DICCIONARIO, carpeta=lambda: "carpeta", origen=lambda: ("repo", "2026-10-18T10:00:00"))
+    lector = SimpleNamespace(leer=lambda: DICCIONARIO, origen=lambda: "2026-10-18T10:00:00")
     puertos.registrar(Puertos(lector=lector, lanzador=SimpleNamespace(), catalogo=SimpleNamespace(leer=_sin_base, FUENTE="mod_rep.rep.RREGREP01"), generador=SimpleNamespace()))
     monkeypatch.setattr(diccionario, "TABLAS", REGISTRO)
     monkeypatch.setattr(diccionario, "USO", {"mi-reporte": ("storage.com_act.hdgp001",)})
@@ -56,7 +56,7 @@ def dic(monkeypatch):
 def test_resumen_cuenta_lo_que_hay():
     r = diccionario.resumen()
     assert (r.reportes, r.procedimientos, r.validados, r.tablas, r.columnas) == (2, 1, 1, 3, 3)
-    assert (r.errores, r.avisos, r.errores_nuevos) == (1, 1, 1)
+    assert (r.errores, r.avisos) == (1, 1) and r.datos.generado == "2026-10-18T10:00:00"
     assert [(b.base, b.tablas) for b in r.bases] == [("mod_rep", 1)]
 
 
@@ -140,8 +140,8 @@ def test_el_catalogo_sale_de_la_base_y_se_cruza_con_el_json():
     r = diccionario.resumen()
     assert (r.reportes, r.catalogo.fuente, r.catalogo.nuevos, r.catalogo.retirados) == (2, "mod_rep.rep.RREGREP01", ["R3"], ["R2"])
     d = diccionario.reporte("R1")
-    assert (d.descripcion, d.front) == ("Uno en la base", ["reportes / mensual"])   # la descripción manda la base; las pantallas, el diccionario
-    assert diccionario.reporte("R3").front == [] and diccionario.reporte("R3").estado == "sin extraer"   # aún sin extraer
+    assert d.descripcion == "Uno en la base"   # la descripción manda la base
+    assert diccionario.reporte("R3").estado == "sin extraer"   # aún sin extraer
     with pytest.raises(NoEncontrado):
         diccionario.reporte("R2")
     assert {p.nombre for p in diccionario.base("mod_rep").procedimientos} == {SP, "mod_rep.com.SP3"}
@@ -153,11 +153,11 @@ def test_sin_diccionario_guardado_igual_funciona_con_solo_el_catalogo():
     def sin_archivo():
         raise _Sin("Todavía no hay diccionario")
 
-    puertos().lector = SimpleNamespace(leer=sin_archivo, carpeta=lambda: "c", origen=lambda: None)
+    puertos().lector = SimpleNamespace(leer=sin_archivo, origen=lambda: None)
     puertos().catalogo = SimpleNamespace(leer=lambda: [{"codigo": "R9", "descripcion": "Nuevo", "procedimiento": "mod_rep.com.SP9", "parametros": []}], FUENTE="mod_rep.rep.RREGREP01")
     r = diccionario.resumen()
-    assert (r.datos.origen, r.datos.generado, r.reportes, r.catalogo.fuente) == ("ninguno", None, 1, "mod_rep.rep.RREGREP01")
-    assert (r.tablas, r.errores, r.errores_nuevos) == (0, 0, 0)
+    assert (r.datos.generado, r.reportes, r.catalogo.fuente) == (None, 1, "mod_rep.rep.RREGREP01")
+    assert (r.tablas, r.errores) == (0, 0) and r.catalogo.nuevos == []     # sin diccionario guardado nada es «nuevo»
     assert [(b.base, b.procedimientos, b.reportes) for b in diccionario.bases()] == [("mod_rep", 1, 1)]
     assert diccionario.base("mod_rep").procedimientos[0].estado == "sin extraer"        # existe en el catálogo; falta generar el detalle
 
@@ -168,14 +168,6 @@ def test_sin_diccionario_y_sin_catalogo_dice_que_hacer():
 
         raise _Sin("x")
 
-    puertos().lector = SimpleNamespace(leer=sin_archivo, carpeta=lambda: "c", origen=lambda: None)
+    puertos().lector = SimpleNamespace(leer=sin_archivo, origen=lambda: None)
     with pytest.raises(NoEncontrado, match="No hay diccionario guardado y no pude leer el catálogo"):
         diccionario.resumen()
-
-
-def test_el_origen_del_diccionario_se_informa():
-    r = diccionario.resumen()
-    assert (r.datos.origen, r.datos.generado) == ("repo", "2026-10-18T10:00:00") and r.errores_nuevos == 1      # «nuevos» solo con la línea base del repo
-    puertos().lector = SimpleNamespace(leer=lambda: DICCIONARIO, carpeta=lambda: "c", origen=lambda: ("bd", "2026-10-18T11:00:00"))
-    r = diccionario.resumen()
-    assert r.datos.origen == "bd" and r.errores_nuevos == 0

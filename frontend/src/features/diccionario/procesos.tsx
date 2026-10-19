@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronRight, Database, FlaskConical, Hammer, Play, RefreshCw, ShieldCheck, type LucideIcon } from "lucide-react";
+import { ChevronRight, Database, Hammer, Play, type LucideIcon } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { Chip, ErrorEnLinea, EsqueletoFilas, Punto } from "@/components/estados";
@@ -14,7 +14,7 @@ import { api } from "@/lib/api";
 import { ESTADO, LogEjecucion, TablaEjecuciones } from "./ejecuciones";
 
 type Pestana = "procesos" | "historial";
-export const ICONO_PROCESO: Record<string, LucideIcon> = { construir: Hammer, generar: RefreshCw, verificar: ShieldCheck, test: FlaskConical, bases: Database };
+export const ICONO_PROCESO: Record<string, LucideIcon> = { construir: Hammer, bases: Database };
 
 /** Procesos del diccionario: una tarjeta por proceso (entra a su detalle) y el historial de todos en otra pestaña. */
 export function PanelProcesos() {
@@ -30,7 +30,7 @@ export function PanelProcesos() {
 
   return (
     <Pagina>
-      <Marco icono={<Play />} titulo="Procesos" descripcion="Mantén el diccionario al día sin abrir una consola. Entra a uno para ejecutarlo y ver sus ejecuciones, su script y lo que genera.">
+      <Marco icono={<Play />} titulo="Procesos" descripcion="Mantén el diccionario al día sin abrir una consola. Entra a uno para ejecutarlo y ver sus ejecuciones y su script.">
         <Tabs value={tab} onValueChange={(v) => irA(v as Pestana)}>
           <TabsList>
             <TabsTrigger value="procesos">Procesos</TabsTrigger>

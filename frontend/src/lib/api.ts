@@ -1,7 +1,7 @@
 // Transporte: única puerta hacia la API de Python (proxy /api en next.config.ts). Sin estado ni presentación.
 import type {
   Archivo, ConfigIA, Etiqueta, GrupoReportes, ConfiguracionGeneral, ModelosIA, PedidoIA, DestinosChat, EntradaValidacion, FirmaGmail, PedidoEnvioArchivos, Ejecucion, EjecucionDetalle, EstadoEnvio, PedidoEjecucion, Notificaciones, Perfil, PedidoConfiguracion, PedidoCuenta, PedidoNotificaciones, PruebaNotificacion, ReporteDetalle, PedidoReporteNuevo, ReporteCreado, ReporteResumen, Script,
-  DicBaseDetalle, DicBaseFila, DicEjecucion, DicEjecucionDetalle, DicHallazgo, DicPotencial, DicProceso, DicProcesoDetalle, DicVistaArchivo, DicReporteDetalle, DicResumen, DicTablaDetalle,
+  DicBaseDetalle, DicBaseFila, DicEjecucion, DicEjecucionDetalle, DicHallazgo, DicPotencial, DicProceso, DicProcesoDetalle, DicReporteDetalle, DicResumen, DicTablaDetalle,
   GoogleMcp, PedidoGoogleMcp, PruebaMcp, Sesion, Solicitud, Verificacion, VerificacionGrupo, VistaPrevia,
 } from "./tipos";
 
@@ -117,7 +117,6 @@ export const api = {
     tabla: (nombre: string) => pedir<DicTablaDetalle>(`/diccionario/tablas/${encodeURIComponent(nombre)}`),
     procesos: () => pedir<DicProceso[]>("/diccionario/procesos"),
     proceso: (id: string) => pedir<DicProcesoDetalle>(`/diccionario/procesos/${encodeURIComponent(id)}`),
-    archivoProceso: (id: string, ruta: string) => pedir<DicVistaArchivo>(`/diccionario/procesos/${encodeURIComponent(id)}/archivo?ruta=${encodeURIComponent(ruta)}`),
     ejecutar: (id: string) => pedir<DicEjecucion>(`/diccionario/procesos/${encodeURIComponent(id)}/ejecutar`, { method: "POST" }),
     ejecuciones: (proceso?: string) => pedir<DicEjecucion[]>(`/diccionario/ejecuciones${proceso ? `?proceso=${encodeURIComponent(proceso)}` : ""}`),
     ejecucion: (id: string) => pedir<DicEjecucionDetalle>(`/diccionario/ejecuciones/${encodeURIComponent(id)}`),

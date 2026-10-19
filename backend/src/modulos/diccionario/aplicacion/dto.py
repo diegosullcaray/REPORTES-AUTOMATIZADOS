@@ -11,7 +11,6 @@ class Hallazgo(BaseModel):
     origen: str
     objeto: str
     detalle: str
-    en_linea_base: bool
 
 
 class BaseResumen(BaseModel):
@@ -32,10 +31,9 @@ class OrigenCatalogo(BaseModel):
 
 
 class DatosDiccionario(BaseModel):
-    """De dónde salen las tablas y columnas: generadas desde la base, del repo DICCIONARIO o todavía de ninguna."""
+    """Cuándo se generó el diccionario guardado (None: todavía no hay)."""
 
-    origen: str                   # bd | repo | ninguno
-    generado: str | None          # fecha de modificación del archivo
+    generado: str | None
 
 
 class Resumen(BaseModel):
@@ -47,7 +45,6 @@ class Resumen(BaseModel):
     columnas: int
     errores: int
     avisos: int
-    errores_nuevos: int
     catalogo: OrigenCatalogo
     datos: DatosDiccionario
     bases: list[BaseResumen]
@@ -61,7 +58,6 @@ class ReporteFila(BaseModel):
     estado: str                   # del procedimiento: validado | extraido | pendiente | sin procedimiento
     parametros: int
     tablas: int
-    front: list[str]
 
 
 class BaseFila(BaseModel):
@@ -204,7 +200,6 @@ class ProcesoDef(BaseModel):
     descripcion: str
     comando: str
     escribe: str
-    genera: bool                  # deja archivos que se pueden ver
 
 
 class ScriptArchivo(BaseModel):
@@ -212,24 +207,8 @@ class ScriptArchivo(BaseModel):
     codigo: str
 
 
-class ArchivoProceso(BaseModel):
-    """Un archivo que el proceso deja en el repo DICCIONARIO."""
-
-    ruta: str                     # relativa a la carpeta del repo, con «/»
-    tamano: int
-    modificado: str
-    tipo: str                     # texto (se puede ver) | otro
-
-
-class VistaArchivo(BaseModel):
-    ruta: str
-    texto: str
-    recortado: bool
-
-
 class ProcesoDetalle(ProcesoDef):
     scripts: list[ScriptArchivo]
-    archivos: list[ArchivoProceso]
 
 
 class Ejecucion(BaseModel):

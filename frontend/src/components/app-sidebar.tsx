@@ -60,7 +60,7 @@ function MenuValidacion({ ruta }: { ruta: string }) {
   );
 }
 
-/** Módulo Diccionario: el diccionario de datos de los reportes MIS (repo DICCIONARIO). */
+/** Módulo Diccionario: el diccionario de datos de los reportes MIS (generado desde SQL Server). */
 const DICCIONARIO = [
   { ruta: "/diccionario", texto: "Resumen", icono: BookOpen },
   { ruta: "/diccionario/reportes", texto: "Reportes del MIS", icono: FileText },

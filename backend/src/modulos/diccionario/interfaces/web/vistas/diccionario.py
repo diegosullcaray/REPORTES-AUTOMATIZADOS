@@ -54,11 +54,6 @@ class ProcesoDetalle(View):
         return h.json(procesos.detalle(id_))
 
 
-class ProcesoArchivo(View):
-    def get(self, request: HttpRequest, id_: str) -> HttpResponse:
-        return h.json(procesos.archivo(id_, request.GET.get("ruta", "")))
-
-
 class ProcesoEjecutar(View):
     def post(self, request: HttpRequest, id_: str) -> HttpResponse:
         return h.json(procesos.ejecutar(id_), status=202)

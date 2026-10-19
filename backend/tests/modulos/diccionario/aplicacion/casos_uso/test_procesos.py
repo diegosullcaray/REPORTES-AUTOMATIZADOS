@@ -1,4 +1,4 @@
-"""Procesos del repo DICCIONARIO y validación de las bases: solo los de la lista, su detalle y su historial."""
+"""Procesos del diccionario y validación de las bases: solo los de la lista, su detalle y su historial."""
 
 import threading
 import time
@@ -13,7 +13,6 @@ from core.servidores import BASES_DE
 from modulos.diccionario.aplicacion import dto
 from modulos.diccionario.aplicacion.casos_uso import procesos
 from modulos.diccionario.aplicacion.puertos import Puertos, puertos
-from modulos.diccionario.dominio.columnas import PROCESOS
 
 
 def _x(id_, proceso, estado="ok"):
@@ -22,47 +21,21 @@ def _x(id_, proceso, estado="ok"):
 
 class Lanzador:
     def __init__(self):
-        self.lanzados, self.tareas = [], []
-
-    def ejecutar(self, proceso, comando, carpeta):
-        self.lanzados.append((proceso, comando, carpeta))
-        return _x("abc", proceso, "ejecutando")
+        self.tareas = []
 
     def ejecutar_tarea(self, proceso, tarea):
         self.tareas.append((proceso, tarea))
         return _x("tarea", proceso, "ejecutando")
 
     def historial(self, limite=30):
-        return [_x("1", "generar"), _x("2", "bases"), _x("3", "generar")]
-
-
-class Lector:
-    def __init__(self, repo=True):
-        self.repo = repo
-
-    def carpeta(self):
-        return "carpeta"
-
-    def repo_disponible(self):
-        return self.repo
-
-    def script_npm(self, nombre):
-        return [dto.ScriptArchivo(ruta=f"package.json › scripts.{nombre}", codigo="node a.mjs")]
-
-    def archivos(self, patrones):
-        return [dto.ArchivoProceso(ruta="diccionario/reportes.md", tamano=10, modificado="2026-10-18T10:00:00", tipo="texto")]
-
-    def texto(self, ruta, patrones):
-        if ruta not in {a.ruta for a in self.archivos(patrones)}:
-            raise NoEncontrado("no")
-        return dto.VistaArchivo(ruta=ruta, texto="# hola", recortado=False)
+        return [_x("1", "construir"), _x("2", "bases"), _x("3", "construir")]
 
 
 @pytest.fixture
 def lanzador():
     x = Lanzador()
     generador = SimpleNamespace(scripts=lambda: [dto.ScriptArchivo(ruta="SQL · dependencias", codigo="SELECT dep")])
-    puertos.registrar(Puertos(lector=Lector(), lanzador=x, catalogo=SimpleNamespace(CONSULTA="SELECT RCODREP FROM rep.RREGREP01"), generador=generador))
+    puertos.registrar(Puertos(lector=SimpleNamespace(), lanzador=x, catalogo=SimpleNamespace(CONSULTA="SELECT RCODREP FROM rep.RREGREP01"), generador=generador))
     yield x
     puertos.registrar(None)
 
@@ -70,31 +43,15 @@ def lanzador():
 def test_solo_lanza_procesos_de_la_lista(lanzador):
     with pytest.raises(NoEncontrado):
         procesos.ejecutar("rm -rf")
-    assert procesos.ejecutar("verificar").id == "abc"
-    assert lanzador.lanzados == [("verificar", PROCESOS["verificar"].comando, "carpeta")]
+    assert procesos.ejecutar("bases").id == "tarea" and lanzador.tareas[0][0] == "bases"
 
 
-def test_el_catalogo_trae_los_procesos_y_cuales_dejan_archivos():
-    assert {p.id: p.genera for p in procesos.catalogo()} == {"construir": False, "generar": True, "verificar": False, "test": False, "bases": False}
-
-
-def test_detalle_con_su_script_y_sus_archivos(lanzador):
-    d = procesos.detalle("generar")
-    assert [s.ruta for s in d.scripts] == ["package.json › scripts.generar"] and [a.ruta for a in d.archivos] == ["diccionario/reportes.md"]
-    assert procesos.detalle("verificar").archivos == []                  # no deja archivos: nada que listar
-    with pytest.raises(NoEncontrado):
-        procesos.detalle("inventado")
-
-
-def test_solo_se_ve_un_archivo_que_el_proceso_genera(lanzador):
-    assert procesos.archivo("generar", "diccionario/reportes.md").texto == "# hola"
-    for ruta in ("../.env", "package.json", ""):
-        with pytest.raises(NoEncontrado):
-            procesos.archivo("generar", ruta)
+def test_el_catalogo_trae_los_procesos_propios():
+    assert [p.id for p in procesos.catalogo()] == ["construir", "bases"]
 
 
 def test_el_historial_se_filtra_por_proceso(lanzador):
-    assert [x.id for x in procesos.historial("generar")] == ["1", "3"]
+    assert [x.id for x in procesos.historial("construir")] == ["1", "3"]
     assert len(procesos.historial()) == 3
 
 
@@ -166,16 +123,6 @@ def test_un_error_raro_en_un_servidor_se_ve_como_error_no_como_sin_respuesta(lan
     log = "".join(emitido)
     assert codigo == 1 and "✗ mish (srv-mish): error inesperado (KeyError)" in log and "sin respuesta" not in log
     assert time.monotonic() - t < procesos.LIMITE   # no espera el tope completo
-
-
-def test_sin_el_repo_solo_quedan_los_procesos_que_corren_dentro_de_la_api(lanzador):
-    puertos().lector.repo = False
-    assert [p.id for p in procesos.catalogo()] == ["construir", "bases"]
-    for id_ in ("generar", "verificar", "test"):
-        with pytest.raises(NoEncontrado, match="necesita el repo"):
-            procesos.detalle(id_)
-        with pytest.raises(NoEncontrado, match="necesita el repo"):
-            procesos.ejecutar(id_)
 
 
 def test_construir_corre_dentro_de_la_api_y_su_script_muestra_las_consultas(lanzador):

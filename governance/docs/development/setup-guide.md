@@ -18,7 +18,7 @@ Para entrar a la web define también `WEB_USUARIO` y `WEB_CLAVE` en `backend/.en
 
 ### Opcional: el Diccionario
 
-Para el módulo [Diccionario](./runbooks/diccionario.md): clona el repo `DICCIONARIO` **junto a este** (o define `DICCIONARIO_DIR` en `backend/.env`) y ten `node`/`npm` en el `PATH` si vas a lanzar sus procesos desde la web.
+Para el módulo [Diccionario](./runbooks/diccionario.md) no hace falta nada más: se genera desde la base desde la web (Procesos).
 
 ## Frontend (web)
 

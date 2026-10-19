@@ -1,13 +1,13 @@
 # Diccionario — cómo usarlo y mantenerlo al día
 
-Decisión y alcance: [ADR-0017](../../architecture/adr/ADR-0017-modulo-diccionario.md). Contrato del archivo que lee: [diccionario de datos](../../data/diccionario.md).
+Decisión y alcance: [ADR-0017](../../architecture/adr/ADR-0017-modulo-diccionario.md). Contrato del archivo: [diccionario de datos](../../data/diccionario.md).
 
 ## Antes de empezar
 
-El **catálogo de reportes** se lee en vivo de `mod_rep.rep.RREGREP01` (hace falta red/VPN al servidor `mish`; si no hay, el Resumen avisa «No pude leer…» y usa el diccionario ya guardado). Procedimientos, tablas y columnas salen del diccionario guardado: el **generado desde la base** o, si lo hay, el del repo `DICCIONARIO`.
+No hace falta ningún otro repo ni `node`. Necesitas red/VPN a los servidores (`mish`, y los demás de las bases que usan los reportes) y que la cuenta del `.env` pueda leer `mod_rep.rep.RREGREP01` y los metadatos y el código de los procedimientos de las bases (`VIEW DEFINITION`).
 
-1. **No hace falta ningún repo**: abre Procesos › «Generar el diccionario desde la base» (con VPN a `mish` y los demás servidores) y se genera solo. Si además dejas el repo `DICCIONARIO` **junto a este** (o `DICCIONARIO_DIR` en `backend/.env`), aparecen sus procesos de `npm` y se usa su `diccionario.json` cuando es el más reciente.
-2. Para los procesos de `npm` (solo con el repo): `node` y `npm` en el `PATH` de quien arranca la API (Node 20+). Si falta, el log del proceso dice «No encuentro npm».
+1. Abre **Diccionario › Procesos › «Generar el diccionario desde la base»** y pulsa Generar (hasta un par de minutos). Se guarda en `data/outputs/diccionario/generado/diccionario.json`.
+2. Mientras no lo generes, la web muestra solo el catálogo de reportes (se lee en vivo de `mod_rep.rep.RREGREP01`) y un aviso para generarlo.
 
 ## Las pantallas (menú lateral › Diccionario)
 
@@ -15,30 +15,30 @@ El **catálogo de reportes** se lee en vivo de `mod_rep.rep.RREGREP01` (hace fal
 |---|---|
 | **Resumen** (`/diccionario`) | Tres gráficos: *avance de la documentación* por base (validados · extraídos · pendientes), *calidad* (errores y avisos por regla) y *lo que aporta a tus reportes*: cuántas de tus tablas tienen ficha, las columnas de fecha por confirmar y las tablas que más reportes del MIS leen y los tuyos no (pulsa una barra para abrirla). Cada gráfico trae «Ver como tabla» |
 | **Reportes del MIS** (`/diccionario/reportes`) | Una tarjeta por base de datos. Al entrar (`?base=`): pestaña **Procedimientos** (con los reportes que los ejecutan) y pestaña **Tablas** que ocupa (las que guarda y las que sus procedimientos leen de otras bases; filtro «viven en esta base» / «de otras») |
-| Detalle de un reporte | Procedimiento, parámetros, tablas con las columnas que usa (las de fecha resaltadas), pantallas del front y hallazgos |
+| Detalle de un reporte | Procedimiento, parámetros, tablas con las columnas que usa (las de fecha resaltadas) y hallazgos |
 | Detalle de una tabla | Columnas, qué reportes del MIS la leen y **cómo la registran tus reportes** (`tablas.py`: tipo, columna de fecha, confianza) |
 | **Procesos** (`/diccionario/procesos`) | Dos pestañas (`?tab=`): **Procesos** (una tarjeta por proceso, con su última ejecución; entra a uno para verlo al detalle) e **Historial** (todas las ejecuciones, con su log en vivo) |
-| Detalle de un proceso (`/diccionario/procesos/<id>`) | Pestañas **General** (qué hace, ejecutar con confirmación, última salida), **Ejecuciones** (las de ese proceso), **Script** (su código) y **Archivos** (lo que genera: se abren los `.md` y `.json`) |
+| Detalle de un proceso (`/diccionario/procesos/<id>`) | Pestañas **General** (qué hace, ejecutar con confirmación, última salida), **Ejecuciones** (las de ese proceso), y **Script** (las consultas y el código que ejecuta) |
 
 ## Los procesos
 
-| Proceso | Comando (en el repo `DICCIONARIO`) | Qué toca | Cuándo |
+| Proceso | Qué hace | Qué toca | Cuándo |
 |---|---|---|---|
-| Generar el diccionario desde la base | consultas de solo lectura a `mod_rep.rep.RREGREP01` y a las bases (dentro de la API; hasta un par de minutos) | `data/outputs/diccionario/generado/diccionario.json` | la primera vez, o cuando cambien procedimientos o tablas; no necesita el repo |
-| Regenerar el diccionario (repo) | `npm run generar` | reescribe `diccionario/`, `errores/`, `extraccion/sql/` y `.claude/` | después de cambiar la fuente (`extraccion/fuente/`, procedimientos extraídos) |
-| Verificar la calidad | `npm run verificar` | nada | antes de commitear allá; falla ante errores nuevos o algo roto |
-| Probar el analizador T-SQL | `npm test` | nada | tras tocar el analizador |
-| Validar las bases de datos | dentro de la API: a cada servidor del `.env` (mish, slc, rcc), a la vez, `@@SERVERNAME`/usuario/versión y el estado de cada base de `sys.databases` | nada | antes de regenerar o cuando algo no conecta; reemplaza a la antigua página Configuración › Bases de datos (retirada el 2026-10-18) |
+| Generar el diccionario desde la base | consultas de solo lectura a `mod_rep.rep.RREGREP01` y a las bases (dentro de la API; hasta un par de minutos) | `data/outputs/diccionario/generado/diccionario.json` | la primera vez, o cuando cambien procedimientos, tablas o reportes |
+| Validar las bases de datos | a cada servidor del `.env` (mish, slc, rcc), a la vez, `@@SERVERNAME`/usuario/versión y el estado de cada base de `sys.databases` | nada | antes de generar o cuando algo no conecta; reemplaza a la antigua página Configuración › Bases de datos |
 
-Solo se corre uno a la vez; el botón se deshabilita y, si dos peticiones llegan juntas, la segunda recibe «Ya hay un proceso del diccionario en curso». Después de `generar`, el Resumen se actualiza solo (la API relee el archivo cuando cambia su fecha). **Revisa el `git diff` de `DICCIONARIO` después de `generar`.**
+Solo se corre uno a la vez; el botón se deshabilita y, si dos peticiones llegan juntas, la segunda recibe «Ya hay un proceso del diccionario en curso». Al terminar «Generar», las pantallas muestran lo nuevo en la siguiente consulta (la API relee el archivo cuando cambia su fecha).
 
-La **extracción desde SQL Server** (`python extraccion/herramientas/bd.py …`) no se lanza desde la web: se hace en una consola, siguiendo la guía de ese repo.
+### Cómo se lee el log de «Generar»
+
+`▶` inicia un paso y `✓` lo termina (entre ellos «Analizando el código de N procedimientos»); `✗ base: …` es una base que no contestó (se sigue con las demás) y `AVISO` una base cuya estructura o cuyo código no se pudo leer (el diccionario sale igual, con lo que dice el motor). Si una base dice «rechazó el inicio de sesión», la cuenta del `.env` no tiene acceso a esa base: pídelo al administrador del servidor; sus procedimientos quedan «pendiente». Si ninguna contesta no se guarda nada.
 
 ## Qué hacer con lo que muestra
 
 - **Fecha por confirmar** (Resumen › lo que aporta): abre la tabla, mira la columna candidata y confírmala en `src/modulos/reportes/dominio/tablas.py` (`confianza` → `confirmada`); luego `python governance/scripts/generar_inventario.py`.
 - **Tablas que el MIS usa y tú no**: candidatas para un reporte nuevo; su detalle trae las fechas disponibles para el corte.
-- **Errores «nuevos»** de calidad: son del repo `DICCIONARIO` (SP o tablas que cambiaron en producción); se corrigen allá (su carpeta `errores/` dice dónde), no aquí.
+- **Calidad del código**: `parametros-de-mas`/`parametros-faltantes` (el catálogo envía distinta cantidad de parámetros que declara el SP: el reporte falla al ejecutarse), `columna-inexistente` (el código usa una columna que la tabla real no tiene), `sql-dinamico` (hay tablas que nadie ve: revisar a mano), `columna-sin-resolver` (columna sin calificar con varias tablas posibles) y las de nivel `info` (orientativas).
+- **Errores de calidad**: `sp-inexistente` y `tabla-inexistente` pueden ser reales o un permiso que falta (la cuenta no los ve); `objeto-no-resuelto` es un aviso: el motor no pudo decir qué es (otra base, sinónimo).
 
 ### Cómo se lee «Validar las bases de datos»
 
@@ -48,8 +48,6 @@ El log se va escribiendo mientras corre (cada servidor aparece al terminar, hast
 
 | Síntoma | Causa | Qué hacer |
 |---|---|---|
-| Aviso «No pude leer `mod_rep.rep.RREGREP01`» | sin VPN o sin permiso de lectura sobre `rep.RREGREP01` | conectar la VPN y recargar (la falla se recuerda 60 s); mientras tanto se usa el `diccionario.json` |
-| «N reportes están en la base y aún no en el diccionario» | alguien dio de alta un RCODREP nuevo | extraer su SP y regenerar en el repo `DICCIONARIO` (su guía) |
-| El proceso termina con código 134 y `Assertion failed: ncrypto::CSPRNG` | `node` no arranca en Windows sin `SYSTEMROOT` | ya cubierto: el lanzador la conserva (en mayúsculas). Si reaparece, revisa `_ENTORNO_MINIMO` de `infraestructura/lanzador.py` |
-| `Verificar` termina «Con error» | el repo `DICCIONARIO` tiene enlaces rotos (p. ej. `modificaciones/nueva tarea/variables.md`) | corregir esos enlaces en ese repo; no es un fallo de esta app |
+| Aviso «No pude leer `mod_rep.rep.RREGREP01`» | sin VPN o sin permiso de lectura sobre `rep.RREGREP01` | conectar la VPN y recargar (la falla se recuerda 60 s); mientras tanto se usa el diccionario guardado |
+| «N reportes están en la base y aún no en el diccionario» | alguien dio de alta un RCODREP nuevo | ejecutar «Generar el diccionario desde la base» |
 | El Resumen dice «Todavía no hay detalle de tablas ni columnas» | aún no se generó el diccionario | Procesos › Generar el diccionario desde la base |

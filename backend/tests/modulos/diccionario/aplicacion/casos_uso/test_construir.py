@@ -17,8 +17,8 @@ DEP = {"sp_base": "mod_rep", "sp_esquema": "com", "sp_nombre": "SP1", "ref_servi
 
 
 class Generador:
-    def __init__(self, caidas=()):
-        self.caidas, self.estructuras = set(caidas), []
+    def __init__(self, caidas=(), sin_codigo=()):
+        self.caidas, self.sin_codigo, self.estructuras = set(caidas), set(sin_codigo), []
 
     def dependencias(self, base, sps):
         if base in self.caidas:
@@ -27,6 +27,11 @@ class Generador:
 
     def parametros(self, base):
         return []
+
+    def cuerpos(self, base, sps):
+        if base in self.sin_codigo:
+            raise OSError("sin permiso")
+        return [{"esquema": "com", "nombre": "SP1", "definicion": "CREATE PROCEDURE com.SP1 AS SELECT h.HFECPRO, h.NO_EXISTE FROM storage.com_act.HDGP001 h"}] if base == "mod_rep" else []
 
     def estructura(self, base, tablas):
         self.estructuras.append((base, tablas))
@@ -81,3 +86,19 @@ def test_sin_catalogo_no_se_guarda_nada_y_dice_por_que():
     log = []
     assert construir.construir(log.append) == 1
     assert guardado == [] and "✗ No pude leer el catálogo" in "".join(log) and "VPN" in "".join(log)
+
+
+def test_analiza_el_codigo_de_los_sp_y_lo_suma_al_diccionario():
+    guardado = _registrar(Generador())
+    log = []
+    assert construir.construir(log.append) == 0
+    assert "▶ Analizando el código de 1 procedimientos" in "".join(log)
+    assert ("columna-inexistente", "storage.com_act.HDGP001.NO_EXISTE") in {(h["regla"], h["objeto"]) for h in guardado[0]["hallazgos"]}
+
+
+def test_sin_permiso_para_leer_el_codigo_el_diccionario_sale_igual_y_lo_avisa():
+    guardado = _registrar(Generador(sin_codigo={"mod_rep"}))
+    log = []
+    assert construir.construir(log.append) == 0
+    assert "AVISO mod_rep: no pude leer el código" in "".join(log) and len(guardado) == 1
+
